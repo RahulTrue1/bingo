@@ -27,7 +27,7 @@ function Icon({ children }: { children: ReactNode }) {
 function Logo({ dark = false }: { dark?: boolean }) {
   return (
     <div className={`logo ${dark ? "logo-dark" : ""}`}>
-      <span className="logo-mark"><i /><i /><i /><i /></span>
+      <img className="logo-mark" src="/logo.svg" alt="" aria-hidden="true" />
       <span><b>TRUEIGTECH</b> BINGO</span>
     </div>
   );
@@ -223,14 +223,36 @@ function HeroCarousel({ rooms, enterRoom, setView }: { rooms: BingoRoomData[]; e
   </section>;
 }
 
+function patternCells(name: string, rows: number, columns: number, ballCount: number): number[] {
+  if (ballCount === 90) return name.includes("Two") ? Array.from({ length: 18 }, (_, index) => index) : name.includes("Full") ? Array.from({ length: 27 }, (_, index) => index) : Array.from({ length: 9 }, (_, index) => index);
+  if (ballCount === 30 || name.includes("Full") || name.includes("Blackout")) return Array.from({ length: rows * columns }, (_, index) => index);
+  if (name.includes("Four")) return [0, columns - 1, (rows - 1) * columns, rows * columns - 1];
+  if (name.includes("Diamond")) return rows === 5 ? [2, 6, 8, 10, 12, 14, 16, 18, 22] : [1, 4, 7, 10, 13];
+  if (name.includes("X")) return Array.from({ length: rows }, (_, i) => [i * columns + i, i * columns + (columns - 1 - i)]).flat();
+  if (name.includes("Cross")) return Array.from({ length: rows }, (_, i) => [Math.floor(rows / 2) * columns + i, i * columns + Math.floor(columns / 2)]).flat();
+  if (name.includes("Two")) return Array.from({ length: columns * 2 }, (_, index) => index);
+  return Array.from({ length: columns }, (_, index) => index);
+}
+
 function RoomCard({ room, onEnter, favorite, toggleFavorite }: { room: BingoRoomData; onEnter: () => void; favorite: boolean; toggleFavorite: () => void }) {
+  // Prefer the room's most distinctive stage: a coverall fills all 25 cells, so
+  // leading with it would render half the lobby as identical solid blocks.
+  const stageNames = room.winningStages?.map((stage) => stage.name) ?? [];
+  const headlinePattern = [...stageNames].reverse().find((name) => !/full house|blackout|coverall/i.test(name)) ?? stageNames.at(-1) ?? room.pattern;
+  const orbCells = patternCells(headlinePattern, 5, 5, 75);
   return (
     <article className={`room-card accent-${room.accent}`}>
       <div className="room-card-top">
         <span className="room-tag">{room.tag}</span>
         <button className={`favorite-button ${favorite ? "active" : ""}`} onClick={toggleFavorite} aria-label={favorite ? "Remove from favorites" : "Add to favorites"}>♥</button>
       </div>
-      <div className="room-orb"><span>{room.variant.split("-")[0]}</span><i /><i /></div>
+      <div className="room-orb">
+        <span>
+          <span className="room-orb-pattern" role="img" aria-label={`${headlinePattern} winning pattern`}>
+            {Array.from({ length: 25 }, (_, index) => <i className={orbCells.includes(index) ? "marked" : ""} key={index} />)}
+          </span>
+        </span>
+      </div>
       <div className="room-main">
         <StatusPill status={room.status} />
         <h3>{room.name}</h3>
@@ -294,15 +316,7 @@ function GameRoom({ room, wallet, setWallet, goBack, notify }: { room: BingoRoom
   }), [ballCount]);
 
   const ballLabel = (value: number) => ballCount === 75 ? BingoEngine.label(value) : `${value}`;
-  const targetCells = (name: string) => {
-    if (ballCount === 90) return name.includes("Two") ? Array.from({ length: 18 }, (_, index) => index) : name.includes("Full") ? Array.from({ length: 27 }, (_, index) => index) : Array.from({ length: 9 }, (_, index) => index);
-    if (ballCount === 30 || name.includes("Full") || name.includes("Blackout")) return Array.from({ length: rows * columns }, (_, index) => index);
-    if (name.includes("Four")) return [0, columns - 1, (rows - 1) * columns, rows * columns - 1];
-    if (name.includes("Diamond")) return rows === 5 ? [2, 6, 8, 10, 12, 14, 16, 18, 22] : [1, 4, 7, 10, 13];
-    if (name.includes("X")) return Array.from({ length: rows }, (_, i) => [i * columns + i, i * columns + (columns - 1 - i)]).flat();
-    if (name.includes("Cross")) return Array.from({ length: rows }, (_, i) => [Math.floor(rows / 2) * columns + i, i * columns + Math.floor(columns / 2)]).flat();
-    return Array.from({ length: columns }, (_, index) => index);
-  };
+  const targetCells = (name: string) => patternCells(name, rows, columns, ballCount);
 
   useEffect(() => {
     if (phase !== "countdown") return;
