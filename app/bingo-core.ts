@@ -57,15 +57,35 @@ export function make75Card(seed = 1): BingoCardCell[] {
   return card;
 }
 
+// Deterministic per-seed PRNG (xorshift32) so a given card always regenerates
+// identically across renders.
+function seededRandom(seed: number): () => number {
+  let state = Math.abs(Math.trunc(seed)) * 2654435761 % 4294967296 || 1;
+  return () => {
+    state ^= state << 13; state >>>= 0;
+    state ^= state >>> 17;
+    state ^= state << 5; state >>>= 0;
+    return state / 4294967296;
+  };
+}
+
+// Draws rows*columns distinct numbers by shuffling the full ball pool.
+//
+// The previous version stepped an LCG -- (cursor * 17 + 11) % ballCount -- and
+// looped `while (values.size < total)`. That generator's cycle is far shorter
+// than the card for some moduli: with ballCount 30 it only ever yields 2-4
+// distinct numbers, so a 3x3 (9 cell) card could never fill and the loop spun
+// forever, freezing the tab the moment Turbo 30 was opened. Taking a slice of a
+// shuffled pool is bounded by construction and always terminates.
 export function makeGridCard(rows: number, columns: number, ballCount: number, seed = 1): BingoCardCell[] {
-  const total = rows * columns;
-  const values = new Set<number>();
-  let cursor = seed * 13 + 7;
-  while (values.size < total) {
-    cursor = (cursor * 17 + 11) % ballCount;
-    values.add(cursor + 1);
+  const total = Math.min(rows * columns, ballCount);
+  const pool = Array.from({ length: ballCount }, (_, index) => index + 1);
+  const random = seededRandom(seed);
+  for (let index = pool.length - 1; index > 0; index -= 1) {
+    const swap = Math.floor(random() * (index + 1));
+    [pool[index], pool[swap]] = [pool[swap], pool[index]];
   }
-  return Array.from(values).map((value, index) => ({ value, column: String(index % columns) }));
+  return pool.slice(0, total).map((value, index) => ({ value, column: String(index % columns) }));
 }
 
 export function make90Ticket(seed = 1): Array<number | null> {

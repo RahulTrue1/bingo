@@ -411,7 +411,9 @@ function GameRoom({ room, wallet, setWallet, goBack, notify }: { room: BingoRoom
     setSelectedCards((cards) => cards.includes(index) ? cards.filter((item) => item !== index) : cards.length < 8 ? [...cards, index] : cards);
     setActiveCard(index);
   };
-  const visibleCards = (phase === "selling" ? Array.from({ length: 8 }, (_, index) => index) : selectedCards).sort((a, b) => sortDirection === "asc" ? a - b : b - a);
+  // Copy before sorting: .sort() mutates in place, and sorting `selectedCards`
+  // directly rewrites state during render.
+  const visibleCards = [...(phase === "selling" ? Array.from({ length: 8 }, (_, index) => index) : selectedCards)].sort((a, b) => sortDirection === "asc" ? a - b : b - a);
 
   return <div className="game-page">
     <div className="game-topbar"><button className="back-button" onClick={goBack}>← <span>Trueigtech Lobby</span></button><div className="game-room-title"><span className={`mini-orb accent-${room.accent}`}>{ballCount}</span><div><h1>{room.name}</h1><p>{room.variant} · Game TRUEIG-{2842 + patternRound}</p></div><StatusPill status={phase === "live" ? "Live" : phase === "selling" ? "Selling Tickets" : "Starting Soon"} /></div><div className="game-top-actions"><span><small>{room.jackpot ? "Jackpot" : "Prize pool"}</small><b>{money(room.jackpot ? liveJackpot : room.prize)}</b></span><span><small>Players</small><b>{livePlayers}</b></span><button onClick={() => setVoiceOn(!voiceOn)} aria-label="Voice caller">{voiceOn ? "◖" : "×"}</button><button onClick={() => setPaused(!paused)} aria-label="Pause or resume">{paused ? "▶" : "Ⅱ"}</button><button aria-label="Full screen">⛶</button></div></div>
