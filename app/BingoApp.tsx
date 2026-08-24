@@ -41,8 +41,8 @@ function Toast({ message }: { message: string }) {
   return message ? <div className="toast"><span>✓</span>{message}</div> : null;
 }
 
-export default function Home() {
-  const [mode, setMode] = useState<AppMode>("player");
+export default function Home({ initialMode = "player" }: { initialMode?: AppMode }) {
+  const [mode, setMode] = useState<AppMode>(initialMode);
   const [rooms, setRooms] = useState(demoRooms);
   const [playerView, setPlayerView] = useState<PlayerView>("lobby");
   const [activeRoomId, setActiveRoomId] = useState("diamond-75");
@@ -68,7 +68,6 @@ export default function Home() {
           <PlayerHeader
             view={playerView}
             setView={setPlayerView}
-            setMode={setMode}
             wallet={wallet}
           />
           {playerView === "lobby" && <PlayerLobby rooms={rooms} enterRoom={enterRoom} setView={setPlayerView} />}
@@ -97,7 +96,7 @@ export default function Home() {
   );
 }
 
-function PlayerHeader({ view, setView, setMode, wallet }: { view: PlayerView; setView: (view: PlayerView) => void; setMode: (mode: AppMode) => void; wallet: number }) {
+function PlayerHeader({ view, setView, wallet }: { view: PlayerView; setView: (view: PlayerView) => void; wallet: number }) {
   const links: Array<[PlayerView, string]> = [["lobby", "Lobby"], ["tickets", "Tickets"], ["jackpots", "Jackpots"], ["tournaments", "Tournaments"], ["promotions", "Promotions"], ["history", "History"]];
   return (
     <header className="player-header">
@@ -106,8 +105,6 @@ function PlayerHeader({ view, setView, setMode, wallet }: { view: PlayerView; se
         {links.map(([key, label]) => <button key={key} className={view === key ? "active" : ""} onClick={() => setView(key)}>{label}</button>)}
       </nav>
       <div className="header-actions">
-        <button className="outline-button support-button"><Icon>?</Icon> Support</button>
-        <button className="mode-link" onClick={() => setMode("admin")} aria-label="Open Trueigtech Backoffice"><Icon>⌘</Icon><span>Backoffice</span></button>
         <div className="wallet"><small>WALLET</small><strong>{money(wallet)}</strong><button aria-label="Add funds">+</button></div>
         <button className="avatar-button" aria-label="Open profile" onClick={() => setView("profile")}><span>AR</span><i /></button>
       </div>
@@ -650,7 +647,7 @@ function PlayerHubPage({ type, rooms, enterRoom }: { type: "tickets" | "jackpots
 }
 
 const adminNav = [
-  ["dashboard", "Dashboard", "⌂"], ["rooms", "Bingo rooms", "▦"], ["gamebuilder", "Games", "◫"], ["scheduler", "Scheduler", "□"], ["games", "Live control", "●"], ["variants", "Bingo variants", "⬡"], ["cards", "Bingo cards", "▤"], ["patterns", "Winning patterns", "◇"], ["caller", "Number caller", "◉"], ["prizes", "Prize management", "$"], ["jackpots", "Jackpots", "✦"], ["tournaments", "Tournaments", "♜"], ["players", "Players", "♙"], ["transactions", "Transactions", "⇄"], ["promotions", "Promotions", "%"], ["chat", "Chat moderation", "◌"], ["reports", "Reports", "↗"], ["history", "Game history", "↺"], ["roles", "Roles & permissions", "⌘"], ["audit", "Audit logs", "≡"], ["settings", "System settings", "⚙"],
+  ["dashboard", "Dashboard", "⌂"], ["rooms", "Bingo rooms", "▦"], ["gamebuilder", "Games", "◫"], ["scheduler", "Scheduler", "□"], ["games", "Live control", "●"], ["variants", "Bingo variants", "⬡"],  ["patterns", "Winning patterns", "◇"], ["caller", "Number caller", "◉"], ["prizes", "Prize management", "$"], ["jackpots", "Jackpots", "✦"], ["tournaments", "Tournaments", "♜"], ["players", "Players", "♙"], ["transactions", "Transactions", "⇄"], ["promotions", "Promotions", "%"], ["chat", "Chat moderation", "◌"], ["reports", "Reports", "↗"], ["history", "Game history", "↺"], ["roles", "Roles & permissions", "⌘"], ["audit", "Audit logs", "≡"], ["settings", "System settings", "⚙"],
 ];
 
 type AdminAction = { kind: string; room?: BingoRoomData; label?: string };
@@ -669,7 +666,7 @@ function AdminExperience({ rooms, setRooms, setMode, notify }: { rooms: BingoRoo
         <div className="sidebar-user"><span>JD</span><div><b>John Dawson</b><small>Super Admin</small></div><button>•••</button></div>
       </aside>
       <section className="admin-main">
-        <header className="admin-header"><div><button className="mobile-menu" onClick={() => setSidebarOpen(true)}>☰</button><span>Trueigtech Operations /</span><b>{currentLabel}</b></div><div className="admin-header-actions"><button className="environment"><i /> Demo live</button><button className="notification" onClick={() => setAction({kind:"notifications"})}>♢<i>4</i></button><button className="view-player" onClick={() => setMode("player")}>View player site ↗</button></div></header>
+        <header className="admin-header"><div><button className="mobile-menu" onClick={() => setSidebarOpen(true)}>☰</button><span>Trueigtech Operations /</span><b>{currentLabel}</b></div></header>
         <div className="admin-content">
           <div className="admin-page-title"><div><span className="section-kicker">TRUEIGTECH BINGO OPERATIONS</span><h1>{currentLabel}</h1><p>{adminSubtitle(module)}</p></div><div className="admin-title-actions"><button className="outline-button" onClick={() => notify(`${currentLabel} data exported to CSV.`)}>↓ Export</button>{primaryActions[module] && <button className="admin-primary" onClick={() => setAction({kind:primaryActions[module][1]})}>{primaryActions[module][0]}</button>}</div></div>
           <AdminModule module={module} rooms={rooms} setRooms={setRooms} notify={notify} openAction={(next) => setAction(next)} />
@@ -726,14 +723,39 @@ function RoomManagement({ rooms, setRooms, openAction, notify }: { rooms: BingoR
 }
 
 function LiveControl({ notify, openAction }: { notify: (message: string) => void; openAction: (action: AdminAction) => void }) {
-  const [state,setState]=useState<"live"|"paused"|"stopped"|"cancelled">("live");
-  const [ball,setBall]=useState(28);
-  const [speed,setSpeed]=useState("Fast · 1.2 sec");
-  const [claim,setClaim]=useState<"pending"|"approved"|"rejected">("pending");
-  const [refunded,setRefunded]=useState(false);
-  const nextBall=()=>{const next=BingoEngine.nextNumber(Array.from({length:ball},(_,i)=>i+1))??ball;setBall(next);notify(`${BingoEngine.label(next)} called manually.`)};
-  const changeState=(next:typeof state,message:string)=>{setState(next);notify(message)};
-  return <div className="control-grid"><section className="admin-card control-stage"><div className="control-stage-head"><div><span className={`status ${state==="live"?"status-live":"status-starting-soon"}`}><i/>{state}</span><h2>Diamond 75 · TRUEIG-2842</h2><p>Stage 2 of 3 · One Line · Game continues after win</p></div><div><select value={speed} onChange={event=>{setSpeed(event.target.value);notify(`Calling speed changed to ${event.target.value}.`)}}><option>Slow · 3.2 sec</option><option>Normal · 2.1 sec</option><option>Fast · 1.2 sec</option><option>Turbo · 0.6 sec</option></select><button className="danger-button" onClick={()=>changeState("stopped","Game stopped. State preserved for operator review.")}>Stop game</button></div></div><div className="operator-caller"><div className={state!=="live"?"paused":""}><small>CURRENT BALL</small><strong>{BingoEngine.label(ball)}</strong><span>{state==="live"?`Next call in ${speed.split(" · ")[1]}`:state.toUpperCase()}</span></div><div className="operator-stats"><span><small>BALLS CALLED</small><b>{ball} / 75</b></span><span><small>PLAYERS</small><b>300</b></span><span><small>CARDS SOLD</small><b>934</b></span><span><small>REVENUE</small><b>$1,868</b></span><span><small>PRIZE POOL</small><b>$2,000</b></span><span><small>ACTIVE STAGE</small><b>One Line</b></span></div></div><div className="operator-controls"><button className={state==="paused"?"resume":""} onClick={()=>state==="paused"?changeState("live","Automatic calling resumed."):changeState("paused","Number caller paused.")}>{state==="paused"?"▶ Resume":"Ⅱ Pause game"}</button><button onClick={nextBall}>Call next ball →</button><button onClick={()=>openAction({kind:"manual-call"})}>Manual call</button><button onClick={()=>{setBall(1);setState("live");setClaim("pending");notify("Round restarted from Ball 1.")}}>Restart game</button><button onClick={()=>changeState("cancelled","Round cancelled. Refund review opened.")}>Cancel round</button><button onClick={()=>openAction({kind:"declare-winner"})}>Declare winner</button><button onClick={()=>{setRefunded(true);notify("934 card purchases queued for refund.")}}>{refunded?"✓ Refund queued":"Refund players"}</button></div><div className="operator-board">{Array.from({length:75},(_,index)=>index+1).map(number=><span className={number<=ball?"called":""} key={number}>{number}</span>)}</div></section><aside className="admin-card claim-review"><div className="card-title"><div><h2>Bingo claims</h2><p>1 requires review · Stage 2</p></div><span className="nav-badge">1</span></div><div className={`claim-card claim-${claim}`}><div><span className="claim-player">LS</span><div><b>LuckyStar</b><small>Card #284237 · just now</small></div><span className={`table-status ${claim==="approved"?"success":claim==="rejected"?"danger":"warning"}`}>{claim}</span></div><div className="claim-pattern"><div className="mini-pattern">{Array.from({length:25},(_,index)=><i className={index<5?"marked":""} key={index}/>)}</div><span><small>PATTERN</small><b>One Line</b><small>5 of 5 cells called</small></span></div>{claim==="pending"?<div className="claim-actions"><button onClick={()=>{setClaim("rejected");notify("Bingo rejected and player notified.")}}>Reject Bingo</button><button onClick={()=>{setClaim("approved");notify("Winner validated. $400 payout queued; game continues.")}}>✓ Validate winner</button></div>:<button className="full-outline" onClick={()=>setClaim("pending")}>Reopen claim</button>}</div><div className="live-audit"><h3>Live audit trail</h3>{[["14:32:10","Ball B-12 called"],["14:32:08","LuckyStar claim received"],["14:31:54",`Speed set to ${speed}`],["14:31:40","MikaK bought 2 cards"]].map(row=><p key={row[0]}><time>{row[0]}</time><span>{row[1]}</span></p>)}</div></aside></div>;
+  const liveGames = [
+    { id: "TRUEIG-2842", name: "Diamond 75", controller: "Nora Tran", state: "live", ball: 28, players: 300, cardsSold: 934, revenue: "$1,868", prize: "$2,000", stage: "One Line" },
+    { id: "TRUEIG-3011", name: "Turbo 30", controller: "Evan Wu", state: "paused", ball: 11, players: 184, cardsSold: 412, revenue: "$680", prize: "$300", stage: "Final Line" },
+    { id: "TRUEIG-3197", name: "Quick 80", controller: "Mika K", state: "live", ball: 52, players: 136, cardsSold: 310, revenue: "$750", prize: "$750", stage: "Four Corners" },
+  ];
+  const [selectedGameId, setSelectedGameId] = useState(liveGames[0].id);
+  const selectedGame = liveGames.find((game) => game.id === selectedGameId) ?? liveGames[0];
+  const [state, setState] = useState<"live" | "paused" | "stopped" | "cancelled">(selectedGame.state as "live" | "paused" | "stopped" | "cancelled");
+  const [ball, setBall] = useState(selectedGame.ball);
+  const [speed, setSpeed] = useState("Fast · 1.2 sec");
+  const [claim, setClaim] = useState<"pending" | "approved" | "rejected">("pending");
+  const [refunded, setRefunded] = useState(false);
+
+  const nextBall = () => {
+    const next = BingoEngine.nextNumber(Array.from({ length: ball }, (_, index) => index + 1)) ?? ball;
+    setBall(next);
+    notify(`${BingoEngine.label(next)} called manually.`);
+  };
+
+  const changeState = (next: typeof state, message: string) => {
+    setState(next);
+    notify(message);
+  };
+
+  const selectGame = (gameId: string) => {
+    const picked = liveGames.find((game) => game.id === gameId) ?? liveGames[0];
+    setSelectedGameId(gameId);
+    setBall(picked.ball);
+    setState(picked.state as "live" | "paused" | "stopped" | "cancelled");
+    notify(`${picked.name} selected in live control. Controller: ${picked.controller}.`);
+  };
+
+  return <div className="control-grid"><section className="admin-card control-stage"><div className="live-control-overview"><div className="card-title"><div><h2>Live game control</h2><p>{liveGames.length} games currently live</p></div></div><div className="live-game-list">{liveGames.map((game) => <button type="button" key={game.id} className={`live-game-item ${selectedGameId === game.id ? "active" : ""}`} onClick={() => selectGame(game.id)}><span className="live-game-item-name">{game.name}</span><small>{game.controller}</small><strong>{game.state.toUpperCase()}</strong></button>)}</div></div><div className="control-stage-head"><div><span className={`status ${state === "live" ? "status-live" : "status-starting-soon"}`}><i />{state}</span><h2>{selectedGame.name} · {selectedGame.id}</h2><p>Controller: {selectedGame.controller} · Stage 2 of 3 · {selectedGame.stage} · Game continues after win</p></div><div><select value={speed} onChange={(event) => { setSpeed(event.target.value); notify(`Calling speed changed to ${event.target.value}.`); }}><option>Slow · 3.2 sec</option><option>Normal · 2.1 sec</option><option>Fast · 1.2 sec</option><option>Turbo · 0.6 sec</option></select><button className="danger-button" onClick={() => changeState("stopped", "Game stopped. State preserved for operator review.")}>Stop game</button></div></div><div className="operator-caller"><div className={state !== "live" ? "paused" : ""}><small>CURRENT BALL</small><strong>{BingoEngine.label(ball)}</strong><span>{state === "live" ? `Next call in ${speed.split(" · ")[1]}` : state.toUpperCase()}</span></div><div className="operator-stats"><span><small>BALLS CALLED</small><b>{ball} / 75</b></span><span><small>PLAYERS</small><b>{selectedGame.players}</b></span><span><small>CARDS SOLD</small><b>{selectedGame.cardsSold}</b></span><span><small>REVENUE</small><b>{selectedGame.revenue}</b></span><span><small>PRIZE POOL</small><b>{selectedGame.prize}</b></span><span><small>ACTIVE STAGE</small><b>{selectedGame.stage}</b></span></div></div><div className="operator-controls"><button className={state === "paused" ? "resume" : ""} onClick={() => state === "paused" ? changeState("live", "Automatic calling resumed.") : changeState("paused", "Number caller paused.")}>{state === "paused" ? "▶ Resume" : "Ⅱ Pause game"}</button><button onClick={nextBall}>Call next ball →</button><button onClick={() => openAction({ kind: "manual-call" })}>Manual call</button><button onClick={() => { setBall(1); setState("live"); setClaim("pending"); notify("Round restarted from Ball 1."); }}>Restart game</button><button onClick={() => changeState("cancelled", "Round cancelled. Refund review opened.")}>Cancel round</button><button onClick={() => openAction({ kind: "declare-winner" })}>Declare winner</button></div><div className="operator-board">{Array.from({ length: 75 }, (_, index) => index + 1).map((number) => <span className={number <= ball ? "called" : ""} key={number}>{number}</span>)}</div></section><aside className="admin-card claim-review"><div className="card-title"><div><h2>Bingo claims</h2><p>1 requires review</p></div><span className="nav-badge">1</span></div><div className={`claim-card claim-${claim}`}><div><span className="claim-player">AR</span><div><b>Ari.R</b><small>Card #284201 · just now</small></div><span className={`table-status ${claim === "approved" ? "success" : claim === "rejected" ? "danger" : "warning"}`}>{claim === "approved" ? "Approved" : claim === "rejected" ? "Rejected" : "Pending"}</span></div><div className="claim-pattern"><div className="mini-pattern pattern-5">{[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25].map((index) => <i className={index === 6 || index === 7 || index === 8 || index === 11 || index === 12 || index === 13 || index === 16 || index === 17 || index === 18 ? "active" : ""} key={index} />)}</div><span><b>One Line</b><small>Across center row</small></span></div><div className="claim-actions"><button onClick={() => { setClaim("rejected"); notify("Claim rejected after validation review."); }}>Reject Bingo</button><button onClick={() => { setClaim("approved"); notify("Winner validated and prize locked."); }}>Validate winner</button></div></div><div className="player-list"><div className="card-title"><div><h2>Recent payouts</h2><p>Last reviewed</p></div></div>{[["LuckyStar","$400","14:24"],["MikaK","$250","14:17"],["Ari.R","$1,250","14:09"]].map((entry) => <div key={entry[0]}><span>{entry[0].slice(0,2).toUpperCase()}</span><div><b>{entry[0]}</b><small>{entry[2]}</small></div><strong>{entry[1]}</strong></div>)}</div></aside></div>;
 }
 
 function LegacyLiveControl({ notify, openAction }: { notify: (message: string) => void; openAction: (action: AdminAction) => void }) {

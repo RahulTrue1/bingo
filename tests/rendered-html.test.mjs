@@ -89,3 +89,16 @@ test("keeps the loading skeleton scoped and disposable", async () => {
     access(new URL("public/_sites-preview", templateRoot)),
   );
 });
+
+test("keeps the backoffice route and compact live-control layout in place", async () => {
+  const [appSource, styleSource, backofficePage] = await Promise.all([
+    readFile(new URL("../app/BingoApp.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/globals.css", import.meta.url), "utf8"),
+    readFile(new URL("../app/backoffice/page.tsx", import.meta.url), "utf8"),
+  ]);
+
+  assert.match(appSource, /Live game control/);
+  assert.match(appSource, /liveGames/);
+  assert.match(styleSource, /grid-template-columns:\s*repeat\(3,\s*minmax\(/);
+  assert.match(backofficePage, /initialMode="admin"/);
+});
