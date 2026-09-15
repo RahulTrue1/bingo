@@ -1,5 +1,7 @@
 export type BingoStatus = "Live" | "Selling Tickets" | "Starting Soon" | "Open" | "Scheduled";
 
+export type RtpMode = "dynamic" | "fixed";
+
 export type BingoRoomData = {
   id: string;
   name: string;
@@ -23,19 +25,22 @@ export type BingoRoomData = {
   callDelay?: number;
   vipOnly?: boolean;
   progressiveBallLimit?: number;
+  rtp?: number;
+  rtpMode?: RtpMode;
+  customRtp?: boolean;
 };
 
 export const demoRooms: BingoRoomData[] = [
-  { id: "trueig-90", name: "Trueig 90 Classic", variant: "90-Ball Classic", status: "Starting Soon", ticketPrice: 0.5, prize: 1500, players: 192, maxPlayers: 300, cardsSold: 682, startsIn: "00:46", pattern: "1 Line → 2 Lines → Full House", accent: "teal", featured: true, tag: "CLASSIC", frequency: "Every 10 min", cardRows: 3, cardColumns: 9, callDelay: 1350, winningStages: [{ name: "One Line", prize: 50, continueAfterWin: true }, { name: "Two Lines", prize: 150, continueAfterWin: true }, { name: "Full House", prize: 500, continueAfterWin: false }] },
-  { id: "turbo-30", name: "Turbo 30", variant: "30-Ball Speed", status: "Live", ticketPrice: 1, prize: 300, players: 84, maxPlayers: 150, cardsSold: 256, startsIn: "LIVE · Ball 11", pattern: "3 × 3 Coverall", accent: "coral", featured: true, tag: "SPEED", frequency: "Every 2 min", cardRows: 3, cardColumns: 3, callDelay: 650, winningStages: [{ name: "Speed Full House", prize: 300, continueAfterWin: false }] },
-  { id: "diamond-75", name: "Diamond 75", variant: "75-Ball Pattern", status: "Live", ticketPrice: 2, prize: 2000, players: 286, maxPlayers: 400, cardsSold: 934, startsIn: "LIVE · Ball 28", pattern: "Diamond", accent: "violet", featured: true, tag: "PATTERN", frequency: "Every 5 min", cardRows: 5, cardColumns: 5, callDelay: 1200, winningStages: [{ name: "Four Corners", prize: 200, continueAfterWin: true }, { name: "One Line", prize: 400, continueAfterWin: true }, { name: "Diamond", prize: 1400, continueAfterWin: false }] },
-  { id: "mega-jackpot", name: "Mega Trueig Jackpot", variant: "75-Ball Progressive", status: "Selling Tickets", ticketPrice: 5, prize: 5000, jackpot: 125480, players: 348, maxPlayers: 500, cardsSold: 1248, startsIn: "02:18", pattern: "Full House ≤ 42 balls", accent: "gold", featured: true, tag: "JACKPOT", frequency: "Every 15 min", cardRows: 5, cardColumns: 5, callDelay: 1050, progressiveBallLimit: 42, winningStages: [{ name: "One Line", prize: 250, continueAfterWin: true }, { name: "Full House", prize: 5000, continueAfterWin: false }] },
-  { id: "quick-80", name: "Quick 80", variant: "80-Ball Grid", status: "Selling Tickets", ticketPrice: 1, prize: 750, players: 136, maxPlayers: 250, cardsSold: 504, startsIn: "05:10", pattern: "Single Line → Full House", accent: "pink", tag: "80-BALL", frequency: "Every 8 min", cardRows: 4, cardColumns: 4, callDelay: 950, winningStages: [{ name: "Single Line", prize: 150, continueAfterWin: true }, { name: "Four Corners", prize: 200, continueAfterWin: true }, { name: "Full House", prize: 400, continueAfterWin: false }] },
-  { id: "pattern-arena", name: "Trueig Pattern Arena", variant: "75-Ball Pattern Series", status: "Open", ticketPrice: 1.5, prize: 1200, players: 168, maxPlayers: 300, cardsSold: 472, startsIn: "03:24", pattern: "Round 1 · X Pattern", accent: "violet", tag: "5 ROUNDS", frequency: "Every 12 min", cardRows: 5, cardColumns: 5, callDelay: 1100, winningStages: [{ name: "X Pattern", prize: 1200, continueAfterWin: false }] },
-  { id: "free-party", name: "Free Bingo Party", variant: "75-Ball Community", status: "Open", ticketPrice: 0, prize: 100, players: 118, maxPlayers: 500, cardsSold: 438, startsIn: "08:32", pattern: "Four Corners", accent: "blue", tag: "FREE", frequency: "Every hour", cardRows: 5, cardColumns: 5, callDelay: 1300, winningStages: [{ name: "Four Corners", prize: 100, continueAfterWin: false }] },
-  { id: "midnight-90", name: "Midnight Bingo", variant: "90-Ball After Dark", status: "Scheduled", ticketPrice: 2, prize: 5000, players: 224, maxPlayers: 400, cardsSold: 752, startsIn: "23:00", pattern: "1 Line → 2 Lines → Full House", accent: "blue", tag: "NIGHT", frequency: "Nightly", cardRows: 3, cardColumns: 9, callDelay: 1150, winningStages: [{ name: "One Line", prize: 500, continueAfterWin: true }, { name: "Two Lines", prize: 1000, continueAfterWin: true }, { name: "Full House", prize: 3500, continueAfterWin: false }] },
-  { id: "vip-gold", name: "VIP Gold Room", variant: "75-Ball VIP", status: "Scheduled", ticketPrice: 10, prize: 20000, players: 42, maxPlayers: 80, cardsSold: 126, startsIn: "21:00", pattern: "X Pattern → Blackout", accent: "gold", tag: "VIP", frequency: "Daily", cardRows: 5, cardColumns: 5, callDelay: 1450, vipOnly: true, winningStages: [{ name: "X Pattern", prize: 5000, continueAfterWin: true }, { name: "Blackout", prize: 15000, continueAfterWin: false }] },
-  { id: "tournament", name: "Trueigtech Weekend Cup", variant: "Tournament · 5 Rounds", status: "Open", ticketPrice: 8, prize: 25000, players: 384, maxPlayers: 512, cardsSold: 768, startsIn: "FRI · 20:00", pattern: "Points Series", accent: "violet", tag: "TOURNAMENT", frequency: "Weekly", cardRows: 5, cardColumns: 5, callDelay: 900 },
+  { id: "trueig-90", name: "Trueig 90 Classic", variant: "90-Ball Classic", status: "Starting Soon", ticketPrice: 0.5, prize: 265, players: 192, maxPlayers: 300, cardsSold: 682, startsIn: "00:46", pattern: "1 Line → 2 Lines → Full House", accent: "teal", featured: true, tag: "CLASSIC", frequency: "Every 10 min", cardRows: 3, cardColumns: 9, callDelay: 1350, rtp: 80, rtpMode: "dynamic", winningStages: [{ name: "One Line", prize: 50, continueAfterWin: true }, { name: "Two Lines", prize: 80, continueAfterWin: true }, { name: "Full House", prize: 135, continueAfterWin: false }] },
+  { id: "turbo-30", name: "Turbo 30", variant: "30-Ball Speed", status: "Live", ticketPrice: 1, prize: 218, players: 84, maxPlayers: 150, cardsSold: 256, startsIn: "LIVE · Ball 11", pattern: "3 × 3 Coverall", accent: "coral", featured: true, tag: "SPEED", frequency: "Every 2 min", cardRows: 3, cardColumns: 3, callDelay: 650, rtp: 85, rtpMode: "dynamic", winningStages: [{ name: "Speed Full House", prize: 218, continueAfterWin: false }] },
+  { id: "diamond-75", name: "Diamond 75", variant: "75-Ball Pattern", status: "Live", ticketPrice: 2, prize: 1500, players: 286, maxPlayers: 400, cardsSold: 934, startsIn: "LIVE · Ball 28", pattern: "Diamond", accent: "violet", featured: true, tag: "PATTERN", frequency: "Every 5 min", cardRows: 5, cardColumns: 5, callDelay: 1200, rtp: 80, rtpMode: "fixed", winningStages: [{ name: "Four Corners", prize: 150, continueAfterWin: true }, { name: "One Line", prize: 350, continueAfterWin: true }, { name: "Diamond", prize: 1000, continueAfterWin: false }] },
+  { id: "mega-jackpot", name: "Mega Trueig Jackpot", variant: "75-Ball Progressive", status: "Selling Tickets", ticketPrice: 5, prize: 4836, jackpot: 125480, players: 348, maxPlayers: 500, cardsSold: 1248, startsIn: "02:18", pattern: "Full House ≤ 42 balls", accent: "gold", featured: true, tag: "JACKPOT", frequency: "Every 15 min", cardRows: 5, cardColumns: 5, callDelay: 1050, progressiveBallLimit: 42, rtp: 80, rtpMode: "dynamic", winningStages: [{ name: "One Line", prize: 500, continueAfterWin: true }, { name: "Full House", prize: 4336, continueAfterWin: false }] },
+  { id: "quick-80", name: "Quick 80", variant: "80-Ball Grid", status: "Selling Tickets", ticketPrice: 1, prize: 400, players: 136, maxPlayers: 250, cardsSold: 504, startsIn: "05:10", pattern: "Single Line → Full House", accent: "pink", tag: "80-BALL", frequency: "Every 8 min", cardRows: 4, cardColumns: 4, callDelay: 950, rtp: 80, rtpMode: "fixed", winningStages: [{ name: "Single Line", prize: 80, continueAfterWin: true }, { name: "Four Corners", prize: 120, continueAfterWin: true }, { name: "Full House", prize: 200, continueAfterWin: false }] },
+  { id: "pattern-arena", name: "Trueig Pattern Arena", variant: "75-Ball Pattern Series", status: "Open", ticketPrice: 1.5, prize: 580, players: 168, maxPlayers: 300, cardsSold: 472, startsIn: "03:24", pattern: "Round 1 · X Pattern", accent: "violet", tag: "5 ROUNDS", frequency: "Every 12 min", cardRows: 5, cardColumns: 5, callDelay: 1100, rtp: 82, rtpMode: "dynamic", winningStages: [{ name: "X Pattern", prize: 580, continueAfterWin: false }] },
+  { id: "free-party", name: "Free Bingo Party", variant: "75-Ball Community", status: "Open", ticketPrice: 0, prize: 100, players: 118, maxPlayers: 500, cardsSold: 438, startsIn: "08:32", pattern: "Four Corners", accent: "blue", tag: "FREE", frequency: "Every hour", cardRows: 5, cardColumns: 5, callDelay: 1300, rtp: 100, rtpMode: "fixed", winningStages: [{ name: "Four Corners", prize: 100, continueAfterWin: false }] },
+  { id: "midnight-90", name: "Midnight Bingo", variant: "90-Ball After Dark", status: "Scheduled", ticketPrice: 2, prize: 1200, players: 224, maxPlayers: 400, cardsSold: 752, startsIn: "23:00", pattern: "1 Line → 2 Lines → Full House", accent: "blue", tag: "NIGHT", frequency: "Nightly", cardRows: 3, cardColumns: 9, callDelay: 1150, rtp: 80, rtpMode: "fixed", winningStages: [{ name: "One Line", prize: 200, continueAfterWin: true }, { name: "Two Lines", prize: 300, continueAfterWin: true }, { name: "Full House", prize: 700, continueAfterWin: false }] },
+  { id: "vip-gold", name: "VIP Gold Room", variant: "75-Ball VIP", status: "Scheduled", ticketPrice: 10, prize: 2500, players: 42, maxPlayers: 80, cardsSold: 126, startsIn: "21:00", pattern: "X Pattern → Blackout", accent: "gold", tag: "VIP", frequency: "Daily", cardRows: 5, cardColumns: 5, callDelay: 1450, vipOnly: true, rtp: 85, rtpMode: "fixed", winningStages: [{ name: "X Pattern", prize: 750, continueAfterWin: true }, { name: "Blackout", prize: 1750, continueAfterWin: false }] },
+  { id: "tournament", name: "Trueigtech Weekend Cup", variant: "Tournament · 5 Rounds", status: "Open", ticketPrice: 8, prize: 5000, players: 384, maxPlayers: 512, cardsSold: 768, startsIn: "FRI · 20:00", pattern: "Points Series", accent: "violet", tag: "TOURNAMENT", frequency: "Weekly", cardRows: 5, cardColumns: 5, callDelay: 900, rtp: 80, rtpMode: "fixed" },
 ];
 
 export type BingoCardCell = { value: number | "FREE"; column: string };
@@ -159,3 +164,49 @@ export class TransactionManager {
     return `${prefix}-${Math.floor(100000 + Math.random() * 900000)}`;
   }
 }
+
+export class RTPEngine {
+  static calculateDynamicPrize(cardsSold: number, ticketPrice: number, targetRtp = 80, jackpotPercent = 2.5): number {
+    const grossRevenue = cardsSold * ticketPrice;
+    if (grossRevenue <= 0) return 0;
+    const effectiveRtp = Math.max(10, Math.min(99, targetRtp - jackpotPercent));
+    return Math.round((grossRevenue * (effectiveRtp / 100)) * 100) / 100;
+  }
+
+  static calculateActualRtp(prize: number, cardsSold: number, ticketPrice: number): number {
+    const revenue = cardsSold * ticketPrice;
+    if (revenue <= 0) return 0;
+    return Math.round((prize / revenue) * 1000) / 10;
+  }
+
+  static calculateHouseMargin(targetRtp: number, jackpotPercent = 2.5): number {
+    return Math.max(0, Math.round((100 - targetRtp - jackpotPercent) * 10) / 10);
+  }
+
+  static getHealthStatus(room: BingoRoomData, globalTargetRtp = 80): { status: "protected" | "guaranteed" | "custom"; label: string; badgeClass: string; hint: string } {
+    if (room.rtpMode === "dynamic") {
+      return {
+        status: "protected",
+        label: "Protected Margin",
+        badgeClass: "health-optimal",
+        hint: "Prize auto-scales to sales. Operator margin is 100% secured.",
+      };
+    }
+    if (room.customRtp && (room.rtp ?? globalTargetRtp) !== globalTargetRtp) {
+      return {
+        status: "custom",
+        label: "Custom Setting",
+        badgeClass: "health-conservative",
+        hint: `Custom room target: ${room.rtp}%`,
+      };
+    }
+    return {
+      status: "guaranteed",
+      label: "Guaranteed Pot",
+      badgeClass: "health-guaranteed",
+      hint: "Fixed promotional prize pot.",
+    };
+  }
+}
+
+

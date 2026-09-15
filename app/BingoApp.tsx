@@ -6,6 +6,8 @@ import {
   BingoEngine,
   BingoRoomData,
   BingoStatus,
+  RTPEngine,
+  RtpMode,
   TransactionManager,
   demoRooms,
   makeGridCard,
@@ -831,7 +833,7 @@ function JackpotExperience({ rooms, enterRoom, notify }: { rooms: BingoRoomData[
 }
 
 const adminNav = [
-  ["dashboard", "Dashboard", "⌂"], ["rooms", "Bingo rooms", "▦"], ["gamebuilder", "Games", "◫"], ["scheduler", "Scheduler", "□"], ["games", "Live control", "●"], ["variants", "Bingo variants", "⬡"],  ["patterns", "Winning patterns", "◇"], ["jackpots", "Jackpots", "✦"], ["tournaments", "Tournaments", "♜"], ["players", "Players", "♙"], ["transactions", "Transactions", "⇄"], ["promotions", "Promotions", "%"], ["chat", "Chat moderation", "◌"],
+  ["dashboard", "Dashboard", "⌂"], ["rooms", "Bingo rooms", "▦"], ["rtp", "RTP & Margins", "%"], ["gamebuilder", "Games", "◫"], ["scheduler", "Scheduler", "□"], ["games", "Live control", "●"], ["variants", "Bingo variants", "⬡"],  ["patterns", "Winning patterns", "◇"], ["jackpots", "Jackpots", "✦"], ["tournaments", "Tournaments", "♜"], ["players", "Players", "♙"], ["transactions", "Transactions", "⇄"], ["promotions", "Promotions", "★"], ["chat", "Chat moderation", "◌"],
 ];
 
 type AdminAction = { kind: string; room?: BingoRoomData; label?: string };
@@ -841,7 +843,7 @@ function AdminExperience({ rooms, setRooms, notify }: { rooms: BingoRoomData[]; 
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [action, setAction] = useState<AdminAction | null>(null);
   const currentLabel = adminNav.find(([key]) => key === module)?.[1] ?? "Overview";
-  const primaryActions: Record<string, [string, string]> = { rooms: ["+ Create room", "create-room"], gamebuilder: ["+ Create game", "create-game"], scheduler: ["+ Schedule game", "create-game"], variants: ["+ Create variant", "variants"], caller: ["Configure caller", "caller-config"], jackpots: ["+ Create jackpot", "create-jackpot"], tournaments: ["+ Create tournament", "create-tournament"], players: ["Open player profile", "player"], promotions: ["+ Create promotion", "promotion"], chat: ["+ Announcement", "announcement"], reports: ["Build report", "report"], settings: ["Configure platform", "settings"] };
+  const primaryActions: Record<string, [string, string]> = { rooms: ["+ Create room", "create-room"], rtp: ["Apply Global RTP", "apply-global-rtp"], gamebuilder: ["+ Create game", "create-game"], scheduler: ["+ Schedule game", "create-game"], variants: ["+ Create variant", "variants"], caller: ["Configure caller", "caller-config"], jackpots: ["+ Create jackpot", "create-jackpot"], tournaments: ["+ Create tournament", "create-tournament"], players: ["Open player profile", "player"], promotions: ["+ Create promotion", "promotion"], chat: ["+ Announcement", "announcement"], reports: ["Build report", "report"], settings: ["Configure platform", "settings"] };
   return (
     <div className="admin-app">
       <aside className={`admin-sidebar ${sidebarOpen ? "open" : ""}`}>
@@ -863,7 +865,7 @@ function AdminExperience({ rooms, setRooms, notify }: { rooms: BingoRoomData[]; 
 
 function adminSubtitle(module: string) {
   const subtitles: Record<string, string> = {
-    dashboard: "Live platform health, player activity and commercial performance.", rooms: "Create and configure every player-facing Bingo room.", gamebuilder: "Create, schedule and start games with multiple winning stages.", games: "Monitor active rounds and intervene in real time.", scheduler: "Plan one-off, recurring and tournament game sessions.", patterns: "Build and validate reusable winning patterns.", jackpots: "Control contributions, qualification rules and liability.", reports: "Explore validated performance across rooms and game types.", players: "Review player activity, value and account status.", transactions: "Trace every ticket, payout, refund and promotional credit.", variants: "Configure extensible Bingo engines and card layouts.",
+    dashboard: "Live platform health, player activity and commercial performance.", rooms: "Create and configure every player-facing Bingo room.", rtp: "Manage return-to-player percentages, target winning rates and house margins globally or per room.", gamebuilder: "Create, schedule and start games with multiple winning stages.", games: "Monitor active rounds and intervene in real time.", scheduler: "Plan one-off, recurring and tournament game sessions.", patterns: "Build and validate reusable winning patterns.", jackpots: "Control contributions, qualification rules and liability.", reports: "Explore validated performance across rooms and game types.", players: "Review player activity, value and account status.", transactions: "Trace every ticket, payout, refund and promotional credit.", variants: "Configure extensible Bingo engines and card layouts.",
   };
   return subtitles[module] ?? `Configure ${adminNav.find(([key]) => key === module)?.[1].toLowerCase()} across the platform.`;
 }
@@ -871,6 +873,7 @@ function adminSubtitle(module: string) {
 function AdminModule({ module, rooms, setRooms, notify, openAction }: { module: string; rooms: BingoRoomData[]; setRooms: (rooms: BingoRoomData[]) => void; notify: (message: string) => void; openAction: (action: AdminAction) => void }) {
   if (module === "dashboard") return <AdminDashboard openAction={openAction} />;
   if (module === "rooms") return <RoomManagement rooms={rooms} setRooms={setRooms} openAction={openAction} notify={notify} />;
+  if (module === "rtp") return <RTPManagement rooms={rooms} setRooms={setRooms} notify={notify} openAction={openAction} />;
   if (module === "gamebuilder") return <GameManagement rooms={rooms} openAction={openAction} notify={notify} />;
   if (module === "games") return <LiveControl notify={notify} openAction={openAction} />;
   if (module === "scheduler") return <Scheduler notify={notify} />;
@@ -914,8 +917,537 @@ function RoomManagement({ rooms, setRooms, openAction, notify }: { rooms: BingoR
   const [editing, setEditing] = useState<string | null>(null);
   const [price, setPrice] = useState(0);
   const savePrice = (id: string) => { setRooms(rooms.map((room) => room.id === id ? { ...room, ticketPrice: price } : room)); setEditing(null); notify("Ticket pricing updated and audit log created."); };
-  return <div className="admin-card data-card"><div className="data-toolbar"><div className="search-box compact"><Icon>⌕</Icon><input placeholder="Search rooms" aria-label="Search rooms" /></div><div><select><option>All variants</option><option>75-Ball</option><option>90-Ball</option><option>80-Ball</option><option>30-Ball</option></select><select><option>All statuses</option><option>Live</option><option>Open</option></select><button>☷ Columns</button></div></div><div className="responsive-table"><table><thead><tr><th>Room</th><th>Status</th><th>Variant</th><th>Ticket</th><th>Players</th><th>Prize / Jackpot</th><th>Winning stages</th><th>Actions</th></tr></thead><tbody>{rooms.map((room) => <tr key={room.id}><td><div className="table-room"><span className={`mini-orb accent-${room.accent}`}>{room.variant.match(/\d+/)?.[0] ?? "T"}</span><div><b>{room.name}</b><small>{room.id.toUpperCase()}</small></div></div></td><td><StatusPill status={room.status} /></td><td>{room.variant}</td><td>{editing === room.id ? <span className="inline-edit"><input type="number" value={price} min="0" step="0.5" onChange={(event) => setPrice(Number(event.target.value))} /><button onClick={() => savePrice(room.id)}>✓</button></span> : <button className="table-link" onClick={() => { setEditing(room.id); setPrice(room.ticketPrice); }}>{room.ticketPrice ? money(room.ticketPrice) : "Free"} ✎</button>}</td><td>{room.players} / {room.maxPlayers}</td><td><b>{money(room.jackpot ?? room.prize)}</b></td><td><span className="speed-label">{room.winningStages?.length ?? 1} · {room.winningStages?.map(stage=>stage.name).join(" → ") ?? room.pattern}</span></td><td><div className="table-actions"><button onClick={() => { setRooms([...rooms, { ...room, id: `${room.id}-copy`, name: `${room.name} Copy`, status: "Open" }]); notify(`${room.name} duplicated.`); }}>Duplicate</button><button onClick={() => openAction({kind:"edit-room",room})}>Edit</button><button onClick={() => openAction({kind:"edit-room",room})}>Configure</button></div></td></tr>)}</tbody></table></div><div className="table-footer"><span>Showing {rooms.length} playable rooms</span><button className="admin-primary" onClick={() => openAction({kind:"create-room"})}>+ Create another room</button></div></div>;
+  return <div className="admin-card data-card"><div className="data-toolbar"><div className="search-box compact"><Icon>⌕</Icon><input placeholder="Search rooms" aria-label="Search rooms" /></div><div><select><option>All variants</option><option>75-Ball</option><option>90-Ball</option><option>80-Ball</option><option>30-Ball</option></select><select><option>All statuses</option><option>Live</option><option>Open</option></select><button>☷ Columns</button></div></div><div className="responsive-table"><table><thead><tr><th>Room</th><th>Status</th><th>Variant</th><th>Ticket</th><th>Players</th><th>Target RTP</th><th>Prize / Jackpot</th><th>Winning stages</th><th>Actions</th></tr></thead><tbody>{rooms.map((room) => <tr key={room.id}><td><div className="table-room"><span className={`mini-orb accent-${room.accent}`}>{room.variant.match(/\d+/)?.[0] ?? "T"}</span><div><b>{room.name}</b><small>{room.id.toUpperCase()}</small></div></div></td><td><StatusPill status={room.status} /></td><td>{room.variant}</td><td>{editing === room.id ? <span className="inline-edit"><input type="number" value={price} min="0" step="0.5" onChange={(event) => setPrice(Number(event.target.value))} /><button onClick={() => savePrice(room.id)}>✓</button></span> : <button className="table-link" onClick={() => { setEditing(room.id); setPrice(room.ticketPrice); }}>{room.ticketPrice ? money(room.ticketPrice) : "Free"} ✎</button>}</td><td>{room.players} / {room.maxPlayers}</td><td><span className="speed-label">{room.rtp ?? 78}% · {room.rtpMode === "dynamic" ? "Dynamic" : "Fixed"}</span></td><td><b>{money(room.jackpot ?? room.prize)}</b></td><td><span className="speed-label">{room.winningStages?.length ?? 1} · {room.winningStages?.map(stage=>stage.name).join(" → ") ?? room.pattern}</span></td><td><div className="table-actions"><button onClick={() => { setRooms([...rooms, { ...room, id: `${room.id}-copy`, name: `${room.name} Copy`, status: "Open" }]); notify(`${room.name} duplicated.`); }}>Duplicate</button><button onClick={() => openAction({kind:"edit-room",room})}>Edit</button><button onClick={() => openAction({kind:"edit-room",room})}>Configure</button></div></td></tr>)}</tbody></table></div><div className="table-footer"><span>Showing {rooms.length} playable rooms</span><button className="admin-primary" onClick={() => openAction({kind:"create-room"})}>+ Create another room</button></div></div>;
 }
+
+function RTPManagement({ rooms, setRooms, notify, openAction }: { rooms: BingoRoomData[]; setRooms: (rooms: BingoRoomData[]) => void; notify: (message: string) => void; openAction: (action: AdminAction) => void }) {
+  const [globalTargetRtp, setGlobalTargetRtp] = useState(80);
+  const [filter, setFilter] = useState<"all" | "dynamic" | "fixed" | "custom">("all");
+  const [search, setSearch] = useState("");
+  const [showGuide, setShowGuide] = useState(false);
+
+  const dynamicCount = rooms.filter(r => r.rtpMode === "dynamic").length;
+  const fixedCount = rooms.filter(r => r.rtpMode === "fixed").length;
+  const customCount = rooms.filter(r => r.customRtp).length;
+
+  const avgTargetRtp = Math.round((rooms.reduce((sum, r) => sum + (r.rtp ?? globalTargetRtp), 0) / Math.max(1, rooms.length)) * 10) / 10;
+  const houseMargin = RTPEngine.calculateHouseMargin(globalTargetRtp, 2.5);
+
+  const applyGlobalRtp = (newRtp: number) => {
+    setGlobalTargetRtp(newRtp);
+    const updated = rooms.map(room => {
+      const updatedPrize = room.rtpMode === "dynamic"
+        ? RTPEngine.calculateDynamicPrize(room.cardsSold, room.ticketPrice, newRtp, room.jackpot ? 2.5 : 0)
+        : room.prize;
+      return {
+        ...room,
+        rtp: newRtp,
+        customRtp: false,
+        prize: updatedPrize > 0 ? Math.round(updatedPrize) : room.prize,
+      };
+    });
+    setRooms(updated);
+    notify(`✓ Global ${newRtp}% RTP applied across all ${rooms.length} rooms. Dynamic prizes recalculated.`);
+  };
+
+  const updateRoomRtp = (roomId: string, delta: number) => {
+    const target = rooms.find(r => r.id === roomId);
+    if (!target) return;
+    const current = target.rtp ?? globalTargetRtp;
+    const nextRtp = Math.max(65, Math.min(95, current + delta));
+    if (nextRtp === current) return;
+
+    const updated = rooms.map(room => {
+      if (room.id !== roomId) return room;
+      const isCustom = nextRtp !== globalTargetRtp;
+      const updatedPrize = room.rtpMode === "dynamic"
+        ? RTPEngine.calculateDynamicPrize(room.cardsSold, room.ticketPrice, nextRtp, room.jackpot ? 2.5 : 0)
+        : room.prize;
+      return {
+        ...room,
+        rtp: nextRtp,
+        customRtp: isCustom,
+        prize: updatedPrize > 0 ? Math.round(updatedPrize) : room.prize,
+      };
+    });
+    setRooms(updated);
+    notify(`${target.name} target RTP set to ${nextRtp}%.`);
+  };
+
+  const toggleRoomMode = (roomId: string) => {
+    const targetRoom = rooms.find(r => r.id === roomId);
+    if (!targetRoom) return;
+    const nextMode: RtpMode = targetRoom.rtpMode === "dynamic" ? "fixed" : "dynamic";
+    const targetRtp = targetRoom.rtp ?? globalTargetRtp;
+    const updatedPrize = nextMode === "dynamic"
+      ? RTPEngine.calculateDynamicPrize(targetRoom.cardsSold, targetRoom.ticketPrice, targetRtp, targetRoom.jackpot ? 2.5 : 0)
+      : targetRoom.prize;
+    const updated = rooms.map(room => room.id === roomId ? {
+      ...room,
+      rtpMode: nextMode,
+      prize: updatedPrize > 0 ? Math.round(updatedPrize) : room.prize,
+    } : room);
+    setRooms(updated);
+    notify(`${targetRoom.name} switched to ${nextMode === "dynamic" ? "Dynamic Pool (Auto-scaled)" : "Guaranteed Fixed"} mode.`);
+  };
+
+  const resetToGlobal = (roomId: string) => {
+    const updated = rooms.map(room => {
+      if (room.id !== roomId) return room;
+      const updatedPrize = room.rtpMode === "dynamic"
+        ? RTPEngine.calculateDynamicPrize(room.cardsSold, room.ticketPrice, globalTargetRtp, room.jackpot ? 2.5 : 0)
+        : room.prize;
+      return {
+        ...room,
+        rtp: globalTargetRtp,
+        customRtp: false,
+        prize: updatedPrize > 0 ? Math.round(updatedPrize) : room.prize,
+      };
+    });
+    setRooms(updated);
+    notify(`Reset ${rooms.find(r => r.id === roomId)?.name} to global target (${globalTargetRtp}%).`);
+  };
+
+  const recalcRoom = (roomId: string) => {
+    const room = rooms.find(r => r.id === roomId);
+    if (!room) return;
+    const targetRtp = room.rtp ?? globalTargetRtp;
+    const updatedPrize = RTPEngine.calculateDynamicPrize(room.cardsSold, room.ticketPrice, targetRtp, room.jackpot ? 2.5 : 0);
+    const prize = updatedPrize > 0 ? Math.round(updatedPrize) : room.prize;
+    setRooms(rooms.map(r => r.id === roomId ? { ...r, prize } : r));
+    notify(`Prize pool refreshed for ${room.name} (${money(prize)}).`);
+  };
+
+  const filteredRooms = rooms.filter(room => {
+    const matchesSearch = `${room.name} ${room.variant}`.toLowerCase().includes(search.toLowerCase());
+    const matchesFilter = filter === "all"
+      || (filter === "dynamic" && room.rtpMode === "dynamic")
+      || (filter === "fixed" && room.rtpMode === "fixed")
+      || (filter === "custom" && room.customRtp);
+    return matchesSearch && matchesFilter;
+  });
+
+  return (
+    <div className="rtp-management-page">
+      {/* Operator Guide Toggle Banner */}
+      <div className="rtp-guide-header">
+        <div className="rtp-guide-summary">
+          <span className="rtp-guide-badge">💡 Simple Admin Guide</span>
+          <span><b>RTP = Return to Player:</b> Percentage of ticket wagers returned to winning players. The rest is casino profit.</span>
+        </div>
+        <button
+          type="button"
+          className="rtp-guide-toggle-btn"
+          onClick={() => setShowGuide(!showGuide)}
+        >
+          {showGuide ? "Hide Explainer ▲" : "How RTP & Margins Work ▼"}
+        </button>
+      </div>
+
+      {showGuide && (
+        <div className="rtp-explainer-cards">
+          <div className="rtp-explainer-card">
+            <span className="explainer-icon">🎯</span>
+            <div>
+              <b>Player Return (RTP %)</b>
+              <p>The portion of ticket wagers paid back to winners. At <b>80% RTP</b>, for every $100 spent by players, <b>$80</b> is returned in prize money.</p>
+            </div>
+          </div>
+          <div className="rtp-explainer-card">
+            <span className="explainer-icon">🏦</span>
+            <div>
+              <b>House Margin (GGR Hold %)</b>
+              <p>The net casino gross profit. At <b>17.5% margin</b>, the house retains <b>$17.50</b> of every $100 ticket sales after prizes and jackpot reserve.</p>
+            </div>
+          </div>
+          <div className="rtp-explainer-card">
+            <span className="explainer-icon">🛡️</span>
+            <div>
+              <b>Dynamic vs Guaranteed</b>
+              <p><b>Dynamic Pool:</b> Prize auto-scales to ticket sales (zero operator liability). <b>Guaranteed:</b> Fixed jackpot pot to attract players.</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Top Metric Cards */}
+      <div className="metric-grid">
+        <article className="metric-card">
+          <div className="metric-card-main">
+            <span className="metric-icon metric-0"><Icon>%</Icon></span>
+            <div>
+              <small>NETWORK TARGET RTP</small>
+              <strong>{avgTargetRtp}%</strong>
+              <span className="positive">Player payout baseline</span>
+            </div>
+          </div>
+          <DashboardInfo label="Target RTP" description="Average percentage of ticket wagers allocated to player prize pools across all rooms." />
+        </article>
+        <article className="metric-card">
+          <div className="metric-card-main">
+            <span className="metric-icon metric-2"><Icon>$</Icon></span>
+            <div>
+              <small>OPERATOR HOUSE MARGIN</small>
+              <strong>{houseMargin}%</strong>
+              <span className="positive">Net casino profit hold</span>
+            </div>
+          </div>
+          <DashboardInfo label="House Margin" description="Gross gaming revenue retained by the operator after prizes and jackpot contributions." />
+        </article>
+        <article className="metric-card">
+          <div className="metric-card-main">
+            <span className="metric-icon metric-1"><Icon>✦</Icon></span>
+            <div>
+              <small>JACKPOT CONTRIBUTION</small>
+              <strong>2.5%</strong>
+              <span className="positive">Progressive prize fund</span>
+            </div>
+          </div>
+          <DashboardInfo label="Jackpot Reserve" description="Percentage of ticket wagers set aside to fund progressive mega jackpots." />
+        </article>
+        <article className="metric-card">
+          <div className="metric-card-main">
+            <span className="metric-icon metric-3"><Icon>▦</Icon></span>
+            <div>
+              <small>ROOMS & PROTECTION</small>
+              <strong>{rooms.length} Rooms</strong>
+              <span className="positive">{dynamicCount} Dynamic (Zero Risk)</span>
+            </div>
+          </div>
+          <DashboardInfo label="Risk Profile" description="Dynamic rooms guarantee house margin by scaling prizes directly from ticket sales." />
+        </article>
+      </div>
+
+      {/* Global Bulk Controller */}
+      <section className="admin-card rtp-global-controller">
+        <div className="card-title rtp-card-header">
+          <div>
+            <h2>Global RTP &amp; Margin Policy</h2>
+            <p>Set platform-wide player return and operator house profit. Changes apply immediately across all active rooms.</p>
+          </div>
+          <div className="rtp-header-badges">
+            <span className="global-rtp-badge">{globalTargetRtp}% Target RTP</span>
+            <span className="global-margin-badge">{houseMargin.toFixed(1)}% House Hold</span>
+          </div>
+        </div>
+
+        {/* Visual 100% Breakdown Bar */}
+        <div className="rtp-distribution-box">
+          <div className="rtp-dist-header">
+            <span className="dist-title">Ticket Revenue Breakdown (Per $100 Wagers)</span>
+            <span className="dist-equation">
+              <b>${globalTargetRtp}.00</b> Prizes + <b>${houseMargin.toFixed(1)}</b> Profit + <b>$2.50</b> Jackpot = <b>$100.00 Total</b>
+            </span>
+          </div>
+          <div className="rtp-dist-bar-track" aria-label="Payout distribution track">
+            <div className="bar-rtp" style={{ width: `${globalTargetRtp}%` }} title={`Player Return: ${globalTargetRtp}%`} />
+            <div className="bar-margin" style={{ width: `${houseMargin}%` }} title={`House Margin: ${houseMargin}%`} />
+            <div className="bar-jackpot" style={{ width: "2.5%" }} title="Jackpot Reserve: 2.5%" />
+          </div>
+          <div className="rtp-dist-legend">
+            <div className="legend-chip legend-rtp">
+              <i className="chip-dot" />
+              <span className="chip-label">Player Prize Return:</span>
+              <b className="chip-val">{globalTargetRtp}% (${globalTargetRtp}.00)</b>
+            </div>
+            <div className="legend-chip legend-margin">
+              <i className="chip-dot" />
+              <span className="chip-label">Operator Gross Profit:</span>
+              <b className="chip-val">{houseMargin.toFixed(1)}% (${houseMargin.toFixed(1)})</b>
+            </div>
+            <div className="legend-chip legend-jackpot">
+              <i className="chip-dot" />
+              <span className="chip-label">Progressive Jackpot:</span>
+              <b className="chip-val">2.5% ($2.50)</b>
+            </div>
+          </div>
+        </div>
+
+        {/* Controls and Presets */}
+        <div className="rtp-global-body">
+          <div className="rtp-slider-col">
+            <div className="rtp-control-header">
+              <div>
+                <span className="control-label">TARGET RETURN TO PLAYER (RTP)</span>
+                <span className="control-desc">Fine-tune the percentage paid back to winning players</span>
+              </div>
+              <div className="rtp-stepper-box">
+                <button
+                  type="button"
+                  className="stepper-action-btn"
+                  onClick={() => setGlobalTargetRtp(Math.max(65, globalTargetRtp - 1))}
+                  aria-label="Decrease target RTP"
+                >
+                  −
+                </button>
+                <span className="stepper-number">{globalTargetRtp}%</span>
+                <button
+                  type="button"
+                  className="stepper-action-btn"
+                  onClick={() => setGlobalTargetRtp(Math.min(92, globalTargetRtp + 1))}
+                  aria-label="Increase target RTP"
+                >
+                  +
+                </button>
+              </div>
+            </div>
+
+            <div className="rtp-slider-container">
+              <input
+                type="range"
+                min="65"
+                max="92"
+                step="1"
+                value={globalTargetRtp}
+                onChange={(e) => setGlobalTargetRtp(Number(e.target.value))}
+                className="rtp-range-slider"
+                aria-label="Global Target RTP Slider"
+              />
+              <div className="slider-track-labels">
+                <span>65% (Max House Margin)</span>
+                <span>78% (Industry Average)</span>
+                <span>92% (High Player Retention)</span>
+              </div>
+            </div>
+
+            <div className="rtp-presets-container">
+              <span className="presets-title">Recommended Strategies</span>
+              <div className="rtp-presets-grid">
+                {[
+                  { val: 75, name: "Conservative", desc: "22.5% House Profit · High Margin" },
+                  { val: 80, name: "Balanced", desc: "17.5% House Profit · Recommended" },
+                  { val: 85, name: "Player Friendly", desc: "12.5% House Profit · Higher Retention" },
+                  { val: 90, name: "Promotional", desc: "7.5% House Profit · High Payout Volume" },
+                ].map((preset) => (
+                  <button
+                    type="button"
+                    key={preset.val}
+                    className={`preset-tile ${globalTargetRtp === preset.val ? "selected" : ""}`}
+                    onClick={() => setGlobalTargetRtp(preset.val)}
+                  >
+                    <div className="preset-tile-top">
+                      <b className="preset-val">{preset.val}%</b>
+                      <span className="preset-name">{preset.name}</span>
+                    </div>
+                    <small className="preset-desc">{preset.desc}</small>
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <div className="rtp-global-summary">
+            <div className="summary-header">
+              <span className="summary-title">Live Payout Projection</span>
+              <span className="summary-subtitle">Calculated on $1,000 gross ticket sales</span>
+            </div>
+            <div className="summary-metrics-list">
+              <div className="summary-row">
+                <div className="row-label">
+                  <i className="dot-purple" />
+                  <span>Player Prizes ({globalTargetRtp}%)</span>
+                </div>
+                <b>${globalTargetRtp * 10}.00</b>
+              </div>
+              <div className="summary-row">
+                <div className="row-label">
+                  <i className="dot-blue" />
+                  <span>Operator Profit ({houseMargin.toFixed(1)}%)</span>
+                </div>
+                <b className="text-blue">${(houseMargin * 10).toFixed(0)}.00</b>
+              </div>
+              <div className="summary-row">
+                <div className="row-label">
+                  <i className="dot-amber" />
+                  <span>Jackpot Fund (2.5%)</span>
+                </div>
+                <b>$25.00</b>
+              </div>
+            </div>
+            <div className="summary-footer">
+              <button
+                type="button"
+                className="admin-primary rtp-apply-all-btn"
+                onClick={() => applyGlobalRtp(globalTargetRtp)}
+              >
+                ⚡ Apply {globalTargetRtp}% to All {rooms.length} Rooms
+              </button>
+              <span className="apply-hint">Automatically synchronizes and scales dynamic prize pools</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Room Table Section */}
+      <section className="admin-card data-card rtp-table-section">
+        <div className="data-toolbar rtp-table-toolbar">
+          <div className="search-box compact rtp-search-box">
+            <Icon>⌕</Icon>
+            <input
+              placeholder="Search rooms or variants..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              aria-label="Search rooms or variants"
+            />
+          </div>
+          <div className="rtp-filter-tabs">
+            <button
+              type="button"
+              className={filter === "all" ? "active" : ""}
+              onClick={() => setFilter("all")}
+            >
+              All Rooms ({rooms.length})
+            </button>
+            <button
+              type="button"
+              className={filter === "dynamic" ? "active" : ""}
+              onClick={() => setFilter("dynamic")}
+            >
+              ⚡ Dynamic Pools ({dynamicCount})
+            </button>
+            <button
+              type="button"
+              className={filter === "fixed" ? "active" : ""}
+              onClick={() => setFilter("fixed")}
+            >
+              🔒 Fixed Guaranteed ({fixedCount})
+            </button>
+            {customCount > 0 && (
+              <button
+                type="button"
+                className={filter === "custom" ? "active" : ""}
+                onClick={() => setFilter("custom")}
+              >
+                ✏️ Custom Overrides ({customCount})
+              </button>
+            )}
+          </div>
+        </div>
+
+        <div className="responsive-table">
+          <table>
+            <thead>
+              <tr>
+                <th>Room &amp; Variant</th>
+                <th>Payout Mode</th>
+                <th>Ticket Sales</th>
+                <th>Target RTP</th>
+                <th>House Margin</th>
+                <th>Current Prize</th>
+                <th>Margin Safety</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredRooms.map((room) => {
+                const targetRtp = room.rtp ?? globalTargetRtp;
+                const grossSales = room.cardsSold * room.ticketPrice;
+                const margin = RTPEngine.calculateHouseMargin(targetRtp, room.jackpot ? 2.5 : 0);
+                const health = RTPEngine.getHealthStatus(room, globalTargetRtp);
+
+                return (
+                  <tr key={room.id}>
+                    <td>
+                      <div className="table-room">
+                        <span className={`mini-orb accent-${room.accent}`}>{room.variant.match(/\d+/)?.[0] ?? "T"}</span>
+                        <div>
+                          <b>{room.name}</b>
+                          <small>{room.variant} · {room.ticketPrice > 0 ? money(room.ticketPrice) : "Free Card"}</small>
+                        </div>
+                      </div>
+                    </td>
+                    <td>
+                      <button
+                        type="button"
+                        className={`rtp-mode-pill ${room.rtpMode === "dynamic" ? "mode-dynamic" : "mode-fixed"}`}
+                        onClick={() => toggleRoomMode(room.id)}
+                        title="Click to toggle between Dynamic Pool and Guaranteed Fixed"
+                      >
+                        {room.rtpMode === "dynamic" ? "⚡ Dynamic Pool" : "🔒 Guaranteed"}
+                      </button>
+                    </td>
+                    <td>
+                      <b>{money(grossSales)}</b>
+                      <small style={{ display: "block", color: "var(--muted)" }}>{room.cardsSold.toLocaleString()} tickets sold</small>
+                    </td>
+                    <td>
+                      <div className="rtp-stepper-control">
+                        <button
+                          type="button"
+                          className="rtp-step-btn"
+                          onClick={() => updateRoomRtp(room.id, -1)}
+                          title="Decrease RTP"
+                        >
+                          −
+                        </button>
+                        <span className="rtp-stepper-val">
+                          <b>{targetRtp}%</b>
+                          {room.customRtp && <small className="custom-tag">Custom</small>}
+                        </span>
+                        <button
+                          type="button"
+                          className="rtp-step-btn"
+                          onClick={() => updateRoomRtp(room.id, 1)}
+                          title="Increase RTP"
+                        >
+                          +
+                        </button>
+                      </div>
+                    </td>
+                    <td>
+                      <b style={{ color: "#2563eb" }}>{margin}%</b>
+                    </td>
+                    <td>
+                      <b>{money(room.prize)}</b>
+                      <small style={{ display: "block", color: room.rtpMode === "dynamic" ? "#059669" : "var(--muted)" }}>
+                        {room.rtpMode === "dynamic" ? "⚡ Auto-scaled" : "🔒 Guaranteed"}
+                      </small>
+                    </td>
+                    <td>
+                      <span className={`rtp-health-badge ${health.badgeClass}`} title={health.hint}>
+                        {health.label}
+                      </span>
+                    </td>
+                    <td>
+                      <div className="table-actions">
+                        {room.rtpMode === "dynamic" && (
+                          <button
+                            type="button"
+                            onClick={() => recalcRoom(room.id)}
+                            title="Recalculate prize from current tickets sold"
+                          >
+                            Recalc
+                          </button>
+                        )}
+                        {room.customRtp && (
+                          <button
+                            type="button"
+                            onClick={() => resetToGlobal(room.id)}
+                            title="Reset to global target RTP"
+                          >
+                            Reset
+                          </button>
+                        )}
+                        <button
+                          type="button"
+                          onClick={() => openAction({ kind: "edit-room", room })}
+                          title="Edit room configuration"
+                        >
+                          Configure
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+  );
+}
+
 
 function LiveControl({ notify, openAction }: { notify: (message: string) => void; openAction: (action: AdminAction) => void }) {
   const liveGames = [
@@ -1029,9 +1561,12 @@ function ChatModeration({ notify, openAction }: { notify: (message: string) => v
 
 function BackofficeDrawer({ action, close, rooms, setRooms, notify }: { action: AdminAction; close: () => void; rooms: BingoRoomData[]; setRooms: (rooms: BingoRoomData[]) => void; notify: (message: string) => void }) {
   const editingRoom=action.room; const [name,setName]=useState(editingRoom?.name??"Trueigtech Sunrise 75");const [variant,setVariant]=useState(editingRoom?.variant??"75-Ball Pattern");const [price,setPrice]=useState(editingRoom?.ticketPrice??2);const [prize,setPrize]=useState(editingRoom?.prize??2000);const [confirm,setConfirm]=useState<"delete"|"disable"|null>(null);const [stages,setStages]=useState(editingRoom?.winningStages??[{name:"One Line",prize:100,continueAfterWin:true},{name:"Full House",prize:1000,continueAfterWin:false}]);
-  const titleMap:Record<string,string>={"create-room":"Create Bingo Room","edit-room":`Edit ${editingRoom?.name??"Room"}`,"create-game":"Create Bingo Game","caller-config":"Number Caller Configuration","create-jackpot":"Create Jackpot","edit-jackpot":"Edit Mega Trueig Jackpot","create-tournament":"Create Tournament","edit-tournament":"Edit Tournament",player:`Player Profile · ${action.label??"Ari.R"}`,promotion:`${action.label?"Edit":"Create"} Promotion`,announcement:"Create System Announcement",notifications:"Notification Center","manual-call":"Manual Ball Call","declare-winner":"Declare Winner","report-drilldown":`${action.label??"Performance"} Breakdown`,report:"Report Builder",settings:"Trueigtech Platform Settings","live-control":`Live Control · ${action.label??"Diamond 75"}`};
+  const [rtp, setRtp] = useState(editingRoom?.rtp ?? 78);
+  const [rtpMode, setRtpMode] = useState<RtpMode>(editingRoom?.rtpMode ?? "dynamic");
+  const [customRtp, setCustomRtp] = useState(editingRoom?.customRtp ?? Boolean(editingRoom?.rtp));
+  const titleMap:Record<string,string>={"create-room":"Create Bingo Room","edit-room":`Edit ${editingRoom?.name??"Room"}`,"create-game":"Create Bingo Game","caller-config":"Number Caller Configuration","create-jackpot":"Create Jackpot","edit-jackpot":"Edit Mega Trueig Jackpot","create-tournament":"Create Tournament","edit-tournament":"Edit Tournament",player:`Player Profile · ${action.label??"Ari.R"}`,promotion:`${action.label?"Edit":"Create"} Promotion`,announcement:"Create System Announcement",notifications:"Notification Center","manual-call":"Manual Ball Call","declare-winner":"Declare Winner","report-drilldown":`${action.label??"Performance"} Breakdown`,report:"Report Builder",settings:"Trueigtech Platform Settings","live-control":`Live Control · ${action.label??"Diamond 75"}`,"apply-global-rtp":"Network RTP Settings"};
   const title=titleMap[action.kind]??action.label??"Configure Module";
-  const submit=(event:FormEvent)=>{event.preventDefault();if(action.kind==="create-room"){const id=name.toLowerCase().replace(/[^a-z0-9]+/g,"-");setRooms([...rooms,{id,name,variant,status:"Open",ticketPrice:price,prize,players:0,maxPlayers:300,cardsSold:0,startsIn:"15:00",pattern:stages.map(stage=>stage.name).join(" → "),accent:"violet",tag:"NEW",frequency:"Every 10 min",cardRows:variant.includes("90")?3:variant.includes("30")?3:variant.includes("80")?4:5,cardColumns:variant.includes("90")?9:variant.includes("30")?3:variant.includes("80")?4:5,winningStages:stages}])}else if(action.kind==="edit-room"&&editingRoom){setRooms(rooms.map(room=>room.id===editingRoom.id?{...room,name,variant,ticketPrice:price,prize,winningStages:stages,pattern:stages.map(stage=>stage.name).join(" → ")}:room))}notify(`${title} saved successfully.`);close()};
+  const submit=(event:FormEvent)=>{event.preventDefault();if(action.kind==="create-room"){const id=name.toLowerCase().replace(/[^a-z0-9]+/g,"-");setRooms([...rooms,{id,name,variant,status:"Open",ticketPrice:price,prize,players:0,maxPlayers:300,cardsSold:0,startsIn:"15:00",pattern:stages.map(stage=>stage.name).join(" → "),accent:"violet",tag:"NEW",frequency:"Every 10 min",cardRows:variant.includes("90")?3:variant.includes("30")?3:variant.includes("80")?4:5,cardColumns:variant.includes("90")?9:variant.includes("30")?3:variant.includes("80")?4:5,winningStages:stages,rtp,rtpMode,customRtp}])}else if(action.kind==="edit-room"&&editingRoom){setRooms(rooms.map(room=>room.id===editingRoom.id?{...room,name,variant,ticketPrice:price,prize,winningStages:stages,pattern:stages.map(stage=>stage.name).join(" → "),rtp,rtpMode,customRtp}:room))}notify(`${title} saved successfully.`);close()};
   const moveStage=(index:number,direction:number)=>{const target=index+direction;if(target<0||target>=stages.length)return;setStages(items=>{const next=[...items];[next[index],next[target]]=[next[target],next[index]];return next})};
   const stagesEditor=<div className="stage-editor"><div className="drawer-section-title"><div><h3>Winning stage configuration</h3><p>Winners can be paid without ending the round.</p></div><button type="button" onClick={()=>setStages(items=>[...items,{name:"New Stage",prize:100,continueAfterWin:true}])}>+ Add winning stage</button></div>{stages.map((stage,index)=><div className="stage-editor-row" key={`${stage.name}-${index}`}><i>{index+1}</i><label>Pattern<select value={stage.name} onChange={event=>setStages(items=>items.map((item,itemIndex)=>itemIndex===index?{...item,name:event.target.value}:item))}><option>One Line</option><option>Two Lines</option><option>Four Corners</option><option>Horizontal Line</option><option>Diamond</option><option>X Pattern</option><option>Cross</option><option>Full House</option><option>Blackout</option></select></label><label>Prize<input type="number" value={stage.prize} onChange={event=>setStages(items=>items.map((item,itemIndex)=>itemIndex===index?{...item,prize:Number(event.target.value)}:item))}/></label><label className="stage-check"><input type="checkbox" checked={stage.continueAfterWin} onChange={event=>setStages(items=>items.map((item,itemIndex)=>itemIndex===index?{...item,continueAfterWin:event.target.checked}:item))}/> Continue after win</label><div><button type="button" onClick={()=>moveStage(index,-1)}>↑</button><button type="button" onClick={()=>moveStage(index,1)}>↓</button><button type="button" onClick={()=>setStages(items=>items.filter((_,itemIndex)=>itemIndex!==index))}>×</button></div></div>)}</div>;
   const formFooter=<div className="drawer-footer"><button type="button" className="outline-button" onClick={close}>Cancel</button>{action.kind==="create-room"&&<button type="button" className="outline-button" onClick={()=>notify("Room saved as draft.")}>Save draft</button>}<button className="admin-primary">{action.kind==="edit-room"?"Save changes":action.kind==="create-game"?"Create game":"Save configuration"}</button></div>;
@@ -1040,15 +1575,18 @@ function BackofficeDrawer({ action, close, rooms, setRooms, notify }: { action: 
   if(action.kind==="report-drilldown"||action.kind==="report")return <div className="admin-drawer-backdrop"><aside className="admin-drawer wide"><DrawerHeader title={title} close={close}/><div className="drawer-body"><div className="report-drill-stats">{[["Total","$48,620"],["Transactions","12,842"],["Average","$3.78"],["Change","+12.4%"]].map(item=><span key={item[0]}><small>{item[0]}</small><b>{item[1]}</b></span>)}</div><div className="drawer-form-grid"><label>Date range<input type="date" defaultValue="2026-08-21"/></label><label>Room<select><option>All Trueigtech rooms</option>{rooms.map(room=><option key={room.id}>{room.name}</option>)}</select></label><label>Report type<select><option>Revenue</option><option>Ticket Sales</option><option>Player Activity</option><option>Game Performance</option><option>Winning Patterns</option><option>Prize Payouts</option><option>Jackpot</option><option>Refunds</option></select></label></div><table className="drawer-table"><thead><tr><th>Reference</th><th>Room</th><th>Type</th><th>Amount</th><th>Status</th></tr></thead><tbody>{[["TXN-854201","Mega Trueig Jackpot","Ticket revenue","$42,100","Complete"],["PAY-284201","Diamond 75","Prize payout","$2,000","Complete"],["REF-128492","Trueig 90 Classic","Refund","$3.00","Complete"]].map(row=><tr key={row[0]}>{row.map(cell=><td key={cell}>{cell}</td>)}</tr>)}</tbody></table><div className="drawer-footer"><button className="outline-button" onClick={()=>notify("Report exported to XLSX.")}>Export XLSX</button><button className="admin-primary" onClick={()=>notify("Report filters applied.")}>Run report</button></div></div></aside></div>;
   const isRoom=action.kind==="create-room"||action.kind==="edit-room"; const isGame=action.kind==="create-game";
   return <div className="admin-drawer-backdrop"><button type="button" className="admin-drawer-scrim" aria-label="Close configuration drawer" onClick={close}/><aside className={`admin-drawer ${(isRoom||isGame)?"wide":""}`}><DrawerHeader title={title} close={close}/><form className="drawer-body" onSubmit={submit}>
-    {isRoom&&<><div className="drawer-section"><h3>Basic information</h3><div className="drawer-form-grid"><label>Room name<input required value={name} onChange={event=>setName(event.target.value)}/></label><label>Room code<input defaultValue={editingRoom?.id.toUpperCase()??"TRUEIG-SUN75"}/></label><label className="full">Description<textarea defaultValue="A premium Trueigtech multi-stage Bingo room."/></label><label>Thumbnail<input type="file" accept="image/*"/></label><label>Banner<input type="file" accept="image/*"/></label><label>Room type<select><option>Public</option><option>VIP</option><option>Community</option><option>Tournament</option></select></label><label>Status<select><option>Open</option><option>Draft</option><option>Scheduled</option><option>Disabled</option></select></label></div></div><div className="drawer-section"><h3>Bingo configuration</h3><div className="drawer-form-grid"><label>Bingo variant<select value={variant} onChange={event=>setVariant(event.target.value)}><option>90-Ball Classic</option><option>75-Ball Pattern</option><option>30-Ball Speed</option><option>80-Ball Grid</option><option>75-Ball Progressive</option></select></label><label>Ball count<input value={variant.includes("90")?90:variant.includes("30")?30:variant.includes("80")?80:75} readOnly/></label><label>Card layout<select><option>{variant.includes("90")?"3 × 9":variant.includes("30")?"3 × 3":variant.includes("80")?"4 × 4":"5 × 5"}</option></select></label><label>Number range<input defaultValue={`1–${variant.includes("90")?90:variant.includes("30")?30:variant.includes("80")?80:75}`}/></label><label>Free space<select><option>{variant.includes("75")?"Center free":"None"}</option></select></label><label>Winning format<select><option>Multiple stages</option><option>Single pattern</option><option>Progressive</option></select></label></div></div><div className="drawer-section"><h3>Ticket & player configuration</h3><div className="drawer-form-grid"><label>Ticket price<input type="number" step="0.5" value={price} onChange={event=>setPrice(Number(event.target.value))}/></label><label>Minimum cards<input type="number" defaultValue="1"/></label><label>Maximum cards<input type="number" defaultValue="8"/></label><label>Cards per strip<input type="number" defaultValue={variant.includes("90")?6:1}/></label><label>Sales start time<input type="time" defaultValue="17:45"/></label><label>Sales close time<input type="time" defaultValue="17:59"/></label><label>Minimum players<input type="number" defaultValue="2"/></label><label>Maximum players<input type="number" defaultValue={editingRoom?.maxPlayers??300}/></label><label>VIP requirement<select><option>None</option><option>Gold</option><option>Platinum</option></select></label><label>Country restrictions<input placeholder="None or comma-separated ISO codes"/></label></div></div><div className="drawer-section"><h3>Game configuration</h3><div className="drawer-form-grid"><label>Countdown<input type="number" defaultValue="5"/></label><label>Ball calling speed<select><option>Fast · 1.2s</option><option>Turbo · 0.6s</option><option>Normal · 2.1s</option><option>Slow · 3.2s</option></select></label>{["Auto Daub","Manual Daub","Auto Bingo","Manual Bingo Claim","Chat"].map(item=><label className="check-field" key={item}><input type="checkbox" defaultChecked={item!=="Auto Bingo"}/>{item}</label>)}</div></div>{stagesEditor}<div className="drawer-section"><h3>Prize & multiple winners</h3><div className="drawer-form-grid"><label>Prize type<select><option>Fixed prize</option><option>Prize pool</option><option>Progressive</option></select></label><label>Prize amount<input type="number" value={prize} onChange={event=>setPrize(Number(event.target.value))}/></label><label>Multiple winners<select><option>Allowed</option><option>First validated only</option></select></label><label>Prize split rule<select><option>Split equally</option><option>Fixed per winner</option><option>Shared jackpot</option><option>Carry over remainder</option></select></label><label>Maximum winner count<input type="number" defaultValue="10"/></label><label className="check-field"><input type="checkbox" defaultChecked={Boolean(editingRoom?.jackpot)}/> Enable jackpot</label><label>Jackpot type<select><option>Progressive</option><option>Guaranteed</option><option>Community</option></select></label><label>Starting amount<input type="number" defaultValue="50000"/></label><label>Contribution %<input type="number" step="0.1" defaultValue="2.5"/></label><label>Winning condition<input defaultValue="Full House within 42 balls"/></label><label>Reset amount<input type="number" defaultValue="50000"/></label></div></div>{action.kind==="edit-room"&&<div className="destructive-row"><button type="button" onClick={()=>{const copy={...editingRoom!,id:`${editingRoom!.id}-copy`,name:`${editingRoom!.name} Copy`,status:"Open" as BingoStatus};setRooms([...rooms,copy]);notify("Room duplicated.")}}>Duplicate room</button><button type="button" onClick={()=>setConfirm("disable")}>Disable room</button><button type="button" onClick={()=>setConfirm("delete")}>Delete room</button></div>}</>}
+    {isRoom&&<><div className="drawer-section"><h3>Basic information</h3><div className="drawer-form-grid"><label>Room name<input required value={name} onChange={event=>setName(event.target.value)}/></label><label>Room code<input defaultValue={editingRoom?.id.toUpperCase()??"TRUEIG-SUN75"}/></label><label className="full">Description<textarea defaultValue="A premium Trueigtech multi-stage Bingo room."/></label><label>Thumbnail<input type="file" accept="image/*"/></label><label>Banner<input type="file" accept="image/*"/></label><label>Room type<select><option>Public</option><option>VIP</option><option>Community</option><option>Tournament</option></select></label><label>Status<select><option>Open</option><option>Draft</option><option>Scheduled</option><option>Disabled</option></select></label></div></div><div className="drawer-section"><h3>Bingo configuration</h3><div className="drawer-form-grid"><label>Bingo variant<select value={variant} onChange={event=>setVariant(event.target.value)}><option>90-Ball Classic</option><option>75-Ball Pattern</option><option>30-Ball Speed</option><option>80-Ball Grid</option><option>75-Ball Progressive</option></select></label><label>Ball count<input value={variant.includes("90")?90:variant.includes("30")?30:variant.includes("80")?80:75} readOnly/></label><label>Card layout<select><option>{variant.includes("90")?"3 × 9":variant.includes("30")?"3 × 3":variant.includes("80")?"4 × 4":"5 × 5"}</option></select></label><label>Number range<input defaultValue={`1–${variant.includes("90")?90:variant.includes("30")?30:variant.includes("80")?80:75}`}/></label><label>Free space<select><option>{variant.includes("75")?"Center free":"None"}</option></select></label><label>Winning format<select><option>Multiple stages</option><option>Single pattern</option><option>Progressive</option></select></label></div></div><div className="drawer-section"><h3>Ticket & player configuration</h3><div className="drawer-form-grid"><label>Ticket price<input type="number" step="0.5" value={price} onChange={event=>setPrice(Number(event.target.value))}/></label><label>Minimum cards<input type="number" defaultValue="1"/></label><label>Maximum cards<input type="number" defaultValue="8"/></label><label>Cards per strip<input type="number" defaultValue={variant.includes("90")?6:1}/></label><label>Sales start time<input type="time" defaultValue="17:45"/></label><label>Sales close time<input type="time" defaultValue="17:59"/></label><label>Minimum players<input type="number" defaultValue="2"/></label><label>Maximum players<input type="number" defaultValue={editingRoom?.maxPlayers??300}/></label><label>VIP requirement<select><option>None</option><option>Gold</option><option>Platinum</option></select></label><label>Country restrictions<input placeholder="None or comma-separated ISO codes"/></label></div></div><div className="drawer-section"><h3>Game configuration</h3><div className="drawer-form-grid"><label>Countdown<input type="number" defaultValue="5"/></label><label>Ball calling speed<select><option>Fast · 1.2s</option><option>Turbo · 0.6s</option><option>Normal · 2.1s</option><option>Slow · 3.2s</option></select></label>{["Auto Daub","Manual Daub","Auto Bingo","Manual Bingo Claim","Chat"].map(item=><label className="check-field" key={item}><input type="checkbox" defaultChecked={item!=="Auto Bingo"}/>{item}</label>)}</div></div>{stagesEditor}<div className="drawer-section"><h3>RTP & Winning Margins</h3><div className="drawer-form-grid"><label>Target RTP (%)<input type="number" min="50" max="98" step="1" value={rtp} onChange={event=>setRtp(Number(event.target.value))}/></label><label>Payout Mode<select value={rtpMode} onChange={event=>setRtpMode(event.target.value as RtpMode)}><option value="dynamic">Dynamic (Scales with ticket sales)</option><option value="fixed">Guaranteed Fixed (Minimum prize)</option></select></label><label>RTP Policy<select value={customRtp ? "custom" : "global"} onChange={event=>setCustomRtp(event.target.value==="custom")}><option value="global">Follow Global Platform Target (78%)</option><option value="custom">Custom Room Override</option></select></label><label>House Margin Retention<input readOnly value={`${RTPEngine.calculateHouseMargin(rtp)}%`}/></label></div></div><div className="drawer-section"><h3>Prize & multiple winners</h3><div className="drawer-form-grid"><label>Prize type<select><option>Fixed prize</option><option>Prize pool</option><option>Progressive</option></select></label><label>Prize amount<input type="number" value={prize} onChange={event=>setPrize(Number(event.target.value))}/></label><label>Multiple winners<select><option>Allowed</option><option>First validated only</option></select></label><label>Prize split rule<select><option>Split equally</option><option>Fixed per winner</option><option>Shared jackpot</option><option>Carry over remainder</option></select></label><label>Maximum winner count<input type="number" defaultValue="10"/></label><label className="check-field"><input type="checkbox" defaultChecked={Boolean(editingRoom?.jackpot)}/> Enable jackpot</label><label>Jackpot type<select><option>Progressive</option><option>Guaranteed</option><option>Community</option></select></label><label>Starting amount<input type="number" defaultValue="50000"/></label><label>Contribution %<input type="number" step="0.1" defaultValue="2.5"/></label><label>Winning condition<input defaultValue="Full House within 42 balls"/></label><label>Reset amount<input type="number" defaultValue="50000"/></label></div></div>{action.kind==="edit-room"&&<div className="destructive-row"><button type="button" onClick={()=>{const copy={...editingRoom!,id:`${editingRoom!.id}-copy`,name:`${editingRoom!.name} Copy`,status:"Open" as BingoStatus};setRooms([...rooms,copy]);notify("Room duplicated.")}}>Duplicate room</button><button type="button" onClick={()=>setConfirm("disable")}>Disable room</button><button type="button" onClick={()=>setConfirm("delete")}>Delete room</button></div>}</>}
     {isGame&&<><div className="drawer-section"><h3>Game details</h3><div className="drawer-form-grid"><label>Room<select defaultValue={editingRoom?.name}>{rooms.map(room=><option key={room.id}>{room.name}</option>)}</select></label><label>Bingo type<select defaultValue={editingRoom?.variant}><option>90-Ball Classic</option><option>75-Ball Pattern</option><option>30-Ball Speed</option><option>80-Ball Grid</option></select></label><label>Date<input type="date" defaultValue="2026-08-22"/></label><label>Start time<input type="time" defaultValue="18:00"/></label><label>Ticket price<input type="number" step="0.5" value={price} onChange={event=>setPrice(Number(event.target.value))}/></label><label>Prize<input type="number" value={prize} onChange={event=>setPrize(Number(event.target.value))}/></label><label>Call speed<select><option>Fast</option><option>Turbo</option><option>Normal</option><option>Slow</option></select></label><label>Maximum players<input type="number" defaultValue="300"/></label><label>Card limit<input type="number" defaultValue="8"/></label><label>Jackpot<select><option>None</option><option>Mega Trueig Jackpot</option></select></label><label>Promotion<select><option>None</option><option>Buy 3 Get 1</option><option>Happy Hour</option></select></label><label>Game frequency<select><option>One time</option><option>Hourly</option><option>Daily</option><option>Weekly</option></select></label></div></div>{stagesEditor}<div className="game-form-actions"><button type="button" className="outline-button" onClick={()=>notify("Game scheduled for 18:00.")}>Schedule game</button><button type="button" className="admin-primary" onClick={()=>{notify("Game started immediately and opened in Live Control.");close()}}>Start immediately</button></div></>}
-    {!isRoom&&!isGame&&<DrawerSpecialForm kind={action.kind} notify={notify}/>} {confirm&&<div className="confirm-box"><b>{confirm==="delete"?"Delete this room permanently?":"Disable this room?"}</b><p>{confirm==="delete"?"The demo room will be removed from the lobby.":"Players will no longer be able to enter new rounds."}</p><button type="button" onClick={()=>setConfirm(null)}>Keep room</button><button type="button" className="danger-button" onClick={()=>{if(editingRoom){if(confirm==="delete")setRooms(rooms.filter(room=>room.id!==editingRoom.id));else setRooms(rooms.map(room=>room.id===editingRoom.id?{...room,status:"Scheduled"}:room))}notify(`Room ${confirm==="delete"?"deleted":"disabled"}.`);close()}}>Confirm {confirm}</button></div>} {formFooter}
+    {!isRoom&&!isGame&&<DrawerSpecialForm kind={action.kind} notify={notify} rooms={rooms} setRooms={setRooms} close={close}/>} {confirm&&<div className="confirm-box"><b>{confirm==="delete"?"Delete this room permanently?":"Disable this room?"}</b><p>{confirm==="delete"?"The demo room will be removed from the lobby.":"Players will no longer be able to enter new rounds."}</p><button type="button" onClick={()=>setConfirm(null)}>Keep room</button><button type="button" className="danger-button" onClick={()=>{if(editingRoom){if(confirm==="delete")setRooms(rooms.filter(room=>room.id!==editingRoom.id));else setRooms(rooms.map(room=>room.id===editingRoom.id?{...room,status:"Scheduled"}:room))}notify(`Room ${confirm==="delete"?"deleted":"disabled"}.`);close()}}>Confirm {confirm}</button></div>} {formFooter}
   </form></aside></div>;
 }
 
 function DrawerHeader({title,close}:{title:string;close:()=>void}){return <div className="drawer-header"><div><span className="section-kicker">TRUEIGTECH BACKOFFICE</span><h2>{title}</h2><p>Changes update the connected demo state immediately.</p></div><button onClick={close}>×</button></div>}
 
-function DrawerSpecialForm({kind,notify}:{kind:string;notify:(message:string)=>void}){
+function DrawerSpecialForm({kind,notify,rooms,setRooms,close}:{kind:string;notify:(message:string)=>void;rooms:BingoRoomData[];setRooms:(rooms:BingoRoomData[])=>void;close:()=>void}){
+  const [policyRtp, setPolicyRtp] = useState(80);
+  const [syncMode, setSyncMode] = useState("all");
+
   if(kind==="caller-config")return <div className="drawer-section"><h3>Caller behavior</h3><div className="drawer-form-grid"><label>Initial countdown<input type="number" defaultValue="5"/></label><label>Time between balls<input type="number" step="0.1" defaultValue="1.2"/></label><label>Voice caller<select><option>Trueigtech Nova</option><option>Trueigtech Max</option><option>Off</option></select></label><label>Animation<select><option>Premium ball motion</option><option>Minimal</option><option>Off</option></select></label>{["Auto call","Manual call enabled","Pause on Bingo claim","Resume after winner"].map(item=><label className="check-field" key={item}><input type="checkbox" defaultChecked/>{item}</label>)}<label>Game end delay<input type="number" defaultValue="4"/></label></div><button type="button" className="full-outline" onClick={()=>notify("Caller preview: B-17. Voice and animation settings applied.")}>Preview B-17 call</button></div>;
   if(kind.includes("jackpot"))return <div className="drawer-section"><h3>Jackpot configuration</h3><div className="drawer-form-grid"><label>Jackpot name<input defaultValue="Mega Trueig Jackpot"/></label><label>Jackpot type<select><option>Progressive</option><option>Guaranteed</option><option>Community</option></select></label><label>Starting amount<input type="number" defaultValue="50000"/></label><label>Current amount<input type="number" defaultValue="125480"/></label><label>Contribution %<input type="number" step="0.1" defaultValue="2.5"/></label><label>Maximum amount<input type="number" defaultValue="250000"/></label><label>Qualifying Bingo type<select><option>75-Ball Progressive</option><option>90-Ball</option></select></label><label>Qualifying pattern<select><option>Full House</option><option>Blackout</option></select></label><label>Maximum ball count<input type="number" defaultValue="42"/></label><label>Reset amount<input type="number" defaultValue="50000"/></label><label>Start date<input type="date" defaultValue="2026-08-21"/></label><label>End date<input type="date" defaultValue="2026-12-31"/></label><label>Status<select><option>Active</option><option>Paused</option></select></label></div><div className="special-actions"><button type="button" onClick={()=>notify("Jackpot paused.")}>Pause</button><button type="button" onClick={()=>notify("Jackpot resumed.")}>Resume</button><button type="button" className="danger-button" onClick={()=>notify("Jackpot reset to $50,000 after confirmation.")}>Reset jackpot</button></div></div>;
   if(kind.includes("tournament"))return <div className="drawer-section"><h3>Tournament configuration</h3><div className="drawer-form-grid"><label>Tournament name<input defaultValue="Trueigtech Weekend Cup"/></label><label className="full">Description<textarea defaultValue="Five-round progressive elimination tournament."/></label><label>Bingo rooms<select multiple><option>Diamond 75</option><option>Trueig 90 Classic</option><option>Turbo 30</option></select></label><label>Start date<input type="date" defaultValue="2026-08-22"/></label><label>End date<input type="date" defaultValue="2026-08-24"/></label><label>Entry fee<input type="number" defaultValue="8"/></label><label>Maximum players<input type="number" defaultValue="512"/></label><label>Number of rounds<input type="number" defaultValue="5"/></label><label>Prize pool<input type="number" defaultValue="25000"/></label><label>Points rules<textarea defaultValue="Line 10 · Pattern 25 · Full House 50"/></label><label>Qualification rules<textarea defaultValue="Top 50% advance each round"/></label><label>Leaderboard rules<textarea defaultValue="Points, wins, fastest Bingo"/></label></div></div>;
@@ -1056,5 +1594,66 @@ function DrawerSpecialForm({kind,notify}:{kind:string;notify:(message:string)=>v
   if(kind==="announcement")return <div className="drawer-section"><h3>In-app announcement</h3><div className="drawer-form-grid"><label>Audience<select><option>All players</option><option>Active rooms</option><option>VIP players</option><option>Tournament entrants</option></select></label><label>Priority<select><option>Normal</option><option>Important</option><option>Urgent</option></select></label><label className="full">Message<textarea defaultValue="Free Bingo starts in 5 minutes. Claim your Trueigtech card now!"/></label><label>Action label<input defaultValue="Claim free card"/></label><label>Linked screen<select><option>Free Bingo Party</option><option>Promotions</option><option>Lobby</option></select></label><label>Schedule<input type="datetime-local" defaultValue="2026-08-21T18:00"/></label></div><button type="button" className="full-outline" onClick={()=>notify("Test announcement sent to your admin account.")}>Send test notification</button></div>;
   if(kind==="manual-call")return <div className="drawer-section"><h3>Manual ball call</h3><label>Ball number<input type="number" min="1" max="75" defaultValue="17"/></label><p className="form-hint">The number is checked against call history before broadcast.</p></div>;
   if(kind==="declare-winner")return <div className="drawer-section"><h3>Manual winner declaration</h3><div className="drawer-form-grid"><label>Player<input defaultValue="LuckyStar"/></label><label>Card ID<input defaultValue="284237"/></label><label>Winning stage<select><option>One Line</option><option>Diamond</option><option>Full House</option></select></label><label>Prize<input type="number" defaultValue="400"/></label><label>Winner count<input type="number" defaultValue="1"/></label><label>Split rule<select><option>Split equally</option><option>Fixed per winner</option></select></label></div></div>;
+  if(kind==="apply-global-rtp") {
+    const margin = RTPEngine.calculateHouseMargin(policyRtp);
+    return (
+      <div className="drawer-section">
+        <h3>Network-Wide RTP Policy</h3>
+        <p style={{ fontSize: "12px", color: "var(--muted)", marginBottom: "14px" }}>
+          Establish the default return-to-player percentage and operator profit margin across all connected games.
+        </p>
+        <div className="drawer-form-grid">
+          <label>
+            Global Target RTP (%)
+            <input
+              type="number"
+              min="65"
+              max="95"
+              value={policyRtp}
+              onChange={(e) => setPolicyRtp(Number(e.target.value))}
+            />
+          </label>
+          <label>
+            Expected House Profit
+            <input readOnly value={`${margin}% GGR hold`} />
+          </label>
+          <label>
+            Sync Mode
+            <select value={syncMode} onChange={(e) => setSyncMode(e.target.value)}>
+              <option value="all">Update all {rooms.length} rooms immediately</option>
+              <option value="non-custom">Update rooms without custom overrides</option>
+            </select>
+          </label>
+          <label className="full">
+            Policy Description
+            <textarea defaultValue="Standard network payout policy ensuring positive operator house margin across all active games." />
+          </label>
+        </div>
+        <button
+          type="button"
+          className="admin-primary full-outline"
+          onClick={() => {
+            const updated = rooms.map(room => {
+              if (syncMode === "non-custom" && room.customRtp) return room;
+              const newPrize = room.rtpMode === "dynamic"
+                ? RTPEngine.calculateDynamicPrize(room.cardsSold, room.ticketPrice, policyRtp, room.jackpot ? 2.5 : 0)
+                : room.prize;
+              return {
+                ...room,
+                rtp: policyRtp,
+                customRtp: false,
+                prize: newPrize > 0 ? Math.round(newPrize) : room.prize,
+              };
+            });
+            setRooms(updated);
+            notify(`Global ${policyRtp}% RTP policy distributed across rooms.`);
+            close();
+          }}
+        >
+          Broadcast {policyRtp}% Network Policy
+        </button>
+      </div>
+    );
+  }
   return <div className="drawer-section"><h3>Configuration</h3><div className="drawer-form-grid"><label>Setting name<input defaultValue="Trueigtech default"/></label><label>Status<select><option>Enabled</option><option>Disabled</option></select></label><label className="full">Description<textarea defaultValue="Operational configuration for the Trueigtech Bingo platform."/></label></div></div>;
 }
