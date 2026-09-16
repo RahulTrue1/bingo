@@ -1,0 +1,1019 @@
+{
+  "rooms": [
+    {
+      "id": "trueig-90",
+      "name": "Trueig 90 Classic",
+      "variant": "90-Ball Classic",
+      "status": "Starting Soon",
+      "ticketPrice": 0.5,
+      "prize": 273,
+      "players": 192,
+      "maxPlayers": 300,
+      "cardsSold": 682,
+      "startsIn": "00:46",
+      "pattern": "One Line → Two Lines → Full House",
+      "accent": "teal",
+      "featured": true,
+      "tag": "CLASSIC",
+      "frequency": "Every 10 min",
+      "cardRows": 3,
+      "cardColumns": 9,
+      "callDelay": 1350,
+      "rtp": 80,
+      "rtpMode": "dynamic",
+      "winningStages": [
+        {
+          "name": "One Line",
+          "prize": 50,
+          "continueAfterWin": true
+        },
+        {
+          "name": "Two Lines",
+          "prize": 80,
+          "continueAfterWin": true
+        },
+        {
+          "name": "Full House",
+          "prize": 135,
+          "continueAfterWin": false
+        }
+      ],
+      "customRtp": true
+    },
+    {
+      "id": "turbo-30",
+      "name": "Turbo 30",
+      "variant": "30-Ball Speed",
+      "status": "Live",
+      "ticketPrice": 1,
+      "prize": 218,
+      "players": 84,
+      "maxPlayers": 150,
+      "cardsSold": 256,
+      "startsIn": "LIVE · Ball 11",
+      "pattern": "3 × 3 Coverall",
+      "accent": "coral",
+      "featured": true,
+      "tag": "SPEED",
+      "frequency": "Every 2 min",
+      "cardRows": 3,
+      "cardColumns": 3,
+      "callDelay": 650,
+      "rtp": 85,
+      "rtpMode": "dynamic",
+      "winningStages": [
+        {
+          "name": "Speed Full House",
+          "prize": 218,
+          "continueAfterWin": false
+        }
+      ]
+    },
+    {
+      "id": "diamond-75",
+      "name": "Diamond 75",
+      "variant": "75-Ball Pattern",
+      "status": "Live",
+      "ticketPrice": 2,
+      "prize": 1500,
+      "players": 286,
+      "maxPlayers": 400,
+      "cardsSold": 934,
+      "startsIn": "LIVE · Ball 28",
+      "pattern": "Diamond",
+      "accent": "violet",
+      "featured": true,
+      "tag": "PATTERN",
+      "frequency": "Every 5 min",
+      "cardRows": 5,
+      "cardColumns": 5,
+      "callDelay": 1200,
+      "rtp": 80,
+      "rtpMode": "fixed",
+      "winningStages": [
+        {
+          "name": "Four Corners",
+          "prize": 150,
+          "continueAfterWin": true
+        },
+        {
+          "name": "One Line",
+          "prize": 350,
+          "continueAfterWin": true
+        },
+        {
+          "name": "Diamond",
+          "prize": 1000,
+          "continueAfterWin": false
+        }
+      ]
+    },
+    {
+      "id": "mega-jackpot",
+      "name": "Mega Trueig Jackpot",
+      "variant": "75-Ball Progressive",
+      "status": "Selling Tickets",
+      "ticketPrice": 5,
+      "prize": 4836,
+      "jackpot": 125480,
+      "players": 348,
+      "maxPlayers": 500,
+      "cardsSold": 1248,
+      "startsIn": "02:18",
+      "pattern": "Full House ≤ 42 balls",
+      "accent": "gold",
+      "featured": true,
+      "tag": "JACKPOT",
+      "frequency": "Every 15 min",
+      "cardRows": 5,
+      "cardColumns": 5,
+      "callDelay": 1050,
+      "progressiveBallLimit": 42,
+      "rtp": 80,
+      "rtpMode": "dynamic",
+      "winningStages": [
+        {
+          "name": "One Line",
+          "prize": 500,
+          "continueAfterWin": true
+        },
+        {
+          "name": "Full House",
+          "prize": 4336,
+          "continueAfterWin": false
+        }
+      ]
+    },
+    {
+      "id": "quick-80",
+      "name": "Quick 80",
+      "variant": "80-Ball Grid",
+      "status": "Selling Tickets",
+      "ticketPrice": 1,
+      "prize": 400,
+      "players": 136,
+      "maxPlayers": 250,
+      "cardsSold": 504,
+      "startsIn": "05:10",
+      "pattern": "Single Line → Full House",
+      "accent": "pink",
+      "tag": "80-BALL",
+      "frequency": "Every 8 min",
+      "cardRows": 4,
+      "cardColumns": 4,
+      "callDelay": 950,
+      "rtp": 80,
+      "rtpMode": "fixed",
+      "winningStages": [
+        {
+          "name": "Single Line",
+          "prize": 80,
+          "continueAfterWin": true
+        },
+        {
+          "name": "Four Corners",
+          "prize": 120,
+          "continueAfterWin": true
+        },
+        {
+          "name": "Full House",
+          "prize": 200,
+          "continueAfterWin": false
+        }
+      ]
+    },
+    {
+      "id": "pattern-arena",
+      "name": "Trueig Pattern Arena",
+      "variant": "75-Ball Pattern Series",
+      "status": "Open",
+      "ticketPrice": 1.5,
+      "prize": 580,
+      "players": 168,
+      "maxPlayers": 300,
+      "cardsSold": 472,
+      "startsIn": "03:24",
+      "pattern": "Round 1 · X Pattern",
+      "accent": "violet",
+      "tag": "5 ROUNDS",
+      "frequency": "Every 12 min",
+      "cardRows": 5,
+      "cardColumns": 5,
+      "callDelay": 1100,
+      "rtp": 82,
+      "rtpMode": "dynamic",
+      "winningStages": [
+        {
+          "name": "X Pattern",
+          "prize": 580,
+          "continueAfterWin": false
+        }
+      ]
+    },
+    {
+      "id": "free-party",
+      "name": "Free Bingo Party",
+      "variant": "75-Ball Community",
+      "status": "Open",
+      "ticketPrice": 0,
+      "prize": 100,
+      "players": 118,
+      "maxPlayers": 500,
+      "cardsSold": 438,
+      "startsIn": "08:32",
+      "pattern": "Four Corners",
+      "accent": "blue",
+      "tag": "FREE",
+      "frequency": "Every hour",
+      "cardRows": 5,
+      "cardColumns": 5,
+      "callDelay": 1300,
+      "rtp": 100,
+      "rtpMode": "fixed",
+      "winningStages": [
+        {
+          "name": "Four Corners",
+          "prize": 100,
+          "continueAfterWin": false
+        }
+      ]
+    },
+    {
+      "id": "midnight-90",
+      "name": "Midnight Bingo",
+      "variant": "90-Ball After Dark",
+      "status": "Scheduled",
+      "ticketPrice": 2,
+      "prize": 1200,
+      "players": 224,
+      "maxPlayers": 400,
+      "cardsSold": 752,
+      "startsIn": "23:00",
+      "pattern": "1 Line → 2 Lines → Full House",
+      "accent": "blue",
+      "tag": "NIGHT",
+      "frequency": "Nightly",
+      "cardRows": 3,
+      "cardColumns": 9,
+      "callDelay": 1150,
+      "rtp": 80,
+      "rtpMode": "fixed",
+      "winningStages": [
+        {
+          "name": "One Line",
+          "prize": 200,
+          "continueAfterWin": true
+        },
+        {
+          "name": "Two Lines",
+          "prize": 300,
+          "continueAfterWin": true
+        },
+        {
+          "name": "Full House",
+          "prize": 700,
+          "continueAfterWin": false
+        }
+      ]
+    },
+    {
+      "id": "vip-gold",
+      "name": "VIP Gold Room",
+      "variant": "75-Ball VIP",
+      "status": "Scheduled",
+      "ticketPrice": 10,
+      "prize": 2500,
+      "players": 42,
+      "maxPlayers": 80,
+      "cardsSold": 126,
+      "startsIn": "21:00",
+      "pattern": "X Pattern → Blackout",
+      "accent": "gold",
+      "tag": "VIP",
+      "frequency": "Daily",
+      "cardRows": 5,
+      "cardColumns": 5,
+      "callDelay": 1450,
+      "vipOnly": true,
+      "rtp": 85,
+      "rtpMode": "fixed",
+      "winningStages": [
+        {
+          "name": "X Pattern",
+          "prize": 750,
+          "continueAfterWin": true
+        },
+        {
+          "name": "Blackout",
+          "prize": 1750,
+          "continueAfterWin": false
+        }
+      ]
+    },
+    {
+      "id": "tournament",
+      "name": "Trueigtech Weekend Cup",
+      "variant": "Tournament · 5 Rounds",
+      "status": "Open",
+      "ticketPrice": 8,
+      "prize": 5000,
+      "players": 384,
+      "maxPlayers": 512,
+      "cardsSold": 768,
+      "startsIn": "FRI · 20:00",
+      "pattern": "Points Series",
+      "accent": "violet",
+      "tag": "TOURNAMENT",
+      "frequency": "Weekly",
+      "cardRows": 5,
+      "cardColumns": 5,
+      "callDelay": 900,
+      "rtp": 80,
+      "rtpMode": "fixed"
+    }
+  ],
+  "wallet": 248.5,
+  "transactions": [
+    {
+      "id": "TXN-854201",
+      "player": "TrueigQueen",
+      "room": "Mega Trueig Jackpot",
+      "type": "Ticket purchase",
+      "amount": -40,
+      "status": "Completed",
+      "timestamp": "14:32:08"
+    },
+    {
+      "id": "PAY-284201",
+      "player": "Ari.R",
+      "room": "Diamond 75",
+      "type": "Prize payout",
+      "amount": 1250,
+      "status": "Processing",
+      "timestamp": "14:31:44"
+    },
+    {
+      "id": "JP-684212",
+      "player": "System",
+      "room": "Mega Trueig Jackpot",
+      "type": "Jackpot contribution",
+      "amount": 42.1,
+      "status": "Completed",
+      "timestamp": "14:31:02"
+    },
+    {
+      "id": "REF-128492",
+      "player": "MikaK",
+      "room": "Trueig 90 Classic",
+      "type": "Refund",
+      "amount": 3,
+      "status": "Completed",
+      "timestamp": "14:28:16"
+    },
+    {
+      "id": "PROMO-48311",
+      "player": "SkyJump",
+      "room": "Free Bingo Party",
+      "type": "Promotional credit",
+      "amount": 5,
+      "status": "Completed",
+      "timestamp": "14:24:54"
+    }
+  ],
+  "gameSessions": {
+    "trueig-90": {
+      "roomId": "trueig-90",
+      "phase": "selling",
+      "countdown": 5,
+      "called": [],
+      "current": null,
+      "speed": "Fast",
+      "paused": false,
+      "stageIndex": 0,
+      "patternRound": 0,
+      "winnerNames": [],
+      "winnerPrize": 0,
+      "winnerPattern": "",
+      "livePlayers": 192,
+      "liveCards": 682,
+      "liveJackpot": 0,
+      "lastWinner": "LuckyStar · $420"
+    },
+    "turbo-30": {
+      "roomId": "turbo-30",
+      "phase": "live",
+      "countdown": 5,
+      "called": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11
+      ],
+      "current": 11,
+      "speed": "Turbo",
+      "paused": false,
+      "stageIndex": 0,
+      "patternRound": 0,
+      "winnerNames": [],
+      "winnerPrize": 0,
+      "winnerPattern": "",
+      "livePlayers": 84,
+      "liveCards": 256,
+      "liveJackpot": 0,
+      "lastWinner": "LuckyStar · $420"
+    },
+    "diamond-75": {
+      "roomId": "diamond-75",
+      "phase": "live",
+      "countdown": 5,
+      "called": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        24,
+        25,
+        26,
+        27,
+        28,
+        51
+      ],
+      "current": 51,
+      "speed": "Fast",
+      "paused": false,
+      "stageIndex": 0,
+      "patternRound": 0,
+      "winnerNames": [],
+      "winnerPrize": 0,
+      "winnerPattern": "",
+      "livePlayers": 286,
+      "liveCards": 934,
+      "liveJackpot": 0,
+      "lastWinner": "LuckyStar · $420"
+    },
+    "mega-jackpot": {
+      "roomId": "mega-jackpot",
+      "phase": "selling",
+      "countdown": 5,
+      "called": [],
+      "current": null,
+      "speed": "Fast",
+      "paused": false,
+      "stageIndex": 0,
+      "patternRound": 0,
+      "winnerNames": [],
+      "winnerPrize": 0,
+      "winnerPattern": "",
+      "livePlayers": 348,
+      "liveCards": 1248,
+      "liveJackpot": 125480,
+      "lastWinner": "LuckyStar · $420"
+    },
+    "quick-80": {
+      "roomId": "quick-80",
+      "phase": "selling",
+      "countdown": 5,
+      "called": [],
+      "current": null,
+      "speed": "Fast",
+      "paused": false,
+      "stageIndex": 0,
+      "patternRound": 0,
+      "winnerNames": [],
+      "winnerPrize": 0,
+      "winnerPattern": "",
+      "livePlayers": 136,
+      "liveCards": 504,
+      "liveJackpot": 0,
+      "lastWinner": "LuckyStar · $420"
+    },
+    "pattern-arena": {
+      "roomId": "pattern-arena",
+      "phase": "selling",
+      "countdown": 5,
+      "called": [],
+      "current": null,
+      "speed": "Fast",
+      "paused": false,
+      "stageIndex": 0,
+      "patternRound": 0,
+      "winnerNames": [],
+      "winnerPrize": 0,
+      "winnerPattern": "",
+      "livePlayers": 168,
+      "liveCards": 472,
+      "liveJackpot": 0,
+      "lastWinner": "LuckyStar · $420"
+    },
+    "free-party": {
+      "roomId": "free-party",
+      "phase": "selling",
+      "countdown": 5,
+      "called": [],
+      "current": null,
+      "speed": "Fast",
+      "paused": false,
+      "stageIndex": 0,
+      "patternRound": 0,
+      "winnerNames": [],
+      "winnerPrize": 0,
+      "winnerPattern": "",
+      "livePlayers": 118,
+      "liveCards": 438,
+      "liveJackpot": 0,
+      "lastWinner": "LuckyStar · $420"
+    },
+    "midnight-90": {
+      "roomId": "midnight-90",
+      "phase": "selling",
+      "countdown": 5,
+      "called": [],
+      "current": null,
+      "speed": "Fast",
+      "paused": false,
+      "stageIndex": 0,
+      "patternRound": 0,
+      "winnerNames": [],
+      "winnerPrize": 0,
+      "winnerPattern": "",
+      "livePlayers": 224,
+      "liveCards": 752,
+      "liveJackpot": 0,
+      "lastWinner": "LuckyStar · $420"
+    },
+    "vip-gold": {
+      "roomId": "vip-gold",
+      "phase": "selling",
+      "countdown": 5,
+      "called": [],
+      "current": null,
+      "speed": "Fast",
+      "paused": false,
+      "stageIndex": 0,
+      "patternRound": 0,
+      "winnerNames": [],
+      "winnerPrize": 0,
+      "winnerPattern": "",
+      "livePlayers": 42,
+      "liveCards": 126,
+      "liveJackpot": 0,
+      "lastWinner": "LuckyStar · $420"
+    },
+    "tournament": {
+      "roomId": "tournament",
+      "phase": "selling",
+      "countdown": 5,
+      "called": [],
+      "current": null,
+      "speed": "Fast",
+      "paused": false,
+      "stageIndex": 0,
+      "patternRound": 0,
+      "winnerNames": [],
+      "winnerPrize": 0,
+      "winnerPattern": "",
+      "livePlayers": 384,
+      "liveCards": 768,
+      "liveJackpot": 0,
+      "lastWinner": "LuckyStar · $420"
+    }
+  },
+  "tickets": [],
+  "claims": [],
+  "jackpots": [
+    {
+      "id": "mega-trueig",
+      "name": "Mega Trueig Jackpot",
+      "variant": "75-Ball Progressive",
+      "currentAmount": 125480.6,
+      "startingAmount": 50000,
+      "maximumAmount": 250000,
+      "resetAmount": 50000,
+      "contributionPercent": 2.5,
+      "qualifyingPattern": "Full House",
+      "qualifyingBallLimit": 42,
+      "enabled": true,
+      "linkedRooms": [
+        "mega-jackpot",
+        "diamond-75"
+      ],
+      "history": [
+        {
+          "type": "Ticket contribution",
+          "amount": 42.1,
+          "time": "14:31",
+          "user": "Auto Contribution"
+        },
+        {
+          "type": "Ticket contribution",
+          "amount": 38.65,
+          "time": "14:26",
+          "user": "Auto Contribution"
+        },
+        {
+          "type": "Game contribution",
+          "amount": 100,
+          "time": "14:15",
+          "user": "Operator"
+        },
+        {
+          "type": "Manual adjustment",
+          "amount": 500,
+          "time": "12:00",
+          "user": "John Dawson"
+        }
+      ]
+    }
+  ],
+  "tournaments": [
+    {
+      "id": "weekend-cup",
+      "name": "Trueigtech Weekend Cup",
+      "description": "Five-round progressive elimination tournament.",
+      "entryFee": 8,
+      "prizePool": 25000,
+      "playersCount": 384,
+      "maxPlayers": 512,
+      "startsAt": "22 Aug · 20:00",
+      "status": "Registration open",
+      "rounds": [
+        "Qualifiers",
+        "Round of 256",
+        "Round of 128",
+        "Semi Final",
+        "Grand Final"
+      ],
+      "scoringRules": {
+        "Line win": "10 pts",
+        "Pattern win": "25 pts",
+        "Full house": "50 pts",
+        "Fast Bingo bonus": "+15 pts",
+        "Round winner": "+40 pts"
+      },
+      "standings": [
+        {
+          "rank": 1,
+          "player": "LuckyStar",
+          "points": 285,
+          "wins": 4,
+          "status": "Qualified"
+        },
+        {
+          "rank": 2,
+          "player": "BingoMaster",
+          "points": 240,
+          "wins": 3,
+          "status": "Qualified"
+        },
+        {
+          "rank": 3,
+          "player": "SpeedySam",
+          "points": 215,
+          "wins": 2,
+          "status": "Qualified"
+        },
+        {
+          "rank": 4,
+          "player": "Ari.R",
+          "points": 190,
+          "wins": 2,
+          "status": "Qualified"
+        },
+        {
+          "rank": 5,
+          "player": "TrueigQueen",
+          "points": 175,
+          "wins": 1,
+          "status": "Qualified"
+        }
+      ]
+    }
+  ],
+  "promotions": [
+    {
+      "id": "free-bingo",
+      "title": "Free Bingo Party",
+      "description": "Hourly free 75-ball card with real cash prizes.",
+      "status": "Active",
+      "category": "Free cards",
+      "badge": "FREE",
+      "rewardType": "free_cards",
+      "rewardValue": 1,
+      "claimedBy": []
+    },
+    {
+      "id": "buy3-get1",
+      "title": "Buy 3 Get 1 Free",
+      "description": "Fourth eligible card is free on any 75-Ball room.",
+      "status": "Active",
+      "category": "All offers",
+      "badge": "POPULAR",
+      "rewardType": "free_cards",
+      "rewardValue": 1,
+      "claimedBy": []
+    },
+    {
+      "id": "happy-hour",
+      "title": "Happy Hour Bingo",
+      "description": "50% ticket discount on all evening games from 18:00 to 19:00.",
+      "status": "Scheduled",
+      "category": "Deposit bonus",
+      "badge": "50% OFF",
+      "rewardType": "credits",
+      "rewardValue": 15,
+      "claimedBy": []
+    },
+    {
+      "id": "cashback-10",
+      "title": "10% Weekly Cashback",
+      "description": "Receive 10% back on all non-winning cards every Monday.",
+      "status": "Active",
+      "category": "Cashback",
+      "badge": "10%",
+      "rewardType": "cashback",
+      "rewardValue": 10,
+      "claimedBy": []
+    },
+    {
+      "id": "tournament-entry",
+      "title": "Weekend Cup Ticket Reward",
+      "description": "Play 20 games in any room to receive a free Weekend Cup ticket.",
+      "status": "Draft",
+      "category": "Tournaments",
+      "badge": "REWARD",
+      "rewardType": "free_cards",
+      "rewardValue": 1,
+      "claimedBy": []
+    },
+    {
+      "id": "vip-access",
+      "title": "Unlock VIP Gold Room",
+      "description": "Special high-roller access with boosted prize pools.",
+      "status": "Active",
+      "category": "All offers",
+      "badge": "VIP",
+      "rewardType": "vip_pass",
+      "rewardValue": 1,
+      "claimedBy": []
+    },
+    {
+      "id": "daily-reward",
+      "title": "Daily Login Bonus",
+      "description": "Claim $5 bonus credit once every 24 hours.",
+      "status": "Active",
+      "category": "Deposit bonus",
+      "badge": "$5 GIFT",
+      "rewardType": "credits",
+      "rewardValue": 5,
+      "claimedBy": []
+    }
+  ],
+  "chatMessages": {
+    "diamond-75": [
+      {
+        "id": "c1",
+        "roomId": "diamond-75",
+        "user": "LuckyStar",
+        "text": "BINGO!! That was close 🎉",
+        "time": "14:32",
+        "role": "player"
+      },
+      {
+        "id": "c2",
+        "roomId": "diamond-75",
+        "user": "MikaK",
+        "text": "need N-34 to hit diamond!",
+        "time": "14:31",
+        "role": "player"
+      },
+      {
+        "id": "c3",
+        "roomId": "diamond-75",
+        "user": "Ari.R",
+        "text": "good luck everyone",
+        "time": "14:28",
+        "role": "player"
+      }
+    ],
+    "turbo-30": [
+      {
+        "id": "c4",
+        "roomId": "turbo-30",
+        "user": "SpeedySam",
+        "text": "ready for another one",
+        "time": "14:31",
+        "role": "player"
+      }
+    ]
+  },
+  "mutedUsers": [
+    "RiskyB"
+  ],
+  "patterns": [
+    {
+      "name": "Four Corners",
+      "cells": [
+        0,
+        4,
+        20,
+        24
+      ],
+      "layout": "5 × 5",
+      "allowRotations": true,
+      "allowMirroring": true
+    },
+    {
+      "name": "Diamond",
+      "cells": [
+        2,
+        6,
+        8,
+        10,
+        14,
+        16,
+        18,
+        22
+      ],
+      "layout": "5 × 5",
+      "allowRotations": true,
+      "allowMirroring": true
+    },
+    {
+      "name": "X Shape",
+      "cells": [
+        0,
+        4,
+        6,
+        8,
+        12,
+        16,
+        18,
+        20,
+        24
+      ],
+      "layout": "5 × 5",
+      "allowRotations": true,
+      "allowMirroring": true
+    },
+    {
+      "name": "Full House",
+      "cells": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        24
+      ],
+      "layout": "5 × 5",
+      "allowRotations": true,
+      "allowMirroring": true
+    }
+  ],
+  "players": [
+    {
+      "id": "USR-10482",
+      "username": "TrueigQueen",
+      "tier": "VIP",
+      "balance": 12480,
+      "gamesPlayed": 842,
+      "cardsPurchased": 2450,
+      "wins": 142,
+      "totalPrizes": 24860,
+      "restrictions": [],
+      "lastLogin": "Today · 14:29",
+      "status": "Active"
+    },
+    {
+      "id": "USR-09814",
+      "username": "MikaK",
+      "tier": "Standard",
+      "balance": 4820,
+      "gamesPlayed": 420,
+      "cardsPurchased": 1100,
+      "wins": 48,
+      "totalPrizes": 7980,
+      "restrictions": [],
+      "lastLogin": "Today · 14:18",
+      "status": "Active"
+    },
+    {
+      "id": "USR-11804",
+      "username": "Ari.R",
+      "tier": "Standard",
+      "balance": 248.5,
+      "gamesPlayed": 128,
+      "cardsPurchased": 346,
+      "wins": 18,
+      "totalPrizes": 2840,
+      "restrictions": [],
+      "lastLogin": "Today · 14:21",
+      "status": "Active"
+    },
+    {
+      "id": "USR-07226",
+      "username": "RiskyB",
+      "tier": "Restricted",
+      "balance": 0,
+      "gamesPlayed": 294,
+      "cardsPurchased": 650,
+      "wins": 12,
+      "totalPrizes": 8250,
+      "restrictions": [
+        "Muted in chat",
+        "Manual claim check"
+      ],
+      "lastLogin": "Yesterday",
+      "status": "Restricted"
+    }
+  ],
+  "auditFeed": [
+    {
+      "id": "feed-1789579740486",
+      "type": "alert",
+      "title": "Manual ball call",
+      "detail": "G-51 called manually in diamond-75",
+      "time": "22:59"
+    },
+    {
+      "id": "feed-1789579732438",
+      "type": "alert",
+      "title": "Room updated",
+      "detail": "Trueig 90 Classic settings modified",
+      "time": "22:58"
+    },
+    {
+      "id": "feed-1",
+      "type": "claim",
+      "title": "Bingo claim validated",
+      "detail": "Diamond 75 · Card #284201",
+      "time": "14:32"
+    },
+    {
+      "id": "feed-2",
+      "type": "jackpot",
+      "title": "Jackpot contribution",
+      "detail": "+$42.10 · Mega Trueig Jackpot",
+      "time": "14:31"
+    },
+    {
+      "id": "feed-3",
+      "type": "player",
+      "title": "High-value player joined",
+      "detail": "TrueigQueen · VIP Gold Room",
+      "time": "14:29"
+    },
+    {
+      "id": "feed-4",
+      "type": "alert",
+      "title": "Claim rejected",
+      "detail": "Turbo 30 · Invalid pattern",
+      "time": "14:26"
+    }
+  ]
+}

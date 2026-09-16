@@ -1,100 +1,145 @@
-# vinext-starter
+# Trueigtech Bingo — Full-Stack Gaming Platform
 
-A clean full-stack starter running on
-[vinext](https://github.com/cloudflare/vinext), with optional Cloudflare D1 and
-Drizzle support.
+A modern, high-performance, dynamic multiplayer Bingo platform built with **Next.js / React / Vinext** on the frontend and **Node.js & Express** on the backend.
 
-## Prerequisites
+---
 
-- Node.js `>=22.13.0`
+## Highlights & Features
+
+- **Multi-Variant Game Engine**: Native support for **75-Ball Pattern**, **90-Ball Classic**, **30-Ball Speed Bingo**, and **80-Ball Grid**.
+- **Dynamic REST API**: Express server running on port `4000` with 10 route modules and JSON file-backed persistence (`data/bingo-db.json`).
+- **Live Ball Calling**: Fair uncalled number selector, automated call cadence, and manual operator overrides.
+- **Pattern Validation Engine**: Real-time evaluation of lines, two lines, four corners, diamonds, X shapes, and full house / blackout.
+- **RTP & Margin Controls**: Platform-wide and per-room dynamic return-to-player target margins (70% - 95%).
+- **Card Wallet & Progressive Jackpots**: Real-time wallet deductions, 2.5% progressive jackpot auto-contributions, and card daubing tracking.
+- **Backoffice Administration**: Real-time KPI telemetry, room configuration drawer, live game control deck, player restrictions, and chat moderation queue.
+- **Comprehensive API Documentation**: Complete REST API specification with copy-paste `curl` commands in [`API_DOCUMENTATION.md`](./API_DOCUMENTATION.md).
+
+---
+
+## System Architecture
+
+```
+┌───────────────────────────────────────────────────────────┐
+│              Frontend Web Application (Port 3000)         │
+│  - Player Lobby & Game Rooms                              │
+│  - Live Card Wallet & Ticket Previews                     │
+│  - Tournaments, Jackpots & Rewards                        │
+│  - Backoffice Suite, Live Control & Pattern Builder       │
+└────────────────────────────┬──────────────────────────────┘
+                             │  HTTP / REST (Proxy: /api)
+┌────────────────────────────▼──────────────────────────────┐
+│             Node.js Express API Server (Port 4000)        │
+│  - server/index.ts (Express Gateway)                      │
+│  - server/routes/ (Rooms, Game, Tickets, Wallet, etc.)    │
+│  - server/services/bingo-engine.ts (Rules & RNG)          │
+│  - server/db/store.ts (Persistent JSON Store)             │
+└───────────────────────────────────────────────────────────┘
+```
+
+---
 
 ## Quick Start
 
+### Prerequisites
+- Node.js `>=22.13.0`
+- npm `>=10.0.0`
+
+### 1. Install Dependencies
 ```bash
 npm install
+```
+
+### 2. Start the Backend API Server
+```bash
+npm run server
+```
+*The Express API server will listen on `http://localhost:4000` with health check at `http://localhost:4000/api/health`.*
+
+### 3. Start the Frontend Dev Server
+In a separate terminal window:
+```bash
 npm run dev
-npm run build
+```
+*The web interface will open at `http://localhost:3000` (requests to `/api/*` are automatically proxied to `:4000`).*
+
+---
+
+## End-to-End Game Flow Walkthrough
+
+### 1. Player Journey
+
+1. **Player Enters Lobby**:
+   - The user opens the home view. The frontend requests `GET /api/rooms` and displays available rooms with real-time countdowns, ticket prices, and jackpot levels.
+   - The user's wallet is loaded from `GET /api/wallet`.
+2. **Deposit Funds**:
+   - Clicking `+` in the header calls `POST /api/wallet/deposit` (`+$50.00`). The balance updates immediately on screen and in the database.
+3. **Purchase Tickets**:
+   - Entering a room (e.g. *Diamond 75*) and clicking **Buy Cards** calls `POST /api/tickets/buy`.
+   - The backend deducts the entry fee, generates deterministic card layout matrices, increments the room card counter, and deposits 2.5% of the ticket price into the progressive jackpot.
+4. **Live Round & Daubing**:
+   - The game transitions to `live` calling. Each ball drawn via `POST /api/game/:roomId/call-next` is broadcast to players.
+   - Numbers matching player cards are daubed (`POST /api/tickets/:id/daub`).
+5. **Claiming BINGO**:
+   - Clicking **Claim BINGO** calls `POST /api/game/:roomId/claim`.
+   - The server engine verifies whether the player's card satisfied the winning pattern with currently called balls.
+   - Upon verification, the prize is credited to the player's wallet (`store.wallet += prize`), a transaction is logged, and audit events are generated.
+
+---
+
+### 2. Backoffice & Operator Journey
+
+1. **Admin Telemetry & Live Ops**:
+   - Navigating to Admin (`/backoffice`) fetches `GET /api/admin/dashboard` to display platform KPIs (Active Rooms, Online Players, Gross Ticket Revenue, Prize Payout Ratio, Jackpot Liability, and GGR).
+2. **Room Management & Global RTP**:
+   - Create, duplicate, edit, or delete rooms via `/api/rooms`.
+   - The **RTP Policy** tool lets operators enforce global payout percentages across all rooms via `POST /api/rooms/rtp-policy`.
+3. **Live Game Control Deck**:
+   - The operator can manually draw specific balls (`POST /api/game/:roomId/manual-call`), pause/resume calling, restart rounds, or trigger cancellations with automatic player refunds.
+   - Operator can manually declare winners or review flagged claims.
+4. **Chat Moderation**:
+   - Real-time chat feed from `GET /api/chat/:roomId`.
+   - Operator can mute misbehaving users, delete flagged messages, or broadcast platform-wide system announcements.
+
+---
+
+## API Reference Summary
+
+All API endpoints are documented with complete request schemas, response schemas, and copy-paste `curl` commands in **[`API_DOCUMENTATION.md`](./API_DOCUMENTATION.md)**:
+
+| Module | Base Path | Description |
+| :--- | :--- | :--- |
+| **Health** | `GET /api/health` | System status and uptime check |
+| **Rooms** | `/api/rooms` | CRUD, room filtering, duplication, global RTP policy |
+| **Game Session** | `/api/game` | Live ball calling, pause/resume, cancel & refunds, claims validation |
+| **Tickets** | `/api/tickets` | Card generation, ticket purchasing, number daubing |
+| **Wallet** | `/api/wallet` | Balance inquiry, deposits, withdrawals, transaction history |
+| **Jackpots** | `/api/jackpots` | Progressive jackpot pools, manual operator contributions, resets |
+| **Tournaments** | `/api/tournaments` | Multi-round elimination tournaments, registration, standings |
+| **Promotions** | `/api/promotions` | Bonus campaigns, voucher claims, status toggling |
+| **Chat** | `/api/chat` | Room chat messages, user muting, message deletion, announcements |
+| **Patterns** | `/api/patterns` | Custom pattern designer persistence and pattern library |
+| **Admin** | `/api/admin` | Platform KPI telemetry, player management, live control feed |
+
+---
+
+## Verification & Testing
+
+Run the automated test suites:
+
+```bash
+# 1. Run full build & rendered HTML regression test
+npm test
+
+# 2. Run backend API integration test suite
+node --experimental-strip-types --test tests/api.test.mjs
+
+# 3. Run ESLint checks
+npm run lint
 ```
 
-This starter does not use `wrangler.jsonc`.
+---
 
-## Included Shape
+## License
 
-- edit site code under `app/`
-- `.openai/hosting.json` declares optional Sites D1 and R2 bindings
-- `vite.config.ts` simulates declared bindings for local development
-- `db/schema.ts` starts intentionally empty
-- `examples/d1/` contains an optional D1 example surface
-- `drizzle.config.ts` supports local migration generation when needed
-
-## Workspace Auth Headers
-
-Signed-in visitors receive both `oai-authenticated-user-id` and `oai-authenticated-user-email`. Private Sites require every visitor to sign in; public Sites may also have anonymous visitors, for whom neither header is present.
-
-The user ID is stable for the same user on the same Site and different across Sites. Email and name are intended for display or contact purposes.
-
-SIWC-authenticated workspace sites may also receive
-`oai-authenticated-user-full-name` when the user's SIWC profile has a non-empty
-`name` claim. The full-name value is percent-encoded UTF-8 and is accompanied by
-`oai-authenticated-user-full-name-encoding: percent-encoded-utf-8`.
-
-Treat the full name as optional and fall back to email when it is absent:
-
-```tsx
-import { headers } from "next/headers";
-
-export default async function Home() {
-  const requestHeaders = await headers();
-  const userId = requestHeaders.get("oai-authenticated-user-id");
-  const email = requestHeaders.get("oai-authenticated-user-email");
-  const encodedFullName = requestHeaders.get("oai-authenticated-user-full-name");
-  const fullName =
-    encodedFullName &&
-    requestHeaders.get("oai-authenticated-user-full-name-encoding") ===
-      "percent-encoded-utf-8"
-      ? decodeURIComponent(encodedFullName)
-      : null;
-
-  const displayName = fullName ?? email;
-  // ...
-}
-```
-
-## Optional Dispatch-Owned ChatGPT Sign-In
-
-Import the ready-to-use helpers from `app/chatgpt-auth.ts` when the site needs
-optional or required ChatGPT sign-in:
-
-- Use `getChatGPTUser()` for optional signed-in UI.
-- Use `requireChatGPTUser(returnTo)` for server-rendered pages that should send
-  anonymous visitors through Sign in with ChatGPT.
-- Use `chatGPTSignInPath(returnTo)` and `chatGPTSignOutPath(returnTo)` for
-  browser links or actions.
-- Pass a same-origin relative `returnTo` path for the destination after sign-in
-  or sign-out. The helper validates and safely encodes it.
-- Mark protected pages with `export const dynamic = "force-dynamic"` because
-  they depend on per-request identity headers.
-
-Dispatch owns `/signin-with-chatgpt`, `/signout-with-chatgpt`, `/callback`, the
-OAuth cookies, and identity header injection. Do not implement app routes for
-those reserved paths. Routes that do not import and call the helper remain
-anonymous-compatible.
-
-SIWC establishes identity only; it does not prove workspace membership. Use the
-Sites hosting platform's access policy controls for workspace-wide restrictions,
-or enforce explicit server-side membership or allowlist checks.
-
-Use SIWC for account pages, user-specific dashboards, saved records, and write
-actions tied to the current ChatGPT user. Leave public content anonymous.
-
-## Useful Commands
-
-- `npm run dev`: start local development
-- `npm run build`: verify the vinext build output
-- `npm test`: build the starter and verify its rendered loading skeleton
-- `npm run db:generate`: generate Drizzle migrations after schema changes
-
-## Learn More
-
-- [vinext Documentation](https://github.com/cloudflare/vinext)
-- [Drizzle D1 Guide](https://orm.drizzle.team/docs/get-started/d1-new)
+Trueigtech Bingo Platform &copy; 2026. All rights reserved.
