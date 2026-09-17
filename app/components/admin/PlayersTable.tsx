@@ -23,15 +23,15 @@ export function PlayersTable({ openAction }: { openAction: (action: AdminAction)
 
   const rawRows = playersList.length > 0
     ? playersList.map((p) => [
-        p.id,
-        p.username,
-        p.tier,
-        p.lastLogin,
-        String(p.gamesPlayed),
-        `$${p.totalEntry.toLocaleString()}`,
-        `$${p.winnings.toLocaleString()}`,
-        `$${p.balance.toLocaleString()}`,
-        p.status,
+        p.id ?? "USR-000",
+        p.username ?? "Anonymous",
+        p.tier ?? "Standard",
+        p.lastLogin ?? "Recently",
+        String(p.gamesPlayed ?? 0),
+        `$${Number(p.totalEntry ?? 0).toLocaleString()}`,
+        `$${Number(p.winnings ?? 0).toLocaleString()}`,
+        `$${Number(p.balance ?? 0).toLocaleString()}`,
+        p.status ?? "Active",
       ])
     : defaultPlayers;
 

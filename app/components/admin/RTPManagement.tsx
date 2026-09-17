@@ -178,66 +178,207 @@ export function RTPManagement({
         </div>
       )}
 
-      <div className="rtp-kpi-strip">
-        <div className="rtp-kpi-card">
-          <small>GLOBAL TARGET RTP</small>
-          <strong>{globalTargetRtp}%</strong>
-          <span>Applied to all non-override rooms</span>
+      <div className="metric-grid">
+        <div className="metric-card">
+          <div className="metric-card-main">
+            <span className="metric-icon" style={{ background: "#eef2ff", color: "#4f46e5" }}>🎯</span>
+            <div>
+              <small>GLOBAL TARGET RTP</small>
+              <strong>{globalTargetRtp}%</strong>
+              <span style={{ color: "#4f46e5" }}>Avg across rooms: {avgTargetRtp}%</span>
+            </div>
+          </div>
         </div>
-        <div className="rtp-kpi-card">
-          <small>EXPECTED HOUSE MARGIN</small>
-          <strong style={{ color: "#2563eb" }}>{houseMargin}%</strong>
-          <span>GGR hold retention rate</span>
+        <div className="metric-card">
+          <div className="metric-card-main">
+            <span className="metric-icon" style={{ background: "#e0f2fe", color: "#0284c7" }}>🏦</span>
+            <div>
+              <small>EXPECTED HOUSE MARGIN</small>
+              <strong style={{ color: "#0284c7" }}>{houseMargin}%</strong>
+              <span style={{ color: "#0284c7" }}>GGR hold retention rate</span>
+            </div>
+          </div>
         </div>
-        <div className="rtp-kpi-card">
-          <small>NETWORK AVERAGE RTP</small>
-          <strong>{avgTargetRtp}%</strong>
-          <span>Across all {rooms.length} active rooms</span>
+        <div className="metric-card">
+          <div className="metric-card-main">
+            <span className="metric-icon" style={{ background: "#f0fdf4", color: "#16a34a" }}>⚡</span>
+            <div>
+              <small>DYNAMIC POOLS</small>
+              <strong style={{ color: "#16a34a" }}>{dynamicCount}</strong>
+              <span style={{ color: "#16a34a" }}>Auto-adjust prize to sales</span>
+            </div>
+          </div>
         </div>
-        <div className="rtp-kpi-card">
-          <small>DYNAMIC POOL ROOMS</small>
-          <strong style={{ color: "#059669" }}>{dynamicCount}</strong>
-          <span>Auto-adjust prize to sales</span>
-        </div>
-        <div className="rtp-kpi-card">
-          <small>GUARANTEED FIXED ROOMS</small>
-          <strong>{fixedCount}</strong>
-          <span>Fixed minimum prize pool</span>
+        <div className="metric-card">
+          <div className="metric-card-main">
+            <span className="metric-icon" style={{ background: "#fef3c7", color: "#d97706" }}>🔒</span>
+            <div>
+              <small>FIXED GUARANTEED</small>
+              <strong style={{ color: "#d97706" }}>{fixedCount}</strong>
+              <span style={{ color: "#d97706" }}>Fixed minimum prize pool</span>
+            </div>
+          </div>
         </div>
       </div>
 
-      <section className="admin-card rtp-global-card">
-        <div className="rtp-global-header">
+      <section className="rtp-global-controller">
+        <div className="rtp-card-header">
           <div>
             <h2>Network-Wide RTP Policy Control</h2>
             <p>One-click apply global payout target to all standard rooms. Changes take effect on next game round.</p>
           </div>
-          <button
-            type="button"
-            className="admin-primary"
-            onClick={() => openAction({ kind: "apply-global-rtp" })}
-          >
-            ⚙ Advanced Policy Settings
-          </button>
-        </div>
-
-        <div className="rtp-presets-row">
-          <span className="rtp-presets-label">Preset Profiles:</span>
-          {[
-            { label: "Aggressive Hold (72% RTP · 25.5% Margin)", rtp: 72 },
-            { label: "Balanced Standard (78% RTP · 19.5% Margin)", rtp: 78 },
-            { label: "Player Friendly (82% RTP · 15.5% Margin)", rtp: 82 },
-            { label: "High Volume / Promo (88% RTP · 9.5% Margin)", rtp: 88 },
-          ].map((preset) => (
+          <div className="rtp-header-badges">
+            <span className="global-rtp-badge">{globalTargetRtp}% Target RTP</span>
+            <span className="global-margin-badge">{houseMargin}% House Hold</span>
             <button
               type="button"
-              key={preset.rtp}
-              className={`rtp-preset-btn ${globalTargetRtp === preset.rtp ? "active" : ""}`}
-              onClick={() => applyGlobalRtp(preset.rtp)}
+              className="admin-primary"
+              style={{ padding: "6px 14px", fontSize: "12px" }}
+              onClick={() => openAction({ kind: "apply-global-rtp" })}
             >
-              {preset.label}
+              ⚙ Advanced Policy Settings
             </button>
-          ))}
+          </div>
+        </div>
+
+        {/* Visual 100% Breakdown Bar */}
+        <div className="rtp-distribution-box">
+          <div className="rtp-dist-header">
+            <span className="dist-title">Total Wager Allocation (100%)</span>
+            <span className="dist-equation">
+              <b>{globalTargetRtp}%</b> Prize + <b>{houseMargin}%</b> Margin + <b>2.5%</b> Jackpot = <b>100%</b>
+            </span>
+          </div>
+          <div className="rtp-dist-bar-track">
+            <div className="bar-rtp" style={{ width: `${globalTargetRtp}%` }} />
+            <div className="bar-margin" style={{ width: `${houseMargin}%` }} />
+            <div className="bar-jackpot" style={{ width: "2.5%" }} />
+          </div>
+          <div className="rtp-dist-legend">
+            <div className="legend-chip legend-rtp">
+              <span className="chip-dot" />
+              <span className="chip-label">Player Payout:</span>
+              <span className="chip-val">{globalTargetRtp}%</span>
+            </div>
+            <div className="legend-chip legend-margin">
+              <span className="chip-dot" />
+              <span className="chip-label">Operator Gross Hold:</span>
+              <span className="chip-val">{houseMargin}%</span>
+            </div>
+            <div className="legend-chip legend-jackpot">
+              <span className="chip-dot" />
+              <span className="chip-label">Jackpot Reserve:</span>
+              <span className="chip-val">2.5%</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="rtp-global-body">
+          <div className="rtp-slider-col">
+            <div className="rtp-control-header">
+              <div>
+                <span className="control-label">TARGET PAYOUT PERCENTAGE</span>
+                <span className="control-desc">Adjust stepper or select a preset strategy below</span>
+              </div>
+              <div className="rtp-stepper-box">
+                <button
+                  type="button"
+                  className="stepper-action-btn"
+                  onClick={() => applyGlobalRtp(Math.max(65, globalTargetRtp - 1))}
+                  title="Decrease target RTP"
+                >
+                  −
+                </button>
+                <span className="stepper-number">{globalTargetRtp}%</span>
+                <button
+                  type="button"
+                  className="stepper-action-btn"
+                  onClick={() => applyGlobalRtp(Math.min(95, globalTargetRtp + 1))}
+                  title="Increase target RTP"
+                >
+                  +
+                </button>
+              </div>
+            </div>
+
+            <div className="rtp-slider-container">
+              <input
+                type="range"
+                className="rtp-range-slider"
+                min="65"
+                max="95"
+                step="1"
+                value={globalTargetRtp}
+                onChange={(e) => applyGlobalRtp(Number(e.target.value))}
+              />
+              <div className="slider-track-labels">
+                <span>65% (Conservative)</span>
+                <span>78% (Industry Standard)</span>
+                <span>85% (Player Friendly)</span>
+                <span>95% (High Promo)</span>
+              </div>
+            </div>
+
+            <div className="rtp-presets-container">
+              <span className="presets-title">Preset Profiles</span>
+              <div className="rtp-presets-grid">
+                {[
+                  { name: "Aggressive Hold", rtp: 72, margin: "25.5%", desc: "Maximum house margin retention" },
+                  { name: "Balanced Standard", rtp: 78, margin: "19.5%", desc: "Standard commercial balance" },
+                  { name: "Player Friendly", rtp: 82, margin: "15.5%", desc: "Higher win rates & retention" },
+                  { name: "High Volume / Promo", rtp: 88, margin: "9.5%", desc: "Special promotion and VIP events" },
+                ].map((preset) => (
+                  <button
+                    type="button"
+                    key={preset.rtp}
+                    className={`preset-tile ${globalTargetRtp === preset.rtp ? "selected" : ""}`}
+                    onClick={() => applyGlobalRtp(preset.rtp)}
+                  >
+                    <div className="preset-tile-top">
+                      <span className="preset-name">{preset.name}</span>
+                      <span className="preset-val">{preset.rtp}% RTP</span>
+                    </div>
+                    <span className="preset-desc">{preset.margin} margin · {preset.desc}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <div className="rtp-global-summary">
+            <div className="summary-header">
+              <span className="summary-title">Network Impact Preview</span>
+              <span className="summary-subtitle">Live projections based on current room volume</span>
+            </div>
+            <div className="summary-metrics-list">
+              <div className="summary-row">
+                <div className="row-label"><span className="dot-purple" /><span>Target Player Return:</span></div>
+                <b>{globalTargetRtp}%</b>
+              </div>
+              <div className="summary-row">
+                <div className="row-label"><span className="dot-blue" /><span>Operator House Hold:</span></div>
+                <b className="text-blue">{houseMargin}%</b>
+              </div>
+              <div className="summary-row">
+                <div className="row-label"><span className="dot-amber" /><span>Jackpot Contribution:</span></div>
+                <b>2.5%</b>
+              </div>
+              <div className="summary-row">
+                <div className="row-label"><span>Active Games Affected:</span></div>
+                <b>{rooms.length} rooms</b>
+              </div>
+            </div>
+            <div className="summary-footer">
+              <button
+                type="button"
+                className="rtp-apply-all-btn"
+                onClick={() => applyGlobalRtp(globalTargetRtp)}
+              >
+                ✓ Apply to all {rooms.length} rooms
+              </button>
+              <span className="apply-hint">Recalculates dynamic prizes across active rooms</span>
+            </div>
+          </div>
         </div>
       </section>
 

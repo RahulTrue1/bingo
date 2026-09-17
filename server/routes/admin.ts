@@ -62,10 +62,16 @@ adminRouter.get("/players", (req: Request, res: Response) => {
     result = result.filter((p) => p.status.toLowerCase() === status.toLowerCase());
   }
 
+  const mapped = result.map((p) => ({
+    ...p,
+    totalEntry: (p as unknown as { totalEntry?: number }).totalEntry ?? Math.round((p.cardsPurchased || 0) * 1.5),
+    winnings: (p as unknown as { winnings?: number }).winnings ?? p.totalPrizes ?? 0,
+  }));
+
   res.json({
     success: true,
-    count: result.length,
-    players: result,
+    count: mapped.length,
+    players: mapped,
   });
 });
 
