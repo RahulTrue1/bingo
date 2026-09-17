@@ -153,3 +153,52 @@ test("Admin dashboard metrics and telemetry", async () => {
   assert.ok(Array.isArray(json.topRooms));
   assert.ok(Array.isArray(json.activityFeed));
 });
+
+test("GET /api/jackpots returns all 4 dynamic jackpot tiers", async () => {
+  const res = await fetch(`${BASE_URL}/jackpots`);
+  assert.equal(res.status, 200);
+  const json = await res.json();
+  assert.equal(json.success, true);
+  assert.ok(Array.isArray(json.jackpots));
+  assert.ok(json.jackpots.length >= 4);
+  const mega = json.jackpots.find((j) => j.id === "mega-trueig");
+  assert.ok(mega);
+  assert.ok(mega.currentAmount >= 50000);
+  const major = json.jackpots.find((j) => j.id === "major-trueig");
+  assert.ok(major);
+  assert.equal(major.qualifyingPattern, "Coverall in 50 balls");
+});
+
+test("GET /api/promotions and claim flow", async () => {
+  const res = await fetch(`${BASE_URL}/promotions`);
+  assert.equal(res.status, 200);
+  const json = await res.json();
+  assert.equal(json.success, true);
+  assert.ok(Array.isArray(json.promotions));
+  assert.ok(json.promotions.length >= 6);
+
+  const freePromo = json.promotions.find((p) => p.code === "FREE75" || p.id === "free-bingo");
+  assert.ok(freePromo);
+  assert.equal(freePromo.category, "Free cards");
+
+  // Claim promotion
+  const claimRes = await fetch(`${BASE_URL}/promotions/${freePromo.id}/claim`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ userId: `USR-TEST-${Date.now()}`, playerName: "TestPlayer" }),
+  });
+  assert.equal(claimRes.status, 200);
+  const claimJson = await claimRes.json();
+  assert.equal(claimJson.success, true);
+});
+
+test("GET /api/banners returns dynamic lobby slides", async () => {
+  const res = await fetch(`${BASE_URL}/banners`);
+  assert.equal(res.status, 200);
+  const json = await res.json();
+  assert.equal(json.success, true);
+  assert.ok(Array.isArray(json.banners));
+  assert.ok(json.banners.length >= 2);
+  assert.ok(json.banners.some((b) => b.roomId === "tournament"));
+});
+

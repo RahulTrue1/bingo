@@ -486,3 +486,60 @@ Claim initiated -> BingoEngine checks card cells against called numbers -> Patte
 - **To run the player frontend**: Start `npm run dev` and visit `http://localhost:3000/`.
 - **To run the operator backoffice**: Visit `http://localhost:3000/backoffice`.
 - **To configure rooms or live callers**: Open the backoffice, select **Live control** or **Bingo rooms**, and use the slide-over drawer to configure games, caller speeds, patterns, and payouts.
+
+---
+
+## 10. Dynamic Backend API & Database Persistence Reference
+
+The application runs a dedicated Express backend (`server/index.ts`) backed by file-persisted JSON database (`data/bingo-db.json`) via `server/db/store.ts`.
+
+### Database Schema Collections (`data/bingo-db.json`)
+- `rooms`: Catalog of 75, 90, 80, 30, and 50-ball bingo rooms with custom/dynamic RTP configurations.
+- `wallet`: Live player wallet balance with atomic debit/credit operations.
+- `transactions`: Full ledger containing deposits, card purchases, prize payouts, jackpot contributions, and refunds.
+- `gameSessions`: Live server-managed calling engine states, called numbers, current stage, and win validations.
+- `tickets`: Purchased player cards with unique serialized cells and daub history.
+- `jackpots`: 4 progressive tiers (`mega-trueig`, `major-trueig`, `minor-trueig`, `mini-trueig`) with live amounts and contributions.
+- `tournaments`: Multi-stage elimination cups, seat limits, and real-time point standings.
+- `promotions`: Dynamic marketing campaign catalog with claim verification, bonus codes, and rich media assets.
+- `banners`: Dynamic lobby hero carousel slides configured with target rooms, media art, and CTAs.
+- `chatMessages`: Live in-room player and admin broadcasts.
+- `mutedUsers`: Active moderation blacklist.
+- `patterns`: Stored pattern coordinate maps from Pattern Builder.
+- `players`: Backoffice player registry with KYC/VIP tier levels and restriction controls.
+- `auditFeed`: Operator telemetry audit log.
+
+### Key API Endpoints
+
+| Resource | Method | Endpoint | Description |
+| :--- | :--- | :--- | :--- |
+| **Health** | `GET` | `/api/health` | Service health and uptime |
+| **Rooms** | `GET` | `/api/rooms` | List all rooms with active state |
+| **Rooms** | `POST` | `/api/rooms` | Create new bingo room |
+| **Rooms** | `PUT` | `/api/rooms/:id` | Update room settings (price, schedule) |
+| **Rooms** | `POST` | `/api/rooms/rtp-policy` | Apply global network target RTP |
+| **Game** | `GET` | `/api/game/:roomId/state` | Fetch server game caller session |
+| **Game** | `POST` | `/api/game/:roomId/call-next` | Advance game caller by drawing next ball |
+| **Game** | `POST` | `/api/game/:roomId/pause` | Pause live caller |
+| **Game** | `POST` | `/api/game/:roomId/resume` | Resume live caller |
+| **Game** | `POST` | `/api/game/:roomId/claim` | Verify and award player BINGO claim |
+| **Tickets** | `GET` | `/api/tickets` | List user's purchased tickets |
+| **Tickets** | `POST` | `/api/tickets/buy` | Buy tickets, deduct wallet, add cards |
+| **Wallet** | `GET` | `/api/wallet` | Get balance and transaction history |
+| **Wallet** | `POST` | `/api/wallet/deposit` | Deposit funds |
+| **Jackpots** | `GET` | `/api/jackpots` | List all 4 dynamic progressive tiers |
+| **Jackpots** | `POST` | `/api/jackpots/:id/contribute` | Add manual operator contribution |
+| **Jackpots** | `POST` | `/api/jackpots/:id/reset` | Reset jackpot to seed amount |
+| **Tournaments** | `GET` | `/api/tournaments` | List tournaments and live standings |
+| **Tournaments** | `POST` | `/api/tournaments/:id/register` | Register seat for tournament |
+| **Promotions** | `GET` | `/api/promotions` | List promotional offers (filter by category) |
+| **Promotions** | `POST` | `/api/promotions/:id/claim` | Claim promotion bonus |
+| **Promotions** | `PUT` | `/api/promotions/:id` | Admin toggle/update promotion |
+| **Banners** | `GET` | `/api/banners` | List lobby hero carousel banners |
+| **Chat** | `GET` | `/api/chat/:roomId` | Get chat messages for room |
+| **Chat** | `POST` | `/api/chat/:roomId` | Post chat message |
+| **Patterns** | `GET` | `/api/patterns` | List custom pattern presets |
+| **Admin** | `GET` | `/api/admin/dashboard` | Telemetry KPIs, top rooms, event feed |
+| **Admin** | `GET` | `/api/admin/players` | Backoffice player accounts |
+| **Admin** | `POST` | `/api/admin/players/:id/action` | Restrict/suspend/mute player |
+

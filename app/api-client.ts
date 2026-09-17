@@ -62,14 +62,27 @@ export interface WalletTransaction {
 
 export interface JackpotModel {
   id: string;
+  key?: string;
   name: string;
-  type: string;
+  variant?: string;
+  type?: string;
   currentAmount: number;
   startingAmount: number;
-  maxAmount: number;
+  maximumAmount?: number;
+  maxAmount?: number;
+  resetAmount?: number;
   contributionPercent: number;
-  active: boolean;
-  history?: Array<{ type: string; amount: number; time: string; player?: string }>;
+  qualifyingPattern?: string;
+  qualifyingBallLimit?: number;
+  enabled?: boolean;
+  active?: boolean;
+  linkedRooms?: string[];
+  price?: number;
+  players?: number;
+  difficulty?: string;
+  reward?: string;
+  iconKey?: "diamond" | "star" | "club";
+  history?: Array<{ type: string; amount: number; time: string; player?: string; user?: string }>;
 }
 
 export interface TournamentModel {
@@ -88,9 +101,38 @@ export interface PromotionModel {
   id: string;
   code: string;
   title: string;
+  shortTitle?: string;
   description: string;
-  reward: string;
+  reward?: string;
   category: string;
+  badge?: string;
+  rewardType?: string;
+  rewardValue?: number;
+  image?: string;
+  accent?: string;
+  roomId?: string;
+  ends?: string;
+  featured?: boolean;
+  status?: string;
+  active?: boolean;
+  claimedBy?: string[];
+}
+
+export interface HeroBannerModel {
+  id: string;
+  roomId: string;
+  kicker: string;
+  title: string;
+  body: string;
+  cta: string;
+  alt: string;
+  seconds: number;
+  theme: string;
+  value: string;
+  image: string;
+  imageAlt: string;
+  imageWidth: number;
+  imageHeight: number;
   active: boolean;
 }
 
@@ -394,6 +436,19 @@ export const apiClient = {
         method: "PUT",
         body: JSON.stringify(updates),
       });
+    },
+    async create(data: Partial<PromotionModel>) {
+      return request<{ success: boolean; promotion: PromotionModel }>("/promotions", {
+        method: "POST",
+        body: JSON.stringify(data),
+      });
+    },
+  },
+
+  banners: {
+    async list() {
+      const res = await request<{ success: boolean; count: number; banners: HeroBannerModel[] }>("/banners");
+      return res?.banners ?? [];
     },
   },
 

@@ -5,6 +5,7 @@ import type {
   BingoRoomData,
   ChatMessage,
   GameSession,
+  HeroBanner,
   Jackpot,
   PlayerProfile,
   PlayerTicket,
@@ -27,6 +28,7 @@ export interface DatabaseSchema {
   jackpots: Jackpot[];
   tournaments: Tournament[];
   promotions: Promotion[];
+  banners: HeroBanner[];
   chatMessages: Record<string, ChatMessage[]>;
   mutedUsers: string[];
   patterns: SavedPattern[];
@@ -294,6 +296,7 @@ const defaultRooms: BingoRoomData[] = [
 const defaultJackpots: Jackpot[] = [
   {
     id: "mega-trueig",
+    key: "mega",
     name: "Mega Trueig Jackpot",
     variant: "75-Ball Progressive",
     currentAmount: 125480.6,
@@ -301,15 +304,90 @@ const defaultJackpots: Jackpot[] = [
     maximumAmount: 250000,
     resetAmount: 50000,
     contributionPercent: 2.5,
-    qualifyingPattern: "Full House",
+    qualifyingPattern: "Full House in 42 balls",
     qualifyingBallLimit: 42,
     enabled: true,
     linkedRooms: ["mega-jackpot", "diamond-75"],
+    price: 5,
+    players: 127,
+    difficulty: "Legendary",
+    reward: "Life-changing",
+    iconKey: "diamond",
     history: [
       { type: "Ticket contribution", amount: 42.1, time: "14:31", user: "Auto Contribution" },
       { type: "Ticket contribution", amount: 38.65, time: "14:26", user: "Auto Contribution" },
       { type: "Game contribution", amount: 100.0, time: "14:15", user: "Operator" },
       { type: "Manual adjustment", amount: 500.0, time: "12:00", user: "John Dawson" },
+    ],
+  },
+  {
+    id: "major-trueig",
+    key: "major",
+    name: "Major Trueig Jackpot",
+    variant: "90-Ball Classic",
+    currentAmount: 24375.0,
+    startingAmount: 25000,
+    maximumAmount: 100000,
+    resetAmount: 25000,
+    contributionPercent: 2.0,
+    qualifyingPattern: "Coverall in 50 balls",
+    qualifyingBallLimit: 50,
+    enabled: true,
+    linkedRooms: ["trueig-90", "midnight-90"],
+    price: 2,
+    players: 98,
+    difficulty: "Hard",
+    reward: "Huge",
+    iconKey: "star",
+    history: [
+      { type: "Ticket contribution", amount: 18.5, time: "14:28", user: "Auto Contribution" },
+      { type: "Game contribution", amount: 50.0, time: "13:50", user: "Operator" },
+    ],
+  },
+  {
+    id: "minor-trueig",
+    key: "minor",
+    name: "Minor Trueig Jackpot",
+    variant: "75-Ball Pattern",
+    currentAmount: 6250.0,
+    startingAmount: 5000,
+    maximumAmount: 25000,
+    resetAmount: 5000,
+    contributionPercent: 1.5,
+    qualifyingPattern: "4 Corners in 20 balls",
+    qualifyingBallLimit: 20,
+    enabled: true,
+    linkedRooms: ["pattern-arena", "free-party"],
+    price: 1.5,
+    players: 63,
+    difficulty: "Medium",
+    reward: "Great",
+    iconKey: "diamond",
+    history: [
+      { type: "Ticket contribution", amount: 9.25, time: "14:20", user: "Auto Contribution" },
+    ],
+  },
+  {
+    id: "mini-trueig",
+    key: "mini",
+    name: "Mini Trueig Jackpot",
+    variant: "30-Ball Speed",
+    currentAmount: 1540.0,
+    startingAmount: 1000,
+    maximumAmount: 10000,
+    resetAmount: 1000,
+    contributionPercent: 1.0,
+    qualifyingPattern: "Any Line in 15 balls",
+    qualifyingBallLimit: 15,
+    enabled: true,
+    linkedRooms: ["turbo-30"],
+    price: 0.5,
+    players: 42,
+    difficulty: "Easy",
+    reward: "Nice",
+    iconKey: "club",
+    history: [
+      { type: "Ticket contribution", amount: 4.1, time: "14:12", user: "Auto Contribution" },
     ],
   },
 ];
@@ -346,80 +424,173 @@ const defaultTournaments: Tournament[] = [
 const defaultPromotions: Promotion[] = [
   {
     id: "free-bingo",
-    title: "Free Bingo Party",
-    description: "Hourly free 75-ball card with real cash prizes.",
-    status: "Active",
+    code: "FREE75",
+    title: "Free Bingo every hour",
+    shortTitle: "Free card. Real prizes.",
+    description: "Claim one 75-ball card every hour and play Four Corners for the $100 community prize.",
+    roomId: "free-party",
     category: "Free cards",
     badge: "FREE",
+    image: "/promotions/free-bingo-reward.png",
+    accent: "cyan",
+    reward: "1 free card",
     rewardType: "free_cards",
     rewardValue: 1,
+    ends: "Renews hourly",
+    featured: true,
+    status: "Active",
+    claimedBy: [],
+  },
+  {
+    id: "vip-gold-access",
+    code: "VIP",
+    title: "VIP Gold access",
+    shortTitle: "Tonight belongs to Gold.",
+    description: "Unlock the private VIP room, premium cards and tonight’s $20,000 guaranteed prize pool.",
+    roomId: "vip-gold",
+    category: "VIP",
+    badge: "VIP",
+    image: "/promotions/vip-gold-access.png",
+    accent: "gold",
+    reward: "$20,000 room",
+    rewardType: "vip_pass",
+    rewardValue: 1,
+    ends: "Tonight · 9 PM",
+    featured: true,
+    status: "Active",
+    claimedBy: [],
+  },
+  {
+    id: "weekend-cup-reward",
+    code: "CUP",
+    title: "Weekend Cup ticket",
+    shortTitle: "Five rounds. One champion.",
+    description: "Complete five eligible games to unlock an $8 tournament entry at no extra cost.",
+    roomId: "tournament",
+    category: "Tournaments",
+    badge: "REWARD",
+    image: "/promotions/weekend-cup.png",
+    accent: "violet",
+    reward: "Free $8 entry",
+    rewardType: "free_cards",
+    rewardValue: 1,
+    ends: "Ends Sunday",
+    featured: true,
+    status: "Active",
     claimedBy: [],
   },
   {
     id: "buy3-get1",
-    title: "Buy 3 Get 1 Free",
-    description: "Fourth eligible card is free on any 75-Ball room.",
-    status: "Active",
-    category: "All offers",
+    code: "BUY3",
+    title: "Buy 3, get 1 free",
+    shortTitle: "More cards. More chances.",
+    description: "Add three Diamond 75 cards to your basket and your fourth qualifying card is free.",
+    roomId: "diamond-75",
+    category: "Ticket deals",
     badge: "POPULAR",
+    image: "/rooms/diamond-75.png",
+    accent: "mint",
+    reward: "4th card free",
     rewardType: "free_cards",
     rewardValue: 1,
+    ends: "3 days left",
+    featured: false,
+    status: "Active",
     claimedBy: [],
   },
   {
     id: "happy-hour",
+    code: "HAPPY",
     title: "Happy Hour Bingo",
-    description: "50% ticket discount on all evening games from 18:00 to 19:00.",
-    status: "Scheduled",
-    category: "Deposit bonus",
+    shortTitle: "Half-price happy hour.",
+    description: "Enjoy 50% off Trueig 90 Classic tickets between 18:00 and 19:00 every weekday.",
+    roomId: "trueig-90",
+    category: "Ticket deals",
     badge: "50% OFF",
+    image: "/rooms/trueig-90-classic.png",
+    accent: "amber",
+    reward: "50% off",
     rewardType: "credits",
     rewardValue: 15,
+    ends: "Starts 18:00",
+    featured: false,
+    status: "Scheduled",
     claimedBy: [],
   },
   {
     id: "cashback-10",
-    title: "10% Weekly Cashback",
-    description: "Receive 10% back on all non-winning cards every Monday.",
-    status: "Active",
-    category: "Cashback",
+    code: "CASH",
+    title: "10% Bingo cashback",
+    shortTitle: "Play today. Get some back.",
+    description: "Receive 10% of eligible ticket spend as playable credit after your final game today.",
+    roomId: "turbo-30",
+    category: "Ticket deals",
     badge: "10%",
+    image: "/rooms/turbo-30.png",
+    accent: "coral",
+    reward: "Up to $25",
     rewardType: "cashback",
     rewardValue: 10,
-    claimedBy: [],
-  },
-  {
-    id: "tournament-entry",
-    title: "Weekend Cup Ticket Reward",
-    description: "Play 20 games in any room to receive a free Weekend Cup ticket.",
-    status: "Draft",
-    category: "Tournaments",
-    badge: "REWARD",
-    rewardType: "free_cards",
-    rewardValue: 1,
-    claimedBy: [],
-  },
-  {
-    id: "vip-access",
-    title: "Unlock VIP Gold Room",
-    description: "Special high-roller access with boosted prize pools.",
+    ends: "Resets midnight",
+    featured: false,
     status: "Active",
-    category: "All offers",
-    badge: "VIP",
-    rewardType: "vip_pass",
-    rewardValue: 1,
     claimedBy: [],
   },
   {
     id: "daily-reward",
+    code: "DAILY",
     title: "Daily Login Bonus",
+    shortTitle: "Daily free credit.",
     description: "Claim $5 bonus credit once every 24 hours.",
-    status: "Active",
-    category: "Deposit bonus",
+    roomId: "free-party",
+    category: "Free cards",
     badge: "$5 GIFT",
+    image: "/promotions/free-bingo-reward.png",
+    accent: "cyan",
+    reward: "$5 bonus",
     rewardType: "credits",
     rewardValue: 5,
+    ends: "Daily",
+    featured: false,
+    status: "Active",
     claimedBy: [],
+  },
+];
+
+const defaultBanners: HeroBanner[] = [
+  {
+    id: "tournament-banner",
+    roomId: "tournament",
+    kicker: "TRUEIGTECH WEEKEND CUP",
+    title: "Five rounds, One champion.",
+    body: "Build points across patterns and Full House wins. The top 128 advance after every stage.",
+    cta: "Play now",
+    alt: "View games",
+    seconds: 3000,
+    theme: "tournament",
+    value: "$25,000",
+    image: "/banners/weekend-cup-jackpot.png",
+    imageAlt: "Trueigtech Bingo Weekend Cup. Five rounds, one champion, with a $25,000 jackpot prize.",
+    imageWidth: 1880,
+    imageHeight: 836,
+    active: true,
+  },
+  {
+    id: "fun-is-calling",
+    roomId: "trueig-90",
+    kicker: "BINGO FUN IS CALLING",
+    title: "Fun is calling, are you in?",
+    body: "Join thousands of players and win amazing rewards.",
+    cta: "Play now",
+    alt: "View games",
+    seconds: 480,
+    theme: "host",
+    value: "$1,500",
+    image: "/banners/fun-is-calling.png",
+    imageAlt: "Trueigtech Bingo. Fun is calling, are you in? Join thousands of players and win amazing rewards.",
+    imageWidth: 1672,
+    imageHeight: 941,
+    active: true,
   },
 ];
 
@@ -641,6 +812,45 @@ class Store {
       if (existsSync(DB_FILE)) {
         const raw = readFileSync(DB_FILE, "utf-8");
         const parsed = JSON.parse(raw);
+
+        // Ensure promotions have full catalog with rich metadata
+        const loadedPromotions: Promotion[] = parsed.promotions?.length ? parsed.promotions : [...defaultPromotions];
+        for (const defPromo of defaultPromotions) {
+          const existing = loadedPromotions.find((p) => p.code === defPromo.code || p.id === defPromo.id);
+          if (existing) {
+            Object.assign(existing, {
+              code: existing.code || defPromo.code,
+              image: existing.image || defPromo.image,
+              accent: existing.accent || defPromo.accent,
+              reward: existing.reward || defPromo.reward,
+              ends: existing.ends || defPromo.ends,
+              shortTitle: existing.shortTitle || defPromo.shortTitle,
+              roomId: existing.roomId || defPromo.roomId,
+              featured: existing.featured !== undefined ? existing.featured : defPromo.featured,
+            });
+          } else {
+            loadedPromotions.push(defPromo);
+          }
+        }
+
+        // Ensure jackpots have all 4 tiers with rich metadata
+        const loadedJackpots: Jackpot[] = parsed.jackpots?.length ? parsed.jackpots : [...defaultJackpots];
+        for (const defJp of defaultJackpots) {
+          const existing = loadedJackpots.find((j) => j.id === defJp.id || j.key === defJp.key);
+          if (existing) {
+            Object.assign(existing, {
+              key: existing.key || defJp.key,
+              price: existing.price !== undefined ? existing.price : defJp.price,
+              players: existing.players !== undefined ? existing.players : defJp.players,
+              difficulty: existing.difficulty || defJp.difficulty,
+              reward: existing.reward || defJp.reward,
+              iconKey: existing.iconKey || defJp.iconKey,
+            });
+          } else {
+            loadedJackpots.push(defJp);
+          }
+        }
+
         // Merge with defaults to ensure all keys exist
         return {
           rooms: parsed.rooms?.length ? parsed.rooms : defaultRooms,
@@ -649,9 +859,10 @@ class Store {
           gameSessions: parsed.gameSessions || createInitialSessions(),
           tickets: parsed.tickets || [],
           claims: parsed.claims || [],
-          jackpots: parsed.jackpots || defaultJackpots,
+          jackpots: loadedJackpots,
           tournaments: parsed.tournaments || defaultTournaments,
-          promotions: parsed.promotions || defaultPromotions,
+          promotions: loadedPromotions,
+          banners: parsed.banners?.length ? parsed.banners : [...defaultBanners],
           chatMessages: parsed.chatMessages || defaultChat,
           mutedUsers: parsed.mutedUsers || ["RiskyB"],
           patterns: parsed.patterns || defaultPatterns,
@@ -673,6 +884,7 @@ class Store {
       jackpots: [...defaultJackpots],
       tournaments: [...defaultTournaments],
       promotions: [...defaultPromotions],
+      banners: [...defaultBanners],
       chatMessages: { ...defaultChat },
       mutedUsers: ["RiskyB"],
       patterns: [...defaultPatterns],
@@ -739,6 +951,14 @@ class Store {
 
   get promotions() {
     return this.data.promotions;
+  }
+
+  get banners() {
+    return this.data.banners || defaultBanners;
+  }
+  set banners(v) {
+    this.data.banners = v;
+    this.save();
   }
 
   get chatMessages() {

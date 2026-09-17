@@ -1,6 +1,68 @@
-import { useEffect, useState } from "react";
+import { ReactNode, useEffect, useState } from "react";
+import { apiClient } from "../../api-client";
 import type { BingoRoomData } from "../../bingo-core";
 import type { PlayerView } from "../shared/types";
+
+interface SlideItem {
+  id: string;
+  kicker: string;
+  title: ReactNode;
+  body: string;
+  cta: string;
+  alt: string;
+  seconds: number;
+  theme: string;
+  value: string;
+  image: string;
+  imageAlt: string;
+  imageWidth: number;
+  imageHeight: number;
+}
+
+const defaultSlides: SlideItem[] = [
+  {
+    id: "tournament",
+    kicker: "TRUEIGTECH WEEKEND CUP",
+    title: (
+      <>
+        Five rounds.
+        <br />
+        <em>One champion.</em>
+      </>
+    ),
+    body: "Build points across patterns and Full House wins. The top 128 advance after every stage.",
+    cta: "Play now",
+    alt: "View games",
+    seconds: 3000,
+    theme: "tournament",
+    value: "$25,000",
+    image: "/banners/weekend-cup-jackpot.png",
+    imageAlt: "Trueigtech Bingo Weekend Cup. Five rounds, one champion, with a $25,000 jackpot prize this round.",
+    imageWidth: 1880,
+    imageHeight: 836,
+  },
+  {
+    id: "trueig-90",
+    kicker: "BINGO FUN IS CALLING",
+    title: (
+      <>
+        Fun is calling,
+        <br />
+        are <em>you</em> in?
+      </>
+    ),
+    body: "Join thousands of players and win amazing rewards.",
+    cta: "Play now",
+    alt: "",
+    seconds: 480,
+    theme: "host",
+    value: "$1,500",
+    image: "/banners/fun-is-calling.png",
+    imageAlt: "Trueigtech Bingo. Fun is calling, are you in? Join thousands of players and win amazing rewards.",
+    imageWidth: 1672,
+    imageHeight: 941,
+  },
+];
 
 export function HeroCarousel({
   rooms,
@@ -11,109 +73,46 @@ export function HeroCarousel({
   enterRoom: (room: BingoRoomData) => void;
   setView: (view: PlayerView) => void;
 }) {
-  const slides = [
-    {
-      id: "tournament",
-      kicker: "TRUEIGTECH WEEKEND CUP",
-      title: <>Five rounds.<br /><em>One champion.</em></>,
-      body: "Build points across patterns and Full House wins. The top 128 advance after every stage.",
-      cta: "Play now",
-      alt: "View games",
-      seconds: 3000,
-      theme: "tournament",
-      value: "$25,000",
-      image: "/banners/weekend-cup-jackpot.png",
-      imageAlt: "Trueigtech Bingo Weekend Cup. Five rounds, one champion, with a $25,000 jackpot prize this round.",
-      imageWidth: 1880,
-      imageHeight: 836,
-    },
-    {
-      id: "trueig-90",
-      kicker: "BINGO FUN IS CALLING",
-      title: <>Fun is calling,<br />are <em>you</em> in?</>,
-      body: "Join thousands of players and win amazing rewards.",
-      cta: "Play now",
-      alt: "",
-      seconds: 480,
-      theme: "host",
-      value: "$1,500",
-      image: "/banners/fun-is-calling.png",
-      imageAlt: "Trueigtech Bingo. Fun is calling, are you in? Join thousands of players and win amazing rewards.",
-      imageWidth: 1672,
-      imageHeight: 941,
-    },
-    {
-      id: "tournament",
-      kicker: "TRUEIGTECH WEEKEND CUP",
-      title: <>Five rounds.<br /><em>One champion.</em></>,
-      body: "Build points across patterns and Full House wins. The top 128 advance after every stage.",
-      cta: "Play now",
-      alt: "View games",
-      seconds: 3000,
-      theme: "tournament",
-      value: "$25,000",
-      image: "/banners/weekend-cup-jackpot.png",
-      imageAlt: "Trueigtech Bingo Weekend Cup. Five rounds, one champion, with a $25,000 jackpot prize this round.",
-      imageWidth: 1880,
-      imageHeight: 836,
-    },
-    {
-      id: "trueig-90",
-      kicker: "BINGO FUN IS CALLING",
-      title: <>Fun is calling,<br />are <em>you</em> in?</>,
-      body: "Join thousands of players and win amazing rewards.",
-      cta: "Play now",
-      alt: "",
-      seconds: 480,
-      theme: "host",
-      value: "$1,500",
-      image: "/banners/fun-is-calling.png",
-      imageAlt: "Trueigtech Bingo. Fun is calling, are you in? Join thousands of players and win amazing rewards.",
-      imageWidth: 1672,
-      imageHeight: 941,
-    },
-    {
-      id: "tournament",
-      kicker: "TRUEIGTECH WEEKEND CUP",
-      title: <>Five rounds.<br /><em>One champion.</em></>,
-      body: "Build points across patterns and Full House wins. The top 128 advance after every stage.",
-      cta: "Play now",
-      alt: "View games",
-      seconds: 3000,
-      theme: "tournament",
-      value: "$25,000",
-      image: "/banners/weekend-cup-jackpot.png",
-      imageAlt: "Trueigtech Bingo Weekend Cup. Five rounds, one champion, with a $25,000 jackpot prize this round.",
-      imageWidth: 1880,
-      imageHeight: 836,
-    },
-    {
-      id: "trueig-90",
-      kicker: "BINGO FUN IS CALLING",
-      title: <>Fun is calling,<br />are <em>you</em> in?</>,
-      body: "Join thousands of players and win amazing rewards.",
-      cta: "Play now",
-      alt: "",
-      seconds: 480,
-      theme: "host",
-      value: "$1,500",
-      image: "/banners/fun-is-calling.png",
-      imageAlt: "Trueigtech Bingo. Fun is calling, are you in? Join thousands of players and win amazing rewards.",
-      imageWidth: 1672,
-      imageHeight: 941,
-    },
-  ];
-
+  const [slides, setSlides] = useState<SlideItem[]>(defaultSlides);
   const [index, setIndex] = useState(0);
   const [paused, setPaused] = useState(false);
 
   useEffect(() => {
-    if (paused) return;
+    apiClient.banners
+      .list()
+      .then((list) => {
+        if (list && list.length > 0) {
+          const mapped: SlideItem[] = list.map((b) => ({
+            id: b.roomId || b.id,
+            kicker: b.kicker,
+            title: b.title,
+            body: b.body,
+            cta: b.cta,
+            alt: b.alt,
+            seconds: b.seconds,
+            theme: b.theme,
+            value: b.value,
+            image: b.image,
+            imageAlt: b.imageAlt,
+            imageWidth: b.imageWidth,
+            imageHeight: b.imageHeight,
+          }));
+          setSlides(mapped);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    if (paused || slides.length === 0) return;
     const timer = window.setTimeout(() => setIndex((value) => (value + 2) % slides.length), 8000);
     return () => window.clearTimeout(timer);
   }, [index, paused, slides.length]);
 
-  const visibleSlides = [slides[index], slides[(index + 1) % slides.length]];
+  const visibleSlides = [
+    slides[index % slides.length],
+    slides[(index + 1) % slides.length],
+  ].filter(Boolean);
 
   return (
     <section

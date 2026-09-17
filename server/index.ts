@@ -1,6 +1,7 @@
 import cors from "cors";
 import express, { type NextFunction, type Request, type Response } from "express";
 import { adminRouter } from "./routes/admin.ts";
+import { bannersRouter } from "./routes/banners.ts";
 import { chatRouter } from "./routes/chat.ts";
 import { gameRouter } from "./routes/game.ts";
 import { jackpotsRouter } from "./routes/jackpots.ts";
@@ -45,6 +46,7 @@ app.use("/api/wallet", walletRouter);
 app.use("/api/jackpots", jackpotsRouter);
 app.use("/api/tournaments", tournamentsRouter);
 app.use("/api/promotions", promotionsRouter);
+app.use("/api/banners", bannersRouter);
 app.use("/api/chat", chatRouter);
 app.use("/api/patterns", patternsRouter);
 app.use("/api/admin", adminRouter);

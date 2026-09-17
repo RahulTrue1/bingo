@@ -106,6 +106,12 @@ export interface Jackpot {
   qualifyingBallLimit: number;
   enabled: boolean;
   linkedRooms: string[];
+  key?: string;
+  price?: number;
+  players?: number;
+  difficulty?: string;
+  reward?: string;
+  iconKey?: "diamond" | "star" | "club";
   history: Array<{
     type: string;
     amount: number;
@@ -137,14 +143,40 @@ export interface Tournament {
 
 export interface Promotion {
   id: string;
+  code: string;
   title: string;
+  shortTitle?: string;
   description: string;
   status: "Active" | "Scheduled" | "Draft" | "Paused";
-  category: "All offers" | "Deposit bonus" | "Free cards" | "Cashback" | "Tournaments";
+  category: "All offers" | "Free cards" | "Ticket deals" | "VIP" | "Tournaments" | "Deposit bonus" | "Cashback";
   badge: string;
   rewardType: "credits" | "free_cards" | "cashback" | "vip_pass";
   rewardValue: number;
+  reward?: string;
+  image?: string;
+  accent?: string;
+  roomId?: string;
+  ends?: string;
+  featured?: boolean;
   claimedBy: string[];
+}
+
+export interface HeroBanner {
+  id: string;
+  roomId: string;
+  kicker: string;
+  title: string;
+  body: string;
+  cta: string;
+  alt: string;
+  seconds: number;
+  theme: string;
+  value: string;
+  image: string;
+  imageAlt: string;
+  imageWidth: number;
+  imageHeight: number;
+  active: boolean;
 }
 
 export interface ChatMessage {

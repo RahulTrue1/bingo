@@ -94,12 +94,35 @@ export function PromotionExperience({
   enterRoom: (room: BingoRoomData) => void;
   notify: (message: string) => void;
 }) {
+  const [promotions, setPromotions] = useState(playerPromotions);
   const [claimed, setClaimed] = useState<string[]>([]);
   const [category, setCategory] = useState<PromotionCategory>("All offers");
   const [wallet, setWallet] = useState(248.5);
   const [rulesPromo, setRulesPromo] = useState<typeof playerPromotions[0] | null>(null);
 
   useEffect(() => {
+    apiClient.promotions
+      .list()
+      .then((list) => {
+        if (list && list.length > 0) {
+          const mapped = list.map((p) => ({
+            code: p.code || p.id,
+            title: p.title,
+            shortTitle: p.shortTitle || p.title,
+            description: p.description,
+            roomId: p.roomId || "free-party",
+            category: (p.category || "All offers") as PromotionCategory,
+            image: p.image || "/promotions/free-bingo-reward.png",
+            accent: p.accent || "cyan",
+            reward: p.reward || (p.rewardValue ? `$${p.rewardValue} bonus` : "Special reward"),
+            ends: p.ends || "Ongoing",
+            featured: Boolean(p.featured),
+          }));
+          setPromotions(mapped);
+        }
+      })
+      .catch(() => {});
+
     apiClient.wallet
       .get()
       .then((w) => {
@@ -108,10 +131,10 @@ export function PromotionExperience({
       .catch(() => {});
   }, []);
 
-  const featured = playerPromotions.filter((item) => item.featured);
-  const mainFeatured = featured[0] ?? playerPromotions[0];
+  const featured = promotions.filter((item) => item.featured);
+  const mainFeatured = featured[0] ?? promotions[0];
   const sideFeatured = featured.slice(1);
-  const visiblePromotions = playerPromotions.filter(
+  const visiblePromotions = promotions.filter(
     (item) => category === "All offers" || item.category === category
   );
 

@@ -11,6 +11,12 @@ export const jackpotTiers = [
   { key: "mini", name: "Mini Trueig Jackpot", amount: 1540, reset: 5000, contribution: 1, price: .5, players: 42, variant: "75-Ball", pattern: "Any Line in 15 balls", difficulty: "Easy", reward: "Nice", icon: Club },
 ];
 
+const iconMap = {
+  diamond: Diamond,
+  star: Star,
+  club: Club,
+};
+
 export function JackpotExperience({
   rooms,
   enterRoom,
@@ -20,21 +26,44 @@ export function JackpotExperience({
   enterRoom: (room: BingoRoomData) => void;
   notify: (message: string) => void;
 }) {
+  const [tiers, setTiers] = useState(jackpotTiers);
   const [selectedTier, setSelectedTier] = useState(0);
   const [liveBump, setLiveBump] = useState(0);
   const [reminder, setReminder] = useState(true);
   const [showAllRooms, setShowAllRooms] = useState(false);
   const [rulesOpen, setRulesOpen] = useState(false);
-  const [backendJackpot, setBackendJackpot] = useState<number | null>(null);
 
   useEffect(() => {
-    apiClient.jackpots.list().then((list) => {
-      const mega = list?.find((j) => j.id === "mega-trueig") || list?.[0];
-      if (mega) setBackendJackpot(mega.currentAmount);
-    }).catch(() => {});
+    apiClient.jackpots
+      .list()
+      .then((list) => {
+        if (list && list.length > 0) {
+          const dynamicTiers = list.map((j) => {
+            const icon =
+              (j.iconKey && iconMap[j.iconKey as keyof typeof iconMap]) ||
+              (j.key === "major" ? Star : j.key === "mini" ? Club : Diamond);
+            return {
+              key: j.key || j.id,
+              name: j.name,
+              amount: j.currentAmount,
+              reset: j.resetAmount || j.startingAmount,
+              contribution: j.contributionPercent,
+              price: j.price || 2,
+              players: j.players || 50,
+              variant: j.variant || "75-Ball",
+              pattern: j.qualifyingPattern || "Full House in 42 balls",
+              difficulty: j.difficulty || "Hard",
+              reward: j.reward || "Huge",
+              icon,
+            };
+          });
+          setTiers(dynamicTiers);
+        }
+      })
+      .catch(() => {});
   }, []);
 
-  const active = jackpotTiers[selectedTier];
+  const active = tiers[selectedTier] ?? tiers[0];
   const eligibleRooms = rooms.filter((room) => room.variant.includes(active.variant.slice(0, 2)));
   const visibleRooms = (eligibleRooms.length ? eligibleRooms : rooms).slice(0, showAllRooms ? 8 : 4);
   const targetRoom = visibleRooms[0] ?? rooms[0];
@@ -68,7 +97,7 @@ export function JackpotExperience({
           <span className="jackpot-growth"><Lightning size={15} weight="fill" />Live +${42 + liveBump}</span>
           <h2 id="jackpot-feature-title">{active.name}</h2>
           <strong aria-live="polite">
-            {money((active.key === "mega" && backendJackpot !== null ? backendJackpot : active.amount) + liveBump)}
+            {money(active.amount + liveBump)}
           </strong>
           <p>Rising with every ticket. Win with <b>{active.pattern}</b>.</p>
           <button className="jackpot-play-button" onClick={() => play()}>
@@ -131,7 +160,7 @@ export function JackpotExperience({
           <p>Four jackpots. Four rewards. One thrilling chase.</p>
         </div>
         <div className="jackpot-tier-grid">
-          {jackpotTiers.map((tier, index) => {
+          {tiers.map((tier, index) => {
             const TierIcon = tier.icon;
             return (
               <button
@@ -143,7 +172,7 @@ export function JackpotExperience({
                 <span className="jackpot-tier-icon"><TierIcon size={27} weight="duotone" /></span>
                 <span className="jackpot-tier-copy">
                   <b>{tier.name}</b>
-                  <strong>{money(tier.key === "mega" && backendJackpot !== null ? backendJackpot : tier.amount)}</strong>
+                  <strong>{money(tier.amount)}</strong>
                 </span>
                 <span className="jackpot-tier-live"><i />Live</span>
                 <span className="jackpot-tier-meta">

@@ -47,9 +47,9 @@
       "status": "Live",
       "ticketPrice": 1,
       "prize": 218,
-      "players": 84,
+      "players": 85,
       "maxPlayers": 150,
-      "cardsSold": 256,
+      "cardsSold": 257,
       "startsIn": "LIVE · Ball 11",
       "pattern": "3 × 3 Coverall",
       "accent": "coral",
@@ -332,8 +332,35 @@
       "rtpMode": "fixed"
     }
   ],
-  "wallet": 265,
+  "wallet": 248,
   "transactions": [
+    {
+      "id": "TXN-255161",
+      "timestamp": "21:00:38",
+      "player": "Ari.R",
+      "room": "Trueigtech Weekend Cup",
+      "type": "Ticket purchase",
+      "amount": -8,
+      "status": "Completed"
+    },
+    {
+      "id": "TXN-443079",
+      "timestamp": "20:58:04",
+      "player": "Ari.R",
+      "room": "Turbo 30",
+      "type": "Ticket purchase",
+      "amount": -1,
+      "status": "Completed"
+    },
+    {
+      "id": "TXN-117330",
+      "timestamp": "20:50:14",
+      "player": "Ari.R",
+      "room": "Trueigtech Weekend Cup",
+      "type": "Ticket purchase",
+      "amount": -8,
+      "status": "Completed"
+    },
     {
       "id": "TXN-153924",
       "timestamp": "20:34:30",
@@ -463,9 +490,17 @@
         8,
         9,
         10,
-        11
+        11,
+        20,
+        23,
+        14,
+        17,
+        24,
+        21,
+        27,
+        28
       ],
-      "current": 11,
+      "current": 28,
       "speed": "Turbo",
       "paused": false,
       "stageIndex": 0,
@@ -654,6 +689,53 @@
     }
   },
   "tickets": [
+    {
+      "id": "TCK-898927",
+      "ticketIndex": 0,
+      "roomId": "turbo-30",
+      "userId": "USR-11804",
+      "variant": "30-Ball Speed",
+      "cells": [
+        {
+          "value": 16,
+          "column": "0"
+        },
+        {
+          "value": 4,
+          "column": "1"
+        },
+        {
+          "value": 21,
+          "column": "2"
+        },
+        {
+          "value": 14,
+          "column": "0"
+        },
+        {
+          "value": 24,
+          "column": "1"
+        },
+        {
+          "value": 23,
+          "column": "2"
+        },
+        {
+          "value": 8,
+          "column": "0"
+        },
+        {
+          "value": 19,
+          "column": "1"
+        },
+        {
+          "value": 15,
+          "column": "2"
+        }
+      ],
+      "daubed": [],
+      "purchasedAt": "2026-09-17T15:28:04.129Z"
+    },
     {
       "id": "TCK-273670",
       "ticketIndex": 2,
@@ -1411,6 +1493,110 @@
           "time": "12:00",
           "user": "John Dawson"
         }
+      ],
+      "key": "mega",
+      "price": 5,
+      "players": 127,
+      "difficulty": "Legendary",
+      "reward": "Life-changing",
+      "iconKey": "diamond"
+    },
+    {
+      "id": "major-trueig",
+      "key": "major",
+      "name": "Major Trueig Jackpot",
+      "variant": "90-Ball Classic",
+      "currentAmount": 24375,
+      "startingAmount": 25000,
+      "maximumAmount": 100000,
+      "resetAmount": 25000,
+      "contributionPercent": 2,
+      "qualifyingPattern": "Coverall in 50 balls",
+      "qualifyingBallLimit": 50,
+      "enabled": true,
+      "linkedRooms": [
+        "trueig-90",
+        "midnight-90"
+      ],
+      "price": 2,
+      "players": 98,
+      "difficulty": "Hard",
+      "reward": "Huge",
+      "iconKey": "star",
+      "history": [
+        {
+          "type": "Ticket contribution",
+          "amount": 18.5,
+          "time": "14:28",
+          "user": "Auto Contribution"
+        },
+        {
+          "type": "Game contribution",
+          "amount": 50,
+          "time": "13:50",
+          "user": "Operator"
+        }
+      ]
+    },
+    {
+      "id": "minor-trueig",
+      "key": "minor",
+      "name": "Minor Trueig Jackpot",
+      "variant": "75-Ball Pattern",
+      "currentAmount": 6250,
+      "startingAmount": 5000,
+      "maximumAmount": 25000,
+      "resetAmount": 5000,
+      "contributionPercent": 1.5,
+      "qualifyingPattern": "4 Corners in 20 balls",
+      "qualifyingBallLimit": 20,
+      "enabled": true,
+      "linkedRooms": [
+        "pattern-arena",
+        "free-party"
+      ],
+      "price": 1.5,
+      "players": 63,
+      "difficulty": "Medium",
+      "reward": "Great",
+      "iconKey": "diamond",
+      "history": [
+        {
+          "type": "Ticket contribution",
+          "amount": 9.25,
+          "time": "14:20",
+          "user": "Auto Contribution"
+        }
+      ]
+    },
+    {
+      "id": "mini-trueig",
+      "key": "mini",
+      "name": "Mini Trueig Jackpot",
+      "variant": "30-Ball Speed",
+      "currentAmount": 1540,
+      "startingAmount": 1000,
+      "maximumAmount": 10000,
+      "resetAmount": 1000,
+      "contributionPercent": 1,
+      "qualifyingPattern": "Any Line in 15 balls",
+      "qualifyingBallLimit": 15,
+      "enabled": true,
+      "linkedRooms": [
+        "turbo-30"
+      ],
+      "price": 0.5,
+      "players": 42,
+      "difficulty": "Easy",
+      "reward": "Nice",
+      "iconKey": "club",
+      "history": [
+        {
+          "type": "Ticket contribution",
+          "amount": 4.1,
+          "time": "14:12",
+          "user": "Auto Contribution"
+        }
       ]
     }
   ],
@@ -1421,7 +1607,7 @@
       "description": "Five-round progressive elimination tournament.",
       "entryFee": 8,
       "prizePool": 25000,
-      "playersCount": 385,
+      "playersCount": 387,
       "maxPlayers": 512,
       "startsAt": "22 Aug · 20:00",
       "status": "Registration open",
@@ -1488,7 +1674,15 @@
       "badge": "FREE",
       "rewardType": "free_cards",
       "rewardValue": 1,
-      "claimedBy": []
+      "claimedBy": [],
+      "code": "FREE75",
+      "image": "/promotions/free-bingo-reward.png",
+      "accent": "cyan",
+      "reward": "1 free card",
+      "ends": "Renews hourly",
+      "shortTitle": "Free card. Real prizes.",
+      "roomId": "free-party",
+      "featured": true
     },
     {
       "id": "buy3-get1",
@@ -1499,7 +1693,15 @@
       "badge": "POPULAR",
       "rewardType": "free_cards",
       "rewardValue": 1,
-      "claimedBy": []
+      "claimedBy": [],
+      "code": "BUY3",
+      "image": "/rooms/diamond-75.png",
+      "accent": "mint",
+      "reward": "4th card free",
+      "ends": "3 days left",
+      "shortTitle": "More cards. More chances.",
+      "roomId": "diamond-75",
+      "featured": false
     },
     {
       "id": "happy-hour",
@@ -1510,7 +1712,15 @@
       "badge": "50% OFF",
       "rewardType": "credits",
       "rewardValue": 15,
-      "claimedBy": []
+      "claimedBy": [],
+      "code": "HAPPY",
+      "image": "/rooms/trueig-90-classic.png",
+      "accent": "amber",
+      "reward": "50% off",
+      "ends": "Starts 18:00",
+      "shortTitle": "Half-price happy hour.",
+      "roomId": "trueig-90",
+      "featured": false
     },
     {
       "id": "cashback-10",
@@ -1521,7 +1731,15 @@
       "badge": "10%",
       "rewardType": "cashback",
       "rewardValue": 10,
-      "claimedBy": []
+      "claimedBy": [],
+      "code": "CASH",
+      "image": "/rooms/turbo-30.png",
+      "accent": "coral",
+      "reward": "Up to $25",
+      "ends": "Resets midnight",
+      "shortTitle": "Play today. Get some back.",
+      "roomId": "turbo-30",
+      "featured": false
     },
     {
       "id": "tournament-entry",
@@ -1554,7 +1772,89 @@
       "badge": "$5 GIFT",
       "rewardType": "credits",
       "rewardValue": 5,
+      "claimedBy": [],
+      "code": "DAILY",
+      "image": "/promotions/free-bingo-reward.png",
+      "accent": "cyan",
+      "reward": "$5 bonus",
+      "ends": "Daily",
+      "shortTitle": "Daily free credit.",
+      "roomId": "free-party",
+      "featured": false
+    },
+    {
+      "id": "vip-gold-access",
+      "code": "VIP",
+      "title": "VIP Gold access",
+      "shortTitle": "Tonight belongs to Gold.",
+      "description": "Unlock the private VIP room, premium cards and tonight’s $20,000 guaranteed prize pool.",
+      "roomId": "vip-gold",
+      "category": "VIP",
+      "badge": "VIP",
+      "image": "/promotions/vip-gold-access.png",
+      "accent": "gold",
+      "reward": "$20,000 room",
+      "rewardType": "vip_pass",
+      "rewardValue": 1,
+      "ends": "Tonight · 9 PM",
+      "featured": true,
+      "status": "Active",
       "claimedBy": []
+    },
+    {
+      "id": "weekend-cup-reward",
+      "code": "CUP",
+      "title": "Weekend Cup ticket",
+      "shortTitle": "Five rounds. One champion.",
+      "description": "Complete five eligible games to unlock an $8 tournament entry at no extra cost.",
+      "roomId": "tournament",
+      "category": "Tournaments",
+      "badge": "REWARD",
+      "image": "/promotions/weekend-cup.png",
+      "accent": "violet",
+      "reward": "Free $8 entry",
+      "rewardType": "free_cards",
+      "rewardValue": 1,
+      "ends": "Ends Sunday",
+      "featured": true,
+      "status": "Active",
+      "claimedBy": []
+    }
+  ],
+  "banners": [
+    {
+      "id": "tournament-banner",
+      "roomId": "tournament",
+      "kicker": "TRUEIGTECH WEEKEND CUP",
+      "title": "Five rounds, One champion.",
+      "body": "Build points across patterns and Full House wins. The top 128 advance after every stage.",
+      "cta": "Play now",
+      "alt": "View games",
+      "seconds": 3000,
+      "theme": "tournament",
+      "value": "$25,000",
+      "image": "/banners/weekend-cup-jackpot.png",
+      "imageAlt": "Trueigtech Bingo Weekend Cup. Five rounds, one champion, with a $25,000 jackpot prize.",
+      "imageWidth": 1880,
+      "imageHeight": 836,
+      "active": true
+    },
+    {
+      "id": "fun-is-calling",
+      "roomId": "trueig-90",
+      "kicker": "BINGO FUN IS CALLING",
+      "title": "Fun is calling, are you in?",
+      "body": "Join thousands of players and win amazing rewards.",
+      "cta": "Play now",
+      "alt": "View games",
+      "seconds": 480,
+      "theme": "host",
+      "value": "$1,500",
+      "image": "/banners/fun-is-calling.png",
+      "imageAlt": "Trueigtech Bingo. Fun is calling, are you in? Join thousands of players and win amazing rewards.",
+      "imageWidth": 1672,
+      "imageHeight": 941,
+      "active": true
     }
   ],
   "chatMessages": {
@@ -1736,6 +2036,27 @@
     }
   ],
   "auditFeed": [
+    {
+      "id": "feed-1789659038399",
+      "type": "player",
+      "title": "Tournament registration",
+      "detail": "Ari.R joined Trueigtech Weekend Cup",
+      "time": "21:00"
+    },
+    {
+      "id": "feed-1789658884129",
+      "type": "player",
+      "title": "Tickets purchased",
+      "detail": "1 card bought for Turbo 30 ($1.00)",
+      "time": "20:58"
+    },
+    {
+      "id": "feed-1789658414505",
+      "type": "player",
+      "title": "Tournament registration",
+      "detail": "Ari.R joined Trueigtech Weekend Cup",
+      "time": "20:50"
+    },
     {
       "id": "feed-1789657470806",
       "type": "player",
