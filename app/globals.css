@@ -1734,3 +1734,17 @@ button:disabled { cursor: not-allowed; opacity: .48; }
   .rtp-explainer-cards { grid-template-columns:1fr; }
   .rtp-presets-grid { grid-template-columns:1fr; }
 }
+
+/* Backoffice field validation focus animation */
+.field-attention-highlight {
+  animation: fieldPulse 1.6s ease-in-out !important;
+  outline: 2px solid #ff5c7a !important;
+  box-shadow: 0 0 14px rgba(255, 92, 122, 0.7) !important;
+}
+
+@keyframes fieldPulse {
+  0% { box-shadow: 0 0 0px rgba(255, 92, 122, 0); }
+  35% { box-shadow: 0 0 18px rgba(255, 92, 122, 0.9); }
+  70% { box-shadow: 0 0 8px rgba(255, 92, 122, 0.5); }
+  100% { box-shadow: 0 0 2px rgba(255, 92, 122, 0.2); }
+}

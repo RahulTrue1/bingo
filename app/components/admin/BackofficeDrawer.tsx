@@ -61,9 +61,27 @@ export function BackofficeDrawer({
   const [gamePromotion, setGamePromotion] = useState("None");
   const [gameFrequency, setGameFrequency] = useState(editingRoom?.frequency ?? (isCreatingNew ? "Every 10 min" : "One time"));
   const [formError, setFormError] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+
+  const scrollToField = (fieldId: string) => {
+    setTimeout(() => {
+      const el = document.getElementById(fieldId);
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth", block: "center" });
+        if ("focus" in el && typeof (el as HTMLElement).focus === "function") {
+          (el as HTMLElement).focus();
+        }
+        el.classList.add("field-attention-highlight");
+        setTimeout(() => {
+          el.classList.remove("field-attention-highlight");
+        }, 2200);
+      }
+    }, 50);
+  };
 
   const handleSelectGameRoom = (targetId: string) => {
     setFormError(null);
+    setFieldErrors({});
     setGameRoomId(targetId);
     if (targetId === "new") {
       setName("Trueig Mega 75");
@@ -115,46 +133,61 @@ export function BackofficeDrawer({
   };
 
   const validateForm = (): boolean => {
+    const errors: Record<string, string> = {};
+    let firstInvalid: string | null = null;
+
     if (!name.trim() || name.trim().length < 2) {
-      setFormError("Game / Room name is required (minimum 2 characters).");
-      return false;
+      errors.name = "Game / Room name is required (minimum 2 characters).";
+      firstInvalid = firstInvalid || "field-game-name";
     }
     if (Number(price) < 0) {
-      setFormError("Ticket price cannot be negative.");
-      return false;
+      errors.price = "Ticket price cannot be negative.";
+      firstInvalid = firstInvalid || "field-ticket-price";
     }
     if (Number(prize) <= 0) {
-      setFormError("Prize pool must be greater than $0.");
-      return false;
+      errors.prize = "Prize pool must be greater than $0.";
+      firstInvalid = firstInvalid || "field-prize";
     }
     if (stages.length === 0) {
-      setFormError("At least one winning stage must be configured.");
-      return false;
+      errors.stages = "At least one winning stage must be configured.";
+      firstInvalid = firstInvalid || "field-stages";
     }
     const stagesSum = stages.reduce((acc, s) => acc + (Number(s.prize) || 0), 0);
     if (stagesSum > Number(prize)) {
-      setFormError(`Winning stage prizes ($${stagesSum}) exceed the prize pool ($${prize}). Auto-sync prize or adjust stages.`);
-      return false;
+      errors.prize = `Prize pool ($${prize}) cannot be less than winning stages total ($${stagesSum}).`;
+      errors.stages = `Winning stage prizes ($${stagesSum}) exceed the prize pool ($${prize}).`;
+      firstInvalid = firstInvalid || "field-prize";
     }
     for (const s of stages) {
       if (!s.name.trim()) {
-        setFormError("All winning stages must have a name.");
-        return false;
+        errors.stages = "All winning stages must have a name.";
+        firstInvalid = firstInvalid || "field-stages";
+        break;
       }
       if (Number(s.prize) < 0) {
-        setFormError("Stage prizes cannot be negative.");
-        return false;
+        errors.stages = "Stage prizes cannot be negative.";
+        firstInvalid = firstInvalid || "field-stages";
+        break;
       }
     }
     if (Number(gameMaxPlayers) < 1) {
-      setFormError("Maximum players must be at least 1.");
-      return false;
+      errors.maxPlayers = "Maximum players must be at least 1.";
+      firstInvalid = firstInvalid || "field-max-players";
     }
     if (Number(gameCardLimit) < 1) {
-      setFormError("Card limit must be at least 1.");
+      errors.cardLimit = "Card limit must be at least 1.";
+      firstInvalid = firstInvalid || "field-card-limit";
+    }
+
+    setFieldErrors(errors);
+    if (firstInvalid) {
+      const topErrorMsg = Object.values(errors)[0];
+      setFormError(topErrorMsg);
+      scrollToField(firstInvalid);
       return false;
     }
     setFormError(null);
+    setFieldErrors({});
     return true;
   };
 
@@ -243,6 +276,7 @@ export function BackofficeDrawer({
   const submit = async (event: FormEvent) => {
     event.preventDefault();
     if (action.kind === "create-room") {
+      if (!validateForm()) return;
       const id = name.toLowerCase().replace(/[^a-z0-9]+/g, "-");
       const newRoom: BingoRoomData = {
         id,
@@ -270,6 +304,7 @@ export function BackofficeDrawer({
       setRooms([...rooms, newRoom]);
       notify(`✓ Room "${newRoom.name}" created and added to lobby.`);
     } else if (action.kind === "edit-room" && editingRoom) {
+      if (!validateForm()) return;
       const res = await apiClient.rooms.update(editingRoom.id, {
         name,
         variant,
@@ -320,7 +355,20 @@ export function BackofficeDrawer({
   };
 
   const stagesEditor = (
-    <div className="stage-editor">
+    <div
+      id="field-stages"
+      className="stage-editor"
+      style={
+        fieldErrors.stages
+          ? {
+              border: "1px solid #ff5c7a",
+              borderRadius: "12px",
+              padding: "12px",
+              background: "rgba(255, 92, 122, 0.04)",
+            }
+          : undefined
+      }
+    >
       <div className="drawer-section-title">
         <div>
           <h3>Winning stage configuration</h3>
@@ -328,7 +376,15 @@ export function BackofficeDrawer({
         </div>
         <button
           type="button"
-          onClick={() => setStages((items) => [...items, { name: "New Stage", prize: 100, continueAfterWin: true }])}
+          onClick={() => {
+            setStages((items) => [...items, { name: "New Stage", prize: 100, continueAfterWin: true }]);
+            setFieldErrors((prev) => {
+              const n = { ...prev };
+              delete n.stages;
+              return n;
+            });
+            setFormError(null);
+          }}
         >
           + Add winning stage
         </button>
@@ -362,13 +418,20 @@ export function BackofficeDrawer({
             <input
               type="number"
               value={stage.prize}
-              onChange={(event) =>
+              onChange={(event) => {
+                const val = Number(event.target.value);
                 setStages((items) =>
                   items.map((item, itemIndex) =>
-                    itemIndex === index ? { ...item, prize: Number(event.target.value) } : item,
+                    itemIndex === index ? { ...item, prize: val } : item,
                   ),
-                )
-              }
+                );
+                setFieldErrors((prev) => {
+                  const n = { ...prev };
+                  delete n.stages;
+                  return n;
+                });
+                setFormError(null);
+              }}
             />
           </label>
           <label className="stage-check">
@@ -427,6 +490,12 @@ export function BackofficeDrawer({
             onClick={() => {
               const sum = stages.reduce((acc, s) => acc + (Number(s.prize) || 0), 0);
               setPrize(sum);
+              setFieldErrors((prev) => {
+                const n = { ...prev };
+                delete n.prize;
+                delete n.stages;
+                return n;
+              });
               setFormError(null);
             }}
           >
@@ -435,6 +504,22 @@ export function BackofficeDrawer({
           </button>
         )}
       </div>
+      {fieldErrors.stages && (
+        <div
+          style={{
+            color: "#ff5c7a",
+            fontSize: "12px",
+            marginTop: "8px",
+            display: "flex",
+            alignItems: "center",
+            gap: "6px",
+            fontWeight: 600,
+          }}
+        >
+          <span>⚠️</span>
+          <span>{fieldErrors.stages}</span>
+        </div>
+      )}
     </div>
   );
 
@@ -624,7 +709,7 @@ export function BackofficeDrawer({
           {formError && (
             <div
               style={{
-                background: "rgba(255, 92, 122, 0.15)",
+                background: "rgba(255, 92, 122, 0.14)",
                 border: "1px solid rgba(255, 92, 122, 0.4)",
                 borderRadius: "8px",
                 padding: "10px 14px",
@@ -633,11 +718,74 @@ export function BackofficeDrawer({
                 marginBottom: "16px",
                 display: "flex",
                 alignItems: "center",
-                gap: "8px",
+                justifyContent: "space-between",
+                gap: "10px",
+                flexWrap: "wrap",
               }}
             >
-              <span>⚠️</span>
-              <span>{formError}</span>
+              <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                <span style={{ fontSize: "15px" }}>⚠️</span>
+                <span>{formError}</span>
+              </div>
+              <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                {stages.reduce((acc, s) => acc + (Number(s.prize) || 0), 0) > prize && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const sum = stages.reduce((acc, s) => acc + (Number(s.prize) || 0), 0);
+                      setPrize(sum);
+                      setFieldErrors((prev) => {
+                        const n = { ...prev };
+                        delete n.prize;
+                        delete n.stages;
+                        return n;
+                      });
+                      setFormError(null);
+                    }}
+                    style={{
+                      background: "rgba(43, 221, 170, 0.2)",
+                      border: "1px solid #2bddaa",
+                      color: "#2bddaa",
+                      padding: "4px 10px",
+                      borderRadius: "6px",
+                      fontSize: "11px",
+                      fontWeight: 600,
+                      cursor: "pointer",
+                    }}
+                  >
+                    Auto-sync Prize to ${stages.reduce((acc, s) => acc + (Number(s.prize) || 0), 0)}
+                  </button>
+                )}
+                {Object.keys(fieldErrors).length > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const idMap: Record<string, string> = {
+                        name: "field-game-name",
+                        price: "field-ticket-price",
+                        prize: "field-prize",
+                        stages: "field-stages",
+                        maxPlayers: "field-max-players",
+                        cardLimit: "field-card-limit",
+                      };
+                      const firstKey = Object.keys(fieldErrors)[0];
+                      if (idMap[firstKey]) scrollToField(idMap[firstKey]);
+                    }}
+                    style={{
+                      background: "rgba(255, 92, 122, 0.2)",
+                      border: "1px solid rgba(255, 92, 122, 0.5)",
+                      color: "#ff8499",
+                      padding: "4px 10px",
+                      borderRadius: "6px",
+                      fontSize: "11px",
+                      fontWeight: 600,
+                      cursor: "pointer",
+                    }}
+                  >
+                    View invalid field ↓
+                  </button>
+                )}
+              </div>
             </div>
           )}
           {isRoom && (
@@ -645,7 +793,29 @@ export function BackofficeDrawer({
               <div className="drawer-section">
                 <h3>Basic information</h3>
                 <div className="drawer-form-grid">
-                  <label>Room name<input required value={name} onChange={(event) => setName(event.target.value)} /></label>
+                  <label>
+                    Room name
+                    <input
+                      id="field-game-name"
+                      required
+                      value={name}
+                      onChange={(event) => {
+                        setName(event.target.value);
+                        setFormError(null);
+                        setFieldErrors((prev) => {
+                          const n = { ...prev };
+                          delete n.name;
+                          return n;
+                        });
+                      }}
+                      style={fieldErrors.name ? { borderColor: "#ff5c7a", background: "rgba(255,92,122,0.06)" } : undefined}
+                    />
+                    {fieldErrors.name && (
+                      <span style={{ color: "#ff5c7a", fontSize: "11px", marginTop: "4px", display: "block" }}>
+                        ⚠️ {fieldErrors.name}
+                      </span>
+                    )}
+                  </label>
                   <label>Room code<input defaultValue={editingRoom?.id.toUpperCase() ?? "TRUEIG-SUN75"} /></label>
                   <label className="full">Description<textarea defaultValue="A premium Trueigtech multi-stage Bingo room." /></label>
                   <label>Thumbnail<input type="file" accept="image/*" /></label>
@@ -698,7 +868,30 @@ export function BackofficeDrawer({
               <div className="drawer-section">
                 <h3>Ticket & player configuration</h3>
                 <div className="drawer-form-grid">
-                  <label>Ticket price<input type="number" step="0.5" value={price} onChange={(event) => setPrice(Number(event.target.value))} /></label>
+                  <label>
+                    Ticket price
+                    <input
+                      id="field-ticket-price"
+                      type="number"
+                      step="0.5"
+                      value={price}
+                      onChange={(event) => {
+                        setPrice(Number(event.target.value));
+                        setFormError(null);
+                        setFieldErrors((prev) => {
+                          const n = { ...prev };
+                          delete n.price;
+                          return n;
+                        });
+                      }}
+                      style={fieldErrors.price ? { borderColor: "#ff5c7a", background: "rgba(255,92,122,0.06)" } : undefined}
+                    />
+                    {fieldErrors.price && (
+                      <span style={{ color: "#ff5c7a", fontSize: "11px", marginTop: "4px", display: "block" }}>
+                        ⚠️ {fieldErrors.price}
+                      </span>
+                    )}
+                  </label>
                   <label>Minimum cards<input type="number" defaultValue="1" /></label>
                   <label>Maximum cards<input type="number" defaultValue="8" /></label>
                   <label>Cards per strip<input type="number" defaultValue={variant.includes("90") ? 6 : 1} /></label>
@@ -762,7 +955,34 @@ export function BackofficeDrawer({
                 <h3>Prize & multiple winners</h3>
                 <div className="drawer-form-grid">
                   <label>Prize type<select><option>Fixed prize</option><option>Prize pool</option><option>Progressive</option></select></label>
-                  <label>Prize amount<input type="number" value={prize} onChange={(event) => setPrize(Number(event.target.value))} /></label>
+                  <label>
+                    Prize amount
+                    <input
+                      id="field-prize"
+                      type="number"
+                      value={prize}
+                      onChange={(event) => {
+                        const val = Number(event.target.value);
+                        setPrize(val);
+                        setFormError(null);
+                        setFieldErrors((prev) => {
+                          const n = { ...prev };
+                          delete n.prize;
+                          const stagesSum = stages.reduce((acc, s) => acc + (Number(s.prize) || 0), 0);
+                          if (stagesSum <= val) {
+                            delete n.stages;
+                          }
+                          return n;
+                        });
+                      }}
+                      style={fieldErrors.prize ? { borderColor: "#ff5c7a", background: "rgba(255,92,122,0.06)" } : undefined}
+                    />
+                    {fieldErrors.prize && (
+                      <span style={{ color: "#ff5c7a", fontSize: "11px", marginTop: "4px", display: "block" }}>
+                        ⚠️ {fieldErrors.prize}
+                      </span>
+                    )}
+                  </label>
                   <label>Multiple winners<select><option>Allowed</option><option>First validated only</option></select></label>
                   <label>Prize split rule<select><option>Split equally</option><option>Fixed per winner</option><option>Shared jackpot</option><option>Carry over remainder</option></select></label>
                   <label>Maximum winner count<input type="number" defaultValue="10" /></label>
@@ -819,15 +1039,27 @@ export function BackofficeDrawer({
                   <label>
                     Game / Room Name
                     <input
+                      id="field-game-name"
                       type="text"
                       value={name}
                       onChange={(e) => {
                         setName(e.target.value);
                         setFormError(null);
+                        setFieldErrors((prev) => {
+                          const n = { ...prev };
+                          delete n.name;
+                          return n;
+                        });
                       }}
                       placeholder="e.g. Trueig Gold 75"
+                      style={fieldErrors.name ? { borderColor: "#ff5c7a", background: "rgba(255,92,122,0.06)" } : undefined}
                       required
                     />
+                    {fieldErrors.name && (
+                      <span style={{ color: "#ff5c7a", fontSize: "11px", marginTop: "4px", display: "block" }}>
+                        ⚠️ {fieldErrors.name}
+                      </span>
+                    )}
                   </label>
                   <label>
                     Bingo type
@@ -865,6 +1097,7 @@ export function BackofficeDrawer({
                   <label>
                     Ticket price ($)
                     <input
+                      id="field-ticket-price"
                       type="number"
                       step="any"
                       min="0"
@@ -872,23 +1105,73 @@ export function BackofficeDrawer({
                       onChange={(event) => {
                         setPrice(Math.max(0, Number(event.target.value)));
                         setFormError(null);
+                        setFieldErrors((prev) => {
+                          const n = { ...prev };
+                          delete n.price;
+                          return n;
+                        });
                       }}
+                      style={fieldErrors.price ? { borderColor: "#ff5c7a", background: "rgba(255,92,122,0.06)" } : undefined}
                       required
                     />
+                    {fieldErrors.price && (
+                      <span style={{ color: "#ff5c7a", fontSize: "11px", marginTop: "4px", display: "block" }}>
+                        ⚠️ {fieldErrors.price}
+                      </span>
+                    )}
                   </label>
                   <label>
                     Prize ($)
                     <input
+                      id="field-prize"
                       type="number"
                       step="any"
                       min="1"
                       value={prize}
                       onChange={(event) => {
-                        setPrize(Math.max(1, Number(event.target.value)));
+                        const val = Math.max(1, Number(event.target.value));
+                        setPrize(val);
                         setFormError(null);
+                        setFieldErrors((prev) => {
+                          const n = { ...prev };
+                          delete n.prize;
+                          const stagesSum = stages.reduce((acc, s) => acc + (Number(s.prize) || 0), 0);
+                          if (stagesSum <= val) {
+                            delete n.stages;
+                          }
+                          return n;
+                        });
                       }}
+                      style={fieldErrors.prize ? { borderColor: "#ff5c7a", background: "rgba(255,92,122,0.06)" } : undefined}
                       required
                     />
+                    {fieldErrors.prize && (
+                      <div style={{ marginTop: "4px" }}>
+                        <span style={{ color: "#ff5c7a", fontSize: "11px", display: "block", marginBottom: "4px" }}>
+                          ⚠️ {fieldErrors.prize}
+                        </span>
+                        {stages.reduce((acc, s) => acc + (Number(s.prize) || 0), 0) > prize && (
+                          <button
+                            type="button"
+                            className="outline-button"
+                            style={{ fontSize: "10px", padding: "2px 8px", color: "#2bddaa", borderColor: "#2bddaa", background: "rgba(43,221,170,0.1)" }}
+                            onClick={() => {
+                              const sum = stages.reduce((acc, s) => acc + (Number(s.prize) || 0), 0);
+                              setPrize(sum);
+                              setFieldErrors((prev) => {
+                                const n = { ...prev };
+                                delete n.prize;
+                                delete n.stages;
+                                return n;
+                              });
+                              setFormError(null);
+                            }}
+                          >
+                            Set Prize to ${stages.reduce((acc, s) => acc + (Number(s.prize) || 0), 0)}
+                          </button>
+                        )}
+                      </div>
+                    )}
                   </label>
                   <label>
                     Call speed
@@ -902,21 +1185,51 @@ export function BackofficeDrawer({
                   <label>
                     Maximum players
                     <input
+                      id="field-max-players"
                       type="number"
                       min="1"
                       value={gameMaxPlayers}
-                      onChange={(e) => setGameMaxPlayers(Number(e.target.value))}
+                      onChange={(e) => {
+                        setGameMaxPlayers(Number(e.target.value));
+                        setFormError(null);
+                        setFieldErrors((prev) => {
+                          const n = { ...prev };
+                          delete n.maxPlayers;
+                          return n;
+                        });
+                      }}
+                      style={fieldErrors.maxPlayers ? { borderColor: "#ff5c7a", background: "rgba(255,92,122,0.06)" } : undefined}
                     />
+                    {fieldErrors.maxPlayers && (
+                      <span style={{ color: "#ff5c7a", fontSize: "11px", marginTop: "4px", display: "block" }}>
+                        ⚠️ {fieldErrors.maxPlayers}
+                      </span>
+                    )}
                   </label>
                   <label>
                     Card limit
                     <input
+                      id="field-card-limit"
                       type="number"
                       min="1"
                       max="100"
                       value={gameCardLimit}
-                      onChange={(e) => setGameCardLimit(Number(e.target.value))}
+                      onChange={(e) => {
+                        setGameCardLimit(Number(e.target.value));
+                        setFormError(null);
+                        setFieldErrors((prev) => {
+                          const n = { ...prev };
+                          delete n.cardLimit;
+                          return n;
+                        });
+                      }}
+                      style={fieldErrors.cardLimit ? { borderColor: "#ff5c7a", background: "rgba(255,92,122,0.06)" } : undefined}
                     />
+                    {fieldErrors.cardLimit && (
+                      <span style={{ color: "#ff5c7a", fontSize: "11px", marginTop: "4px", display: "block" }}>
+                        ⚠️ {fieldErrors.cardLimit}
+                      </span>
+                    )}
                   </label>
                   <label>
                     Jackpot
