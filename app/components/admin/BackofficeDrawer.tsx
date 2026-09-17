@@ -33,6 +33,8 @@ export function BackofficeDrawer({
   const editingRoom = action.room;
   const [name, setName] = useState(editingRoom?.name ?? "Trueigtech Sunrise 75");
   const [variant, setVariant] = useState(editingRoom?.variant ?? "75-Ball Pattern");
+  const [status, setStatus] = useState<BingoStatus>(editingRoom?.status ?? "Open");
+  const [gameRoomId, setGameRoomId] = useState(editingRoom?.id ?? rooms[0]?.id ?? "trueig-90");
   const [price, setPrice] = useState(editingRoom?.ticketPrice ?? 2);
   const [prize, setPrize] = useState(editingRoom?.prize ?? 2000);
   const [confirm, setConfirm] = useState<"delete" | "disable" | null>(null);
@@ -55,6 +57,8 @@ export function BackofficeDrawer({
     "edit-jackpot": "Edit Mega Trueig Jackpot",
     "create-tournament": "Create Tournament",
     "edit-tournament": "Edit Tournament",
+    "create-banner": "Create Hero Banner",
+    "edit-banner": "Edit Hero Banner",
     player: `Player Profile · ${action.label ?? "Ari.R"}`,
     promotion: `${action.label ? "Edit" : "Create"} Promotion`,
     announcement: "Create System Announcement",
@@ -77,7 +81,7 @@ export function BackofficeDrawer({
         id,
         name,
         variant,
-        status: "Open",
+        status: status || "Open",
         ticketPrice: price,
         prize,
         players: 0,
@@ -101,6 +105,7 @@ export function BackofficeDrawer({
       apiClient.rooms.update(editingRoom.id, {
         name,
         variant,
+        status,
         ticketPrice: price,
         prize,
         winningStages: stages,
@@ -116,6 +121,7 @@ export function BackofficeDrawer({
                 ...room,
                 name,
                 variant,
+                status,
                 ticketPrice: price,
                 prize,
                 winningStages: stages,
@@ -414,7 +420,14 @@ export function BackofficeDrawer({
                   </label>
                   <label>
                     Status
-                    <select><option>Open</option><option>Draft</option><option>Scheduled</option><option>Disabled</option></select>
+                    <select value={status} onChange={(e) => setStatus(e.target.value as BingoStatus)}>
+                      <option value="Open">Open</option>
+                      <option value="Live">Live</option>
+                      <option value="Starting Soon">Starting Soon</option>
+                      <option value="Selling Tickets">Selling Tickets</option>
+                      <option value="Scheduled">Scheduled</option>
+                      <option value="Paused">Paused</option>
+                    </select>
                   </label>
                 </div>
               </div>
@@ -556,7 +569,16 @@ export function BackofficeDrawer({
               <div className="drawer-section">
                 <h3>Game details</h3>
                 <div className="drawer-form-grid">
-                  <label>Room<select defaultValue={editingRoom?.name}>{rooms.map((room) => <option key={room.id}>{room.name}</option>)}</select></label>
+                  <label>
+                    Room
+                    <select value={gameRoomId} onChange={(e) => setGameRoomId(e.target.value)}>
+                      {rooms.map((room) => (
+                        <option key={room.id} value={room.id}>
+                          {room.name} ({room.status})
+                        </option>
+                      ))}
+                    </select>
+                  </label>
                   <label>
                     Bingo type
                     <select defaultValue={editingRoom?.variant}>
@@ -580,12 +602,25 @@ export function BackofficeDrawer({
               </div>
               {stagesEditor}
               <div className="game-form-actions">
-                <button type="button" className="outline-button" onClick={() => notify("Game scheduled for 18:00.")}>Schedule game</button>
+                <button
+                  type="button"
+                  className="outline-button"
+                  onClick={async () => {
+                    await apiClient.rooms.update(gameRoomId, { status: "Scheduled" });
+                    setRooms(rooms.map((r) => (r.id === gameRoomId ? { ...r, status: "Scheduled" } : r)));
+                    notify(`Game for ${rooms.find((r) => r.id === gameRoomId)?.name ?? gameRoomId} scheduled and updated in lobby.`);
+                    close();
+                  }}
+                >
+                  Schedule game
+                </button>
                 <button
                   type="button"
                   className="admin-primary"
-                  onClick={() => {
-                    notify("Game started immediately and opened in Live Control.");
+                  onClick={async () => {
+                    await apiClient.rooms.update(gameRoomId, { status: "Live" });
+                    setRooms(rooms.map((r) => (r.id === gameRoomId ? { ...r, status: "Live" } : r)));
+                    notify(`Game started immediately! ${rooms.find((r) => r.id === gameRoomId)?.name ?? gameRoomId} is now Live in the player lobby.`);
                     close();
                   }}
                 >

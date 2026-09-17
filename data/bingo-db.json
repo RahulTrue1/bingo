@@ -4,7 +4,7 @@
       "id": "trueig-90",
       "name": "Trueig 90 Classic",
       "variant": "90-Ball Classic",
-      "status": "Starting Soon",
+      "status": "Live",
       "ticketPrice": 0.5,
       "prize": 273,
       "players": 194,
@@ -2038,7 +2038,7 @@
       "alt": "View games",
       "seconds": 480,
       "theme": "host",
-      "value": "$1,500",
+      "value": "$1,800",
       "image": "/banners/fun-is-calling.png",
       "imageAlt": "Trueigtech Bingo. Fun is calling, are you in? Join thousands of players and win amazing rewards.",
       "imageWidth": 1672,
@@ -2243,6 +2243,27 @@
     "updatedBy": "Super Admin"
   },
   "auditFeed": [
+    {
+      "id": "feed-1789661315179",
+      "type": "alert",
+      "title": "Room updated",
+      "detail": "Trueig 90 Classic settings modified",
+      "time": "21:38"
+    },
+    {
+      "id": "feed-1789661261491",
+      "type": "alert",
+      "title": "Room updated",
+      "detail": "Trueig 90 Classic settings modified",
+      "time": "21:37"
+    },
+    {
+      "id": "feed-1789661250043",
+      "type": "alert",
+      "title": "Room updated",
+      "detail": "Trueig 90 Classic settings modified",
+      "time": "21:37"
+    },
     {
       "id": "feed-1789660101286",
       "type": "alert",

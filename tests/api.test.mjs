@@ -249,4 +249,94 @@ test("GET /api/settings and PUT /api/settings updates platform settings", async 
   assert.equal(putJson.settings.voiceCaller, "Trueigtech Max");
 });
 
+test("Room status change from Scheduled to Live persists and triggers sync event", async () => {
+  // 1. Update trueig-90 from whatever status to Scheduled
+  const schedRes = await fetch(`${BASE_URL}/rooms/trueig-90`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ status: "Scheduled" }),
+  });
+  assert.equal(schedRes.status, 200);
+  const schedJson = await schedRes.json();
+  assert.equal(schedJson.success, true);
+  assert.equal(schedJson.room.status, "Scheduled");
+
+  // Verify in GET /api/rooms
+  const get1 = await fetch(`${BASE_URL}/rooms/trueig-90`);
+  const get1Json = await get1.json();
+  assert.equal(get1Json.room.status, "Scheduled");
+
+  // 2. Change status Scheduled -> Live (exact user action)
+  const liveRes = await fetch(`${BASE_URL}/rooms/trueig-90`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ status: "Live" }),
+  });
+  assert.equal(liveRes.status, 200);
+  const liveJson = await liveRes.json();
+  assert.equal(liveJson.success, true);
+  assert.equal(liveJson.room.status, "Live");
+
+  // Verify in GET /api/rooms
+  const get2 = await fetch(`${BASE_URL}/rooms/trueig-90`);
+  const get2Json = await get2.json();
+  assert.equal(get2Json.room.status, "Live");
+
+  // 3. Verify sync event was recorded in sync bus
+  const syncRes = await fetch(`${BASE_URL}/sync/status`);
+  const syncJson = await syncRes.json();
+  const roomEvent = syncJson.events.find((e) => e.entity === "rooms" && e.roomId === "trueig-90");
+  assert.ok(roomEvent);
+  assert.equal(roomEvent.action, "update");
+});
+
+test("Banner management: full CRUD workflow and live sync", async () => {
+  // 1. Create a new banner
+  const newBanner = {
+    title: `Automated Test Banner ${Date.now()}`,
+    kicker: "EXCLUSIVE CHAMPIONSHIP",
+    roomId: "diamond-75",
+    value: "$50,000",
+    cta: "Join now",
+    image: "/banners/weekend-cup-jackpot.png",
+    active: true,
+  };
+  const createRes = await fetch(`${BASE_URL}/banners`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(newBanner),
+  });
+  assert.equal(createRes.status, 201);
+  const createJson = await createRes.json();
+  assert.equal(createJson.success, true);
+  const bannerId = createJson.banner.id;
+  assert.ok(bannerId);
+  assert.equal(createJson.banner.title, newBanner.title);
+
+  // 2. Update banner (toggle active to false)
+  const updateRes = await fetch(`${BASE_URL}/banners/${bannerId}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ active: false, value: "$75,000" }),
+  });
+  assert.equal(updateRes.status, 200);
+  const updateJson = await updateRes.json();
+  assert.equal(updateJson.success, true);
+  assert.equal(updateJson.banner.active, false);
+  assert.equal(updateJson.banner.value, "$75,000");
+
+  // 3. Delete banner
+  const deleteRes = await fetch(`${BASE_URL}/banners/${bannerId}`, {
+    method: "DELETE",
+  });
+  assert.equal(deleteRes.status, 200);
+  const deleteJson = await deleteRes.json();
+  assert.equal(deleteJson.success, true);
+
+  // Verify deletion in GET /api/banners
+  const listRes = await fetch(`${BASE_URL}/banners`);
+  const listJson = await listRes.json();
+  assert.ok(!listJson.banners.some((b) => b.id === bannerId));
+});
+
 

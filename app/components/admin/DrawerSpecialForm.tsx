@@ -49,6 +49,16 @@ export function DrawerSpecialForm({
   const [winPattern, setWinPattern] = useState("One Line");
   const [winRoom, setWinRoom] = useState(rooms[0]?.id || "diamond-75");
 
+  // Banner state
+  const [bannerTitle, setBannerTitle] = useState("Weekend Super Cup");
+  const [bannerKicker, setBannerKicker] = useState("SPECIAL EVENT");
+  const [bannerBody, setBannerBody] = useState("Join thousands of players and win huge jackpot prizes.");
+  const [bannerCta, setBannerCta] = useState("Play now");
+  const [bannerValue, setBannerValue] = useState("$25,000");
+  const [bannerRoom, setBannerRoom] = useState(rooms[0]?.id || "diamond-75");
+  const [bannerTheme, setBannerTheme] = useState("tournament");
+  const [bannerImage, setBannerImage] = useState("/banners/weekend-cup-jackpot.png");
+
   if (kind === "caller-config")
     return (
       <div className="drawer-section">
@@ -287,6 +297,98 @@ export function DrawerSpecialForm({
             }}
           >
             Declare winner & award prize
+          </button>
+        </div>
+      </div>
+    );
+
+  if (kind === "create-banner" || kind === "edit-banner" || kind === "banners")
+    return (
+      <div className="drawer-section">
+        <h3>Hero Lobby Banner</h3>
+        <p style={{ fontSize: "12px", color: "var(--muted)", marginBottom: "14px" }}>
+          Configure top promotional carousel banner shown to all players in the main lobby.
+        </p>
+        <div className="drawer-form-grid">
+          <label>
+            Banner Title
+            <input value={bannerTitle} onChange={(e) => setBannerTitle(e.target.value)} required />
+          </label>
+          <label>
+            Kicker / Tagline
+            <input value={bannerKicker} onChange={(e) => setBannerKicker(e.target.value)} />
+          </label>
+          <label>
+            Featured Prize / Value
+            <input value={bannerValue} onChange={(e) => setBannerValue(e.target.value)} />
+          </label>
+          <label>
+            Call To Action (CTA)
+            <input value={bannerCta} onChange={(e) => setBannerCta(e.target.value)} />
+          </label>
+          <label>
+            Target Room
+            <select value={bannerRoom} onChange={(e) => setBannerRoom(e.target.value)}>
+              <option value="tournament">Tournament (Trueigtech Cup)</option>
+              {rooms.map((r) => (
+                <option key={r.id} value={r.id}>
+                  {r.name}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label>
+            Theme Style
+            <select value={bannerTheme} onChange={(e) => setBannerTheme(e.target.value)}>
+              <option value="tournament">Tournament (Gold & Trophy)</option>
+              <option value="host">Host (Vibrant Teal)</option>
+              <option value="speed">Speed (Turbo Violet)</option>
+              <option value="jackpot">Jackpot (Diamond High Roller)</option>
+            </select>
+          </label>
+          <label className="full">
+            Image Preset or URL
+            <select
+              value={bannerImage}
+              onChange={(e) => setBannerImage(e.target.value)}
+              style={{ marginBottom: "8px" }}
+            >
+              <option value="/banners/weekend-cup-jackpot.png">Weekend Cup Jackpot (/banners/weekend-cup-jackpot.png)</option>
+              <option value="/banners/fun-is-calling.png">Fun is Calling (/banners/fun-is-calling.png)</option>
+            </select>
+            <input
+              value={bannerImage}
+              placeholder="Or enter custom image path e.g. /banners/my-banner.png"
+              onChange={(e) => setBannerImage(e.target.value)}
+            />
+          </label>
+          <label className="full">
+            Description
+            <textarea value={bannerBody} onChange={(e) => setBannerBody(e.target.value)} />
+          </label>
+        </div>
+        <div className="special-actions" style={{ marginTop: "20px" }}>
+          <button
+            type="button"
+            className="admin-primary"
+            onClick={async () => {
+              await apiClient.banners.create({
+                title: bannerTitle,
+                kicker: bannerKicker,
+                body: bannerBody,
+                cta: bannerCta,
+                value: bannerValue,
+                roomId: bannerRoom,
+                theme: bannerTheme,
+                image: bannerImage,
+                imageAlt: bannerTitle,
+                active: true,
+              });
+              notify(`✓ Banner "${bannerTitle}" saved and published to player lobby!`);
+              close();
+            }}
+          >
+            Save & publish banner
           </button>
         </div>
       </div>

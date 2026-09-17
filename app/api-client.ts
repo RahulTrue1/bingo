@@ -492,6 +492,23 @@ export const apiClient = {
       const res = await request<{ success: boolean; count: number; banners: HeroBannerModel[] }>("/banners");
       return res?.banners ?? [];
     },
+    async create(data: Partial<HeroBannerModel>) {
+      return request<{ success: boolean; banner: HeroBannerModel }>("/banners", {
+        method: "POST",
+        body: JSON.stringify(data),
+      });
+    },
+    async update(id: string, data: Partial<HeroBannerModel>) {
+      return request<{ success: boolean; banner: HeroBannerModel }>(`/banners/${id}`, {
+        method: "PUT",
+        body: JSON.stringify(data),
+      });
+    },
+    async delete(id: string) {
+      return request<{ success: boolean; banner?: HeroBannerModel }>(`/banners/${id}`, {
+        method: "DELETE",
+      });
+    },
   },
 
   chat: {

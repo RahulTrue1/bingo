@@ -64,3 +64,20 @@ bannersRouter.put("/:id", (req: Request, res: Response) => {
 
   res.json({ success: true, banner });
 });
+
+// DELETE /api/banners/:id - Delete banner
+bannersRouter.delete("/:id", (req: Request, res: Response) => {
+  const index = store.banners.findIndex((b) => b.id === req.params.id);
+  if (index === -1) {
+    res.status(404).json({ success: false, error: "Banner not found" });
+    return;
+  }
+
+  const [removed] = store.banners.splice(index, 1);
+  store.addAudit("alert", "Banner deleted", `Banner "${removed.title}" removed from lobby`);
+  store.save();
+
+  syncBus.emitChange("banners", "delete", removed, removed.id, `Banner "${removed.title}" deleted.`);
+
+  res.json({ success: true, message: "Banner deleted", banner: removed });
+});

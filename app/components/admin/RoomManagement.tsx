@@ -1,9 +1,18 @@
 import { useState } from "react";
 import { apiClient } from "../../api-client";
-import type { BingoRoomData } from "../../bingo-core";
+import type { BingoRoomData, BingoStatus } from "../../bingo-core";
 import { Icon } from "../shared/Icon";
 import { StatusPill } from "../shared/StatusPill";
 import { money, type AdminAction } from "../shared/types";
+
+const statusList: BingoStatus[] = [
+  "Live",
+  "Starting Soon",
+  "Selling Tickets",
+  "Open",
+  "Scheduled",
+  "Paused",
+];
 
 export function RoomManagement({
   rooms,
@@ -24,6 +33,16 @@ export function RoomManagement({
     setRooms(rooms.map((room) => (room.id === id ? { ...room, ticketPrice: price } : room)));
     setEditing(null);
     notify("Ticket pricing updated and audit log created.");
+  };
+
+  const saveStatus = async (id: string, newStatus: BingoStatus) => {
+    try {
+      const res = await apiClient.rooms.update(id, { status: newStatus });
+      setRooms(rooms.map((room) => (room.id === id ? (res?.room ?? { ...room, status: newStatus }) : room)));
+      notify(`✓ ${rooms.find((r) => r.id === id)?.name ?? id} status changed to "${newStatus}". Synced to player lobby.`);
+    } catch {
+      notify(`Failed to update status for ${id}.`);
+    }
   };
 
   return (
@@ -76,7 +95,31 @@ export function RoomManagement({
                     </div>
                   </div>
                 </td>
-                <td><StatusPill status={room.status} /></td>
+                <td>
+                  <div style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}>
+                    <StatusPill status={room.status} />
+                    <select
+                      style={{
+                        background: "rgba(255,255,255,0.06)",
+                        color: "inherit",
+                        border: "1px solid rgba(255,255,255,0.12)",
+                        borderRadius: "6px",
+                        fontSize: "11px",
+                        padding: "2px 4px",
+                        cursor: "pointer",
+                      }}
+                      value={room.status}
+                      onChange={(e) => saveStatus(room.id, e.target.value as BingoStatus)}
+                      title="Change live room status"
+                    >
+                      {statusList.map((st) => (
+                        <option key={st} value={st} style={{ background: "#1c1b2f", color: "#fff" }}>
+                          {st}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </td>
                 <td>{room.variant}</td>
                 <td>
                   {editing === room.id ? (

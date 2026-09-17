@@ -5,6 +5,7 @@ import { Logo } from "../shared/Logo";
 import type { AdminAction } from "../shared/types";
 import { AdminDashboard } from "./AdminDashboard";
 import { BackofficeDrawer } from "./BackofficeDrawer";
+import { BannerManagement } from "./BannerManagement";
 import { ChatModeration } from "./ChatModeration";
 import { GameManagement } from "./GameManagement";
 import { adminNav, GenericAdminPanel } from "./GenericAdminPanel";
@@ -35,6 +36,7 @@ export function adminSubtitle(module: string) {
     players: "Review player activity, value and account status.",
     transactions: "Trace every ticket, payout, refund and promotional credit.",
     variants: "Configure extensible Bingo engines and card layouts.",
+    banners: "Manage homepage carousel slides, promotional banners and room callouts.",
   };
   return subtitles[module] ?? `Configure ${adminNav.find(([key]) => key === module)?.[1].toLowerCase()} across the platform.`;
 }
@@ -55,7 +57,7 @@ export function AdminModule({
   if (module === "dashboard") return <AdminDashboard openAction={openAction} />;
   if (module === "rooms") return <RoomManagement rooms={rooms} setRooms={setRooms} openAction={openAction} notify={notify} />;
   if (module === "rtp") return <RTPManagement rooms={rooms} setRooms={setRooms} notify={notify} openAction={openAction} />;
-  if (module === "gamebuilder") return <GameManagement rooms={rooms} openAction={openAction} notify={notify} />;
+  if (module === "gamebuilder") return <GameManagement rooms={rooms} setRooms={setRooms} openAction={openAction} notify={notify} />;
   if (module === "games") return <LiveControl notify={notify} openAction={openAction} />;
   if (module === "scheduler") return <Scheduler notify={notify} />;
   if (module === "patterns") return <PatternBuilder notify={notify} />;
@@ -66,6 +68,7 @@ export function AdminModule({
   if (module === "reports") return <ReportsPanel />;
   if (module === "tournaments") return <TournamentAdmin notify={notify} openAction={openAction} />;
   if (module === "promotions") return <PromotionManagement notify={notify} openAction={openAction} />;
+  if (module === "banners") return <BannerManagement rooms={rooms} openAction={openAction} notify={notify} />;
   if (module === "chat") return <ChatModeration notify={notify} openAction={openAction} />;
   return <GenericAdminPanel module={module} notify={notify} openAction={openAction} />;
 }
@@ -94,6 +97,7 @@ export function AdminExperience({
     tournaments: ["+ Create tournament", "create-tournament"],
     players: ["Open player profile", "player"],
     promotions: ["+ Create promotion", "promotion"],
+    banners: ["+ Create banner", "create-banner"],
     chat: ["+ Announcement", "announcement"],
     reports: ["Build report", "report"],
     settings: ["Configure platform", "settings"],

@@ -1,4 +1,4 @@
-import { ReactNode, useEffect, useState } from "react";
+import { ReactNode, useCallback, useEffect, useState } from "react";
 import { apiClient } from "../../api-client";
 import type { BingoRoomData } from "../../bingo-core";
 import type { PlayerView } from "../shared/types";
@@ -77,31 +77,47 @@ export function HeroCarousel({
   const [index, setIndex] = useState(0);
   const [paused, setPaused] = useState(false);
 
-  useEffect(() => {
+  const loadBanners = useCallback(() => {
     apiClient.banners
       .list()
       .then((list) => {
         if (list && list.length > 0) {
-          const mapped: SlideItem[] = list.map((b) => ({
-            id: b.roomId || b.id,
-            kicker: b.kicker,
-            title: b.title,
-            body: b.body,
-            cta: b.cta,
-            alt: b.alt,
-            seconds: b.seconds,
-            theme: b.theme,
-            value: b.value,
-            image: b.image,
-            imageAlt: b.imageAlt,
-            imageWidth: b.imageWidth,
-            imageHeight: b.imageHeight,
-          }));
-          setSlides(mapped);
+          const activeList = list.filter((b) => b.active !== false);
+          if (activeList.length > 0) {
+            const mapped: SlideItem[] = activeList.map((b) => ({
+              id: b.roomId || b.id,
+              kicker: b.kicker,
+              title: b.title,
+              body: b.body,
+              cta: b.cta,
+              alt: b.alt,
+              seconds: b.seconds,
+              theme: b.theme,
+              value: b.value,
+              image: b.image,
+              imageAlt: b.imageAlt,
+              imageWidth: b.imageWidth,
+              imageHeight: b.imageHeight,
+            }));
+            setSlides(mapped);
+          }
         }
       })
       .catch(() => {});
   }, []);
+
+  useEffect(() => {
+    loadBanners();
+
+    // Subscribe to live banner events emitted by Backoffice banner manager
+    const unsubscribe = apiClient.sync.subscribe((event) => {
+      if (event.entity === "banners" || event.entity === "all") {
+        loadBanners();
+      }
+    });
+
+    return unsubscribe;
+  }, [loadBanners]);
 
   useEffect(() => {
     if (paused || slides.length === 0) return;

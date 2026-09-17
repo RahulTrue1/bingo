@@ -14,6 +14,7 @@ export const adminNav = [
   ["players", "Players", "♙"],
   ["transactions", "Transactions", "⇄"],
   ["promotions", "Promotions", "★"],
+  ["banners", "Hero Banners", "☵"],
   ["chat", "Chat moderation", "◌"],
 ];
 
