@@ -339,4 +339,69 @@ test("Banner management: full CRUD workflow and live sync", async () => {
   assert.ok(!listJson.banners.some((b) => b.id === bannerId));
 });
 
+test("Game creation and update flow: persists stages, status, and emits real-time sync", async () => {
+  const gameId = `test-game-${Date.now()}`;
+  const stages = [
+    { name: "One Line", prize: 150, continueAfterWin: true },
+    { name: "Two Lines", prize: 350, continueAfterWin: true },
+    { name: "Full House", prize: 1000, continueAfterWin: false },
+  ];
+
+  // 1. Create game as Live
+  const createRes = await fetch(`${BASE_URL}/rooms`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      id: gameId,
+      name: "Trueig Championship 75",
+      variant: "75-Ball Pattern",
+      status: "Live",
+      ticketPrice: 2.5,
+      prize: 1500,
+      maxPlayers: 450,
+      callDelay: 600,
+      frequency: "Every 5 min",
+      startsIn: "19:00",
+      winningStages: stages,
+      jackpot: 125480,
+    }),
+  });
+  assert.equal(createRes.status, 201);
+  const created = await createRes.json();
+  assert.equal(created.success, true);
+  assert.equal(created.room.id, gameId);
+  assert.equal(created.room.status, "Live");
+  assert.equal(created.room.winningStages.length, 3);
+  assert.equal(created.room.callDelay, 600);
+
+  // 2. Schedule game (change status to Scheduled and update prize)
+  const updateRes = await fetch(`${BASE_URL}/rooms/${gameId}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      status: "Scheduled",
+      prize: 2000,
+      startsIn: "21:30",
+    }),
+  });
+  assert.equal(updateRes.status, 200);
+  const updated = await updateRes.json();
+  assert.equal(updated.room.status, "Scheduled");
+  assert.equal(updated.room.prize, 2000);
+  assert.equal(updated.room.startsIn, "21:30");
+
+  // 3. Verify sync status recorded the update
+  const syncRes = await fetch(`${BASE_URL}/sync/status`);
+  const syncJson = await syncRes.json();
+  const foundEvent = syncJson.events.find((e) => e.entity === "rooms" && e.roomId === gameId);
+  assert.ok(foundEvent);
+  assert.equal(foundEvent.action, "update");
+
+  // 4. Verify filtering by status
+  const filterRes = await fetch(`${BASE_URL}/rooms?status=Scheduled`);
+  const filterJson = await filterRes.json();
+  assert.ok(filterJson.rooms.some((r) => r.id === gameId));
+});
+
+
 

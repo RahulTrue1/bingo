@@ -31,27 +31,133 @@ export function BackofficeDrawer({
   notify: (message: string) => void;
 }) {
   const editingRoom = action.room;
-  const [name, setName] = useState(editingRoom?.name ?? "Trueigtech Sunrise 75");
-  const [variant, setVariant] = useState(editingRoom?.variant ?? "75-Ball Pattern");
-  const [status, setStatus] = useState<BingoStatus>(editingRoom?.status ?? "Open");
-  const [gameRoomId, setGameRoomId] = useState(editingRoom?.id ?? rooms[0]?.id ?? "trueig-90");
-  const [price, setPrice] = useState(editingRoom?.ticketPrice ?? 2);
-  const [prize, setPrize] = useState(editingRoom?.prize ?? 2000);
+  const isGame = action.kind === "create-game";
+  const isCreatingNew = isGame && !editingRoom;
+  const [name, setName] = useState(editingRoom?.name ?? (isCreatingNew ? "Trueig Mega 75" : "Trueig 90 Classic"));
+  const [variant, setVariant] = useState(editingRoom?.variant ?? (isCreatingNew ? "75-Ball Pattern" : "90-Ball Classic"));
+  const [status, setStatus] = useState<BingoStatus>(editingRoom?.status ?? (isGame ? "Live" : "Open"));
+  const [gameRoomId, setGameRoomId] = useState(editingRoom?.id ?? (isCreatingNew ? "new" : rooms[0]?.id ?? "trueig-90"));
+  const [price, setPrice] = useState(editingRoom?.ticketPrice ?? (isCreatingNew ? 1 : 0.5));
+  const [prize, setPrize] = useState(editingRoom?.prize ?? (isCreatingNew ? 500 : 274));
   const [confirm, setConfirm] = useState<"delete" | "disable" | null>(null);
   const [stages, setStages] = useState(
     editingRoom?.winningStages ?? [
-      { name: "One Line", prize: 100, continueAfterWin: true },
-      { name: "Full House", prize: 1000, continueAfterWin: false },
+      { name: "One Line", prize: isCreatingNew ? 100 : 50, continueAfterWin: true },
+      { name: "Two Lines", prize: 80, continueAfterWin: true },
+      { name: "Full House", prize: isCreatingNew ? 400 : 140, continueAfterWin: false },
     ],
   );
-  const [rtp, setRtp] = useState(editingRoom?.rtp ?? 78);
+  const [rtp, setRtp] = useState(editingRoom?.rtp ?? 80);
   const [rtpMode, setRtpMode] = useState<RtpMode>(editingRoom?.rtpMode ?? "dynamic");
   const [customRtp, setCustomRtp] = useState(editingRoom?.customRtp ?? Boolean(editingRoom?.rtp));
+
+  // Game specific state
+  const [gameDate, setGameDate] = useState("2026-08-22");
+  const [gameStartTime, setGameStartTime] = useState(editingRoom?.startsIn ?? "18:00");
+  const [gameSpeed, setGameSpeed] = useState(editingRoom?.callDelay === 600 ? "Turbo" : "Fast");
+  const [gameMaxPlayers, setGameMaxPlayers] = useState(editingRoom?.maxPlayers ?? 300);
+  const [gameCardLimit, setGameCardLimit] = useState(8);
+  const [gameJackpot, setGameJackpot] = useState(editingRoom?.jackpot ? "Mega Trueig Jackpot" : "None");
+  const [gamePromotion, setGamePromotion] = useState("None");
+  const [gameFrequency, setGameFrequency] = useState(editingRoom?.frequency ?? (isCreatingNew ? "Every 10 min" : "One time"));
+
+  const handleSelectGameRoom = (targetId: string) => {
+    setGameRoomId(targetId);
+    if (targetId === "new") {
+      setName("Trueig Mega 75");
+      setVariant("75-Ball Pattern");
+      setPrice(1);
+      setPrize(500);
+      setStatus("Live");
+      setStages([
+        { name: "One Line", prize: 100, continueAfterWin: true },
+        { name: "Full House", prize: 400, continueAfterWin: false },
+      ]);
+      setGameMaxPlayers(300);
+      setGameCardLimit(8);
+      setGameJackpot("None");
+      setGamePromotion("None");
+      setGameFrequency("Every 10 min");
+      setGameStartTime("18:00");
+    } else {
+      const selected = rooms.find((r) => r.id === targetId);
+      if (selected) {
+        setName(selected.name);
+        setVariant(selected.variant);
+        setPrice(selected.ticketPrice);
+        setPrize(selected.prize);
+        setStatus(selected.status);
+        if (selected.winningStages && selected.winningStages.length > 0) {
+          setStages(selected.winningStages);
+        }
+        if (selected.maxPlayers) setGameMaxPlayers(selected.maxPlayers);
+        if (selected.startsIn) setGameStartTime(selected.startsIn);
+        setGameJackpot(selected.jackpot ? "Mega Trueig Jackpot" : "None");
+        if (selected.frequency) setGameFrequency(selected.frequency);
+        if (selected.callDelay) setGameSpeed(selected.callDelay <= 700 ? "Turbo" : selected.callDelay <= 1300 ? "Fast" : "Normal");
+      }
+    }
+  };
+
+  const saveGameWithStatus = async (customStatus?: BingoStatus) => {
+    const finalStatus: BingoStatus = customStatus || status || "Live";
+    if (gameRoomId === "new") {
+      const id = name.toLowerCase().replace(/[^a-z0-9]+/g, "-") || `game-${Date.now()}`;
+      const newGame: BingoRoomData = {
+        id,
+        name,
+        variant,
+        status: finalStatus,
+        ticketPrice: Number(price) || 0,
+        prize: Number(prize) || 0,
+        players: 0,
+        maxPlayers: Number(gameMaxPlayers) || 300,
+        cardsSold: 0,
+        startsIn: gameStartTime || "18:00",
+        pattern: stages.map((stage) => stage.name).join(" → ") || "One Line",
+        accent: variant.includes("90") ? "teal" : variant.includes("30") ? "coral" : variant.includes("80") ? "blue" : "violet",
+        tag: "NEW",
+        frequency: gameFrequency || "Every 10 min",
+        cardRows: variant.includes("90") ? 3 : variant.includes("30") ? 3 : variant.includes("80") ? 4 : 5,
+        cardColumns: variant.includes("90") ? 9 : variant.includes("30") ? 3 : variant.includes("80") ? 4 : 5,
+        callDelay: gameSpeed === "Turbo" ? 600 : gameSpeed === "Fast" ? 1200 : 1800,
+        winningStages: stages,
+        rtp: 80,
+        rtpMode: "dynamic",
+        customRtp: false,
+        jackpot: gameJackpot !== "None" ? 125480 : undefined,
+      };
+      await apiClient.rooms.create(newGame);
+      setRooms([...rooms, newGame]);
+      notify(`✓ New Bingo game "${newGame.name}" created (${finalStatus}) and published to player lobby!`);
+    } else {
+      const target = rooms.find((r) => r.id === gameRoomId);
+      const updates: Partial<BingoRoomData> = {
+        name,
+        variant,
+        status: finalStatus,
+        ticketPrice: Number(price) || 0,
+        prize: Number(prize) || 0,
+        maxPlayers: Number(gameMaxPlayers) || 300,
+        callDelay: gameSpeed === "Turbo" ? 600 : gameSpeed === "Fast" ? 1200 : 1800,
+        winningStages: stages,
+        pattern: stages.map((stage) => stage.name).join(" → ") || "One Line",
+        jackpot: gameJackpot !== "None" ? 125480 : undefined,
+        startsIn: gameStartTime || target?.startsIn || "18:00",
+        frequency: gameFrequency || target?.frequency,
+      };
+      const res = await apiClient.rooms.update(gameRoomId, updates);
+      setRooms(
+        rooms.map((r) => (r.id === gameRoomId ? (res?.room ?? { ...r, ...updates }) : r)),
+      );
+      notify(`✓ Game "${target?.name ?? gameRoomId}" updated (${finalStatus}) and synced across player screens!`);
+    }
+  };
 
   const titleMap: Record<string, string> = {
     "create-room": "Create Bingo Room",
     "edit-room": `Edit ${editingRoom?.name ?? "Room"}`,
-    "create-game": "Create Bingo Game",
+    "create-game": editingRoom || (gameRoomId && gameRoomId !== "new") ? `Configure Game · ${name}` : "Create Bingo Game",
     "caller-config": "Number Caller Configuration",
     "create-jackpot": "Create Jackpot",
     "edit-jackpot": "Edit Mega Trueig Jackpot",
@@ -73,7 +179,7 @@ export function BackofficeDrawer({
   };
   const title = titleMap[action.kind] ?? action.label ?? "Configure Module";
 
-  const submit = (event: FormEvent) => {
+  const submit = async (event: FormEvent) => {
     event.preventDefault();
     if (action.kind === "create-room") {
       const id = name.toLowerCase().replace(/[^a-z0-9]+/g, "-");
@@ -99,10 +205,11 @@ export function BackofficeDrawer({
         rtpMode,
         customRtp,
       };
-      apiClient.rooms.create(newRoom);
+      await apiClient.rooms.create(newRoom);
       setRooms([...rooms, newRoom]);
+      notify(`✓ Room "${newRoom.name}" created and added to lobby.`);
     } else if (action.kind === "edit-room" && editingRoom) {
-      apiClient.rooms.update(editingRoom.id, {
+      const res = await apiClient.rooms.update(editingRoom.id, {
         name,
         variant,
         status,
@@ -117,7 +224,7 @@ export function BackofficeDrawer({
       setRooms(
         rooms.map((room) =>
           room.id === editingRoom.id
-            ? {
+            ? (res?.room ?? {
                 ...room,
                 name,
                 variant,
@@ -129,12 +236,14 @@ export function BackofficeDrawer({
                 rtp,
                 rtpMode,
                 customRtp,
-              }
+              })
             : room,
         ),
       );
+      notify(`✓ Room "${editingRoom.name}" saved successfully.`);
+    } else if (action.kind === "create-game") {
+      await saveGameWithStatus();
     }
-    notify(`${title} saved successfully.`);
     close();
   };
 
@@ -230,8 +339,12 @@ export function BackofficeDrawer({
       {action.kind === "create-room" && (
         <button type="button" className="outline-button" onClick={() => notify("Room saved as draft.")}>Save draft</button>
       )}
-      <button className="admin-primary">
-        {action.kind === "edit-room" ? "Save changes" : action.kind === "create-game" ? "Create game" : "Save configuration"}
+      <button className="admin-primary" type="submit">
+        {action.kind === "edit-room"
+          ? "Save changes"
+          : action.kind === "create-game"
+            ? (gameRoomId === "new" ? "+ Create game" : "Save & apply game")
+            : "Save configuration"}
       </button>
     </div>
   );
@@ -570,8 +683,9 @@ export function BackofficeDrawer({
                 <h3>Game details</h3>
                 <div className="drawer-form-grid">
                   <label>
-                    Room
-                    <select value={gameRoomId} onChange={(e) => setGameRoomId(e.target.value)}>
+                    Room / Target
+                    <select value={gameRoomId} onChange={(e) => handleSelectGameRoom(e.target.value)}>
+                      <option value="new">+ Create New Game Room</option>
                       {rooms.map((room) => (
                         <option key={room.id} value={room.id}>
                           {room.name} ({room.status})
@@ -580,24 +694,100 @@ export function BackofficeDrawer({
                     </select>
                   </label>
                   <label>
+                    Game / Room Name
+                    <input
+                      type="text"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      placeholder="e.g. Trueig Gold 75"
+                      required
+                    />
+                  </label>
+                  <label>
                     Bingo type
-                    <select defaultValue={editingRoom?.variant}>
+                    <select value={variant} onChange={(e) => setVariant(e.target.value)}>
                       <option>90-Ball Classic</option>
                       <option>75-Ball Pattern</option>
                       <option>30-Ball Speed</option>
                       <option>80-Ball Grid</option>
                     </select>
                   </label>
-                  <label>Date<input type="date" defaultValue="2026-08-22" /></label>
-                  <label>Start time<input type="time" defaultValue="18:00" /></label>
-                  <label>Ticket price<input type="number" step="0.5" value={price} onChange={(event) => setPrice(Number(event.target.value))} /></label>
-                  <label>Prize<input type="number" value={prize} onChange={(event) => setPrize(Number(event.target.value))} /></label>
-                  <label>Call speed<select><option>Fast</option><option>Turbo</option><option>Normal</option><option>Slow</option></select></label>
-                  <label>Maximum players<input type="number" defaultValue="300" /></label>
-                  <label>Card limit<input type="number" defaultValue="8" /></label>
-                  <label>Jackpot<select><option>None</option><option>Mega Trueig Jackpot</option></select></label>
-                  <label>Promotion<select><option>None</option><option>Buy 3 Get 1</option><option>Happy Hour</option></select></label>
-                  <label>Game frequency<select><option>One time</option><option>Hourly</option><option>Daily</option><option>Weekly</option></select></label>
+                  <label>
+                    Status
+                    <select value={status} onChange={(e) => setStatus(e.target.value as BingoStatus)}>
+                      <option value="Live">Live</option>
+                      <option value="Scheduled">Scheduled</option>
+                      <option value="Open">Open</option>
+                      <option value="Paused">Paused</option>
+                      <option value="Closing">Closing</option>
+                    </select>
+                  </label>
+                  <label>
+                    Date
+                    <input type="date" value={gameDate} onChange={(e) => setGameDate(e.target.value)} />
+                  </label>
+                  <label>
+                    Start time
+                    <input type="time" value={gameStartTime} onChange={(e) => setGameStartTime(e.target.value)} />
+                  </label>
+                  <label>
+                    Ticket price
+                    <input type="number" step="0.5" value={price} onChange={(event) => setPrice(Number(event.target.value))} />
+                  </label>
+                  <label>
+                    Prize
+                    <input type="number" value={prize} onChange={(event) => setPrize(Number(event.target.value))} />
+                  </label>
+                  <label>
+                    Call speed
+                    <select value={gameSpeed} onChange={(e) => setGameSpeed(e.target.value)}>
+                      <option>Fast</option>
+                      <option>Turbo</option>
+                      <option>Normal</option>
+                      <option>Slow</option>
+                    </select>
+                  </label>
+                  <label>
+                    Maximum players
+                    <input
+                      type="number"
+                      value={gameMaxPlayers}
+                      onChange={(e) => setGameMaxPlayers(Number(e.target.value))}
+                    />
+                  </label>
+                  <label>
+                    Card limit
+                    <input
+                      type="number"
+                      value={gameCardLimit}
+                      onChange={(e) => setGameCardLimit(Number(e.target.value))}
+                    />
+                  </label>
+                  <label>
+                    Jackpot
+                    <select value={gameJackpot} onChange={(e) => setGameJackpot(e.target.value)}>
+                      <option>None</option>
+                      <option>Mega Trueig Jackpot</option>
+                    </select>
+                  </label>
+                  <label>
+                    Promotion
+                    <select value={gamePromotion} onChange={(e) => setGamePromotion(e.target.value)}>
+                      <option>None</option>
+                      <option>Buy 3 Get 1</option>
+                      <option>Happy Hour</option>
+                    </select>
+                  </label>
+                  <label>
+                    Game frequency
+                    <select value={gameFrequency} onChange={(e) => setGameFrequency(e.target.value)}>
+                      <option>One time</option>
+                      <option>Every 10 min</option>
+                      <option>Hourly</option>
+                      <option>Daily</option>
+                      <option>Weekly</option>
+                    </select>
+                  </label>
                 </div>
               </div>
               {stagesEditor}
@@ -606,9 +796,7 @@ export function BackofficeDrawer({
                   type="button"
                   className="outline-button"
                   onClick={async () => {
-                    await apiClient.rooms.update(gameRoomId, { status: "Scheduled" });
-                    setRooms(rooms.map((r) => (r.id === gameRoomId ? { ...r, status: "Scheduled" } : r)));
-                    notify(`Game for ${rooms.find((r) => r.id === gameRoomId)?.name ?? gameRoomId} scheduled and updated in lobby.`);
+                    await saveGameWithStatus("Scheduled");
                     close();
                   }}
                 >
@@ -618,9 +806,7 @@ export function BackofficeDrawer({
                   type="button"
                   className="admin-primary"
                   onClick={async () => {
-                    await apiClient.rooms.update(gameRoomId, { status: "Live" });
-                    setRooms(rooms.map((r) => (r.id === gameRoomId ? { ...r, status: "Live" } : r)));
-                    notify(`Game started immediately! ${rooms.find((r) => r.id === gameRoomId)?.name ?? gameRoomId} is now Live in the player lobby.`);
+                    await saveGameWithStatus("Live");
                     close();
                   }}
                 >

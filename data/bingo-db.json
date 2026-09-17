@@ -2420,6 +2420,76 @@
   },
   "auditFeed": [
     {
+      "id": "feed-1789663259148",
+      "type": "alert",
+      "title": "Room deleted",
+      "detail": "trueig-solar-90",
+      "time": "22:10"
+    },
+    {
+      "id": "feed-1789663240892",
+      "type": "alert",
+      "title": "Room updated",
+      "detail": "Trueig Solar 90 settings modified",
+      "time": "22:10"
+    },
+    {
+      "id": "feed-1789663232364",
+      "type": "player",
+      "title": "New room created",
+      "detail": "Trueig Solar 90 (90-Ball Classic)",
+      "time": "22:10"
+    },
+    {
+      "id": "feed-1789662873555",
+      "type": "alert",
+      "title": "Room updated",
+      "detail": "Turbo 30 settings modified",
+      "time": "22:04"
+    },
+    {
+      "id": "feed-1789662855306",
+      "type": "alert",
+      "title": "Room updated",
+      "detail": "Turbo 30 settings modified",
+      "time": "22:04"
+    },
+    {
+      "id": "feed-1789662840405",
+      "type": "alert",
+      "title": "Room updated",
+      "detail": "Turbo 30 settings modified",
+      "time": "22:04"
+    },
+    {
+      "id": "feed-1789662839258",
+      "type": "alert",
+      "title": "Room updated",
+      "detail": "Turbo 30 settings modified",
+      "time": "22:03"
+    },
+    {
+      "id": "feed-1789662820887",
+      "type": "alert",
+      "title": "Room updated",
+      "detail": "Turbo 30 settings modified",
+      "time": "22:03"
+    },
+    {
+      "id": "feed-1789662740207",
+      "type": "alert",
+      "title": "Room updated",
+      "detail": "Trueig 910Classic settings modified",
+      "time": "22:02"
+    },
+    {
+      "id": "feed-1789662739275",
+      "type": "alert",
+      "title": "Room updated",
+      "detail": "Trueig 910Classic settings modified",
+      "time": "22:02"
+    },
+    {
       "id": "feed-1789661895383",
       "type": "alert",
       "title": "Manual ball call",
@@ -2698,27 +2768,6 @@
       "title": "Bingo claim validated",
       "detail": "Diamond 75 · Card #284201",
       "time": "14:32"
-    },
-    {
-      "id": "feed-2",
-      "type": "jackpot",
-      "title": "Jackpot contribution",
-      "detail": "+$42.10 · Mega Trueig Jackpot",
-      "time": "14:31"
-    },
-    {
-      "id": "feed-3",
-      "type": "player",
-      "title": "High-value player joined",
-      "detail": "TrueigQueen · VIP Gold Room",
-      "time": "14:29"
-    },
-    {
-      "id": "feed-4",
-      "type": "alert",
-      "title": "Claim rejected",
-      "detail": "Turbo 30 · Invalid pattern",
-      "time": "14:26"
     }
   ]
 }
