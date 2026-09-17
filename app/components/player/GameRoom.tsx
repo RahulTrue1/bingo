@@ -32,11 +32,31 @@ export function GameRoom({
   const [current, setCurrent] = useState<number | null>(null);
   const [autoDaub, setAutoDaub] = useState(true);
   const [manualMarks, setManualMarks] = useState<number[]>([]);
-  const [speed, setSpeed] = useState(room.variant.includes("Speed") ? "Turbo" : "Fast");
+  const maxCards = Math.max(1, room.cardLimit ?? 8);
+  const defaultSpeed = room.callDelay
+    ? room.callDelay <= 700
+      ? "Turbo"
+      : room.callDelay <= 1300
+        ? "Fast"
+        : room.callDelay <= 2200
+          ? "Normal"
+          : "Slow"
+    : room.variant.includes("Speed")
+      ? "Turbo"
+      : "Fast";
+  const [userSpeed, setUserSpeed] = useState<string | null>(null);
+  const speed = userSpeed ?? defaultSpeed;
+  const setSpeed = (val: string) => setUserSpeed(val);
+
   const [paused, setPaused] = useState(false);
   const [voiceOn, setVoiceOn] = useState(true);
-  const [selectedCards, setSelectedCards] = useState<number[]>([0, 1, 2]);
+  const [selectedCards, setSelectedCards] = useState<number[]>(() =>
+    Array.from({ length: Math.min(3, Math.max(1, room.cardLimit ?? 8)) }, (_, i) => i)
+  );
+
   const [activeCard, setActiveCard] = useState(0);
+  const safeActiveCard = Math.min(activeCard, Math.max(0, maxCards - 1));
+
   const [multiView, setMultiView] = useState(true);
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
   const [stageIndex, setStageIndex] = useState(0);
@@ -48,9 +68,14 @@ export function GameRoom({
   const [showWinModal, setShowWinModal] = useState(false);
   const [hasShownEndModal, setHasShownEndModal] = useState(false);
   const [chat, setChat] = useState("");
-  const [livePlayers, setLivePlayers] = useState(room.players);
-  const [liveCards, setLiveCards] = useState(room.cardsSold);
-  const [liveJackpot, setLiveJackpot] = useState(room.jackpot ?? 0);
+
+  const [driftPlayers, setDriftPlayers] = useState(0);
+  const [driftCards, setDriftCards] = useState(0);
+  const [driftJackpot, setDriftJackpot] = useState(0);
+  const livePlayers = Math.max(1, room.players + driftPlayers);
+  const liveCards = Math.max(0, room.cardsSold + driftCards);
+  const liveJackpot = Math.max(0, (room.jackpot ?? 0) + driftJackpot);
+
   const [lastWinner, setLastWinner] = useState("LuckyStar · $420");
   const [messages, setMessages] = useState([
     ["Trueigtech", `Welcome to ${room.name}. ${room.pattern} is the opening target.`, "now"],
@@ -74,14 +99,19 @@ export function GameRoom({
     ? [{ name: patternSeries[patternRound], prize: room.prize, continueAfterWin: false }]
     : room.winningStages ?? [{ name: room.pattern, prize: room.prize, continueAfterWin: false }];
   const activeStage = stages[Math.min(stageIndex, stages.length - 1)];
-  const price = room.ticketPrice * selectedCards.length;
 
-  const cardValues = useMemo(() => Array.from({ length: 8 }, (_, index) => {
+  // Promotion calculation
+  const freeCards = room.promotion === "Buy 3 Get 1" ? Math.floor(selectedCards.length / 4) : 0;
+  const payableCards = Math.max(0, selectedCards.length - freeCards);
+  const rawPrice = room.ticketPrice * payableCards;
+  const price = room.promotion === "Happy Hour" ? Math.round(rawPrice * 0.75 * 100) / 100 : rawPrice;
+
+  const cardValues = useMemo(() => Array.from({ length: maxCards }, (_, index) => {
     if (ballCount === 90) return make90Ticket(index + 2);
     if (ballCount === 80) return makeGridCard(4, 4, 80, index + 2).map((cell) => cell.value);
     if (ballCount === 30) return makeGridCard(3, 3, 30, index + 2).map((cell) => cell.value);
     return make75Card(index + 2).map((cell) => cell.value);
-  }), [ballCount]);
+  }), [ballCount, maxCards]);
 
   const ballLabel = useCallback((value: number) => ballCount === 75 ? BingoEngine.label(value) : `${value}`, [ballCount]);
   const targetCells = (name: string) => patternCells(name, rows, columns, ballCount);
@@ -227,9 +257,9 @@ export function GameRoom({
   useEffect(() => {
     if (phase !== "live") return;
     const timer = window.setInterval(() => {
-      setLivePlayers((value) => Math.max(10, value + (Math.random() > .35 ? 1 : -1)));
-      setLiveCards((value) => value + (Math.random() > .4 ? 1 : 0));
-      if (room.jackpot) setLiveJackpot((value) => value + .25);
+      setDriftPlayers((v) => v + (Math.random() > 0.35 ? 1 : -1));
+      setDriftCards((v) => v + (Math.random() > 0.4 ? 1 : 0));
+      if (room.jackpot) setDriftJackpot((v) => v + 0.25);
     }, 2200);
     return () => window.clearInterval(timer);
   }, [phase, room.jackpot]);
@@ -243,7 +273,7 @@ export function GameRoom({
   }, [called.length, phase, stageIndex, claimLocked, ballCount, stages.length]);
 
   function injectWinningNumbers() {
-    const values = cardValues[activeCard];
+    const values = cardValues[safeActiveCard];
     const winning = targetCells(activeStage.name).map((index) => values[index]).filter((value): value is number => typeof value === "number");
     setCalled((previous) => Array.from(new Set([...previous, ...winning])));
   }
@@ -353,11 +383,11 @@ export function GameRoom({
 
   const toggleCard = (index: number) => {
     if (phase !== "selling") return setActiveCard(index);
-    setSelectedCards((cards) => cards.includes(index) ? cards.filter((item) => item !== index) : cards.length < 8 ? [...cards, index] : cards);
+    setSelectedCards((cards) => cards.includes(index) ? cards.filter((item) => item !== index) : cards.length < maxCards ? [...cards, index] : cards);
     setActiveCard(index);
   };
 
-  const visibleCards = [...(phase === "selling" ? Array.from({ length: 8 }, (_, index) => index) : selectedCards)].sort((a, b) => sortDirection === "asc" ? a - b : b - a);
+  const visibleCards = [...(phase === "selling" ? Array.from({ length: maxCards }, (_, index) => index) : selectedCards)].sort((a, b) => sortDirection === "asc" ? a - b : b - a);
 
   return (
     <div className="game-page">
@@ -372,13 +402,33 @@ export function GameRoom({
           <StatusPill status={phase === "live" ? "Live" : phase === "selling" ? "Selling Tickets" : "Starting Soon"} />
         </div>
         <div className="game-top-actions">
+          {room.promotion && room.promotion !== "None" && (
+            <span style={{
+              background: "rgba(254, 202, 87, 0.2)",
+              border: "1px solid rgba(254, 202, 87, 0.6)",
+              color: "#feca57",
+              fontSize: "11px",
+              fontWeight: 700,
+              padding: "4px 8px",
+              borderRadius: "8px",
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "4px",
+            }}>
+              🎁 {room.promotion}
+            </span>
+          )}
           <span>
             <small>{room.jackpot ? "Jackpot" : "Prize pool"}</small>
             <b>{money(room.jackpot ? liveJackpot : room.prize)}</b>
           </span>
           <span>
             <small>Players</small>
-            <b>{livePlayers}</b>
+            <b>{livePlayers} / {room.maxPlayers}</b>
+          </span>
+          <span>
+            <small>Card limit</small>
+            <b>Max {maxCards}</b>
           </span>
           <button onClick={() => setVoiceOn(!voiceOn)} aria-label="Voice caller">{voiceOn ? "◖" : "×"}</button>
           <button onClick={togglePause} aria-label="Pause or resume">{paused ? "▶" : "Ⅱ"}</button>
@@ -482,15 +532,49 @@ export function GameRoom({
           </div>
           {phase === "selling" ? (
             <div className="ticket-purchase">
+              {room.promotion && room.promotion !== "None" && (
+                <div style={{
+                  background: "rgba(254, 202, 87, 0.15)",
+                  border: "1px solid rgba(254, 202, 87, 0.4)",
+                  borderRadius: "8px",
+                  padding: "8px 12px",
+                  fontSize: "12px",
+                  color: "#feca57",
+                  fontWeight: 700,
+                  marginBottom: "10px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                }}>
+                  <span>🎁 {room.promotion}</span>
+                  {room.promotion === "Buy 3 Get 1" && (
+                    <small style={{ color: "#2bddaa", fontWeight: 700 }}>
+                      {freeCards > 0 ? `✓ ${freeCards} FREE card applied!` : "Buy 4 cards to get 1 free"}
+                    </small>
+                  )}
+                  {room.promotion === "Happy Hour" && (
+                    <small style={{ color: "#2bddaa", fontWeight: 700 }}>✓ 25% OFF active!</small>
+                  )}
+                </div>
+              )}
               <div>
-                <button onClick={() => setSelectedCards((cards) => cards.slice(0, -1))}>−</button>
+                <button onClick={() => setSelectedCards((cards) => cards.slice(0, -1))} disabled={selectedCards.length === 0}>−</button>
                 <strong>{selectedCards.length}<small>SELECTED</small></strong>
-                <button onClick={() => setSelectedCards((cards) => cards.length < 8 ? [...cards, Array.from({ length: 8 }, (_, i) => i).find((i) => !cards.includes(i)) ?? 0] : cards)}>+</button>
+                <button
+                  onClick={() =>
+                    setSelectedCards((cards) => {
+                      if (cards.length >= maxCards) return cards;
+                      const next = Array.from({ length: maxCards }, (_, i) => i).find((i) => !cards.includes(i));
+                      return next !== undefined ? [...cards, next] : cards;
+                    })
+                  }
+                  disabled={selectedCards.length >= maxCards}
+                >+</button>
               </div>
               <button className="buy-button" onClick={startRound}>
                 Buy cards · {price ? money(price) : "Free"}<span>→</span>
               </button>
-              <p>Choose specific cards below · Maximum 8</p>
+              <p>Choose specific cards below · Maximum {maxCards}</p>
             </div>
           ) : phase === "results" ? (
             <button className="buy-button" onClick={nextRound}>
@@ -513,12 +597,12 @@ export function GameRoom({
         <section className="cards-panel">
           <div className="room-stats-strip">
             {[
-              ["PLAYERS ONLINE", livePlayers],
+              ["PLAYERS ONLINE", `${livePlayers} / ${room.maxPlayers}`],
               ["CARDS SOLD", liveCards],
+              ["CARD LIMIT", `Max ${maxCards}`],
               ["PRIZE POOL", money(room.prize)],
               ["LAST WINNER", lastWinner],
-              ["AVG BALLS", "41.2"],
-              ["GAMES TODAY", "126"],
+              ["PACE", room.frequency ?? "Every 10 min"],
             ].map((stat) => (
               <span key={stat[0]}>
                 <small>{stat[0]}</small>
@@ -529,10 +613,17 @@ export function GameRoom({
           <div className="cards-toolbar">
             <div>
               <h2>{phase === "selling" ? "Choose cards" : "Your cards"} <span>{selectedCards.length}</span></h2>
-              <p>Card #0{activeCard + 1} · {called.filter((number) => cardValues[activeCard].includes(number)).length} matches</p>
+              <p>Card #0{activeCard + 1} · {called.filter((number) => cardValues[activeCard]?.includes(number)).length} matches</p>
             </div>
             <div className="card-tools">
-              <button onClick={() => setSelectedCards([0, 1, 2, 3])}>Auto-select 4</button>
+              <button onClick={() => setSelectedCards(Array.from({ length: Math.min(maxCards >= 4 ? 4 : 2, maxCards) }, (_, i) => i))}>
+                Auto-select {Math.min(maxCards >= 4 ? 4 : 2, maxCards)}
+              </button>
+              {maxCards > 4 && (
+                <button onClick={() => setSelectedCards(Array.from({ length: maxCards }, (_, i) => i))}>
+                  All {maxCards} cards
+                </button>
+              )}
               <button onClick={() => setSortDirection((value) => value === "asc" ? "desc" : "asc")}>
                 Sort {sortDirection === "asc" ? "↓" : "↑"}
               </button>

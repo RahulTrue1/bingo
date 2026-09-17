@@ -52,13 +52,23 @@ export function BackofficeDrawer({
   const [customRtp, setCustomRtp] = useState(editingRoom?.customRtp ?? Boolean(editingRoom?.rtp));
 
   // Game specific state
-  const [gameDate, setGameDate] = useState("2026-08-22");
+  const [gameDate, setGameDate] = useState(editingRoom?.gameDate ?? "2026-08-22");
   const [gameStartTime, setGameStartTime] = useState(editingRoom?.startsIn ?? "18:00");
-  const [gameSpeed, setGameSpeed] = useState(editingRoom?.callDelay === 600 ? "Turbo" : "Fast");
+  const [gameSpeed, setGameSpeed] = useState(
+    editingRoom?.callDelay && editingRoom.callDelay <= 700
+      ? "Turbo"
+      : editingRoom?.callDelay && editingRoom.callDelay <= 1300
+        ? "Fast"
+        : editingRoom?.callDelay && editingRoom.callDelay <= 2200
+          ? "Normal"
+          : editingRoom?.variant?.includes("30")
+            ? "Turbo"
+            : "Fast",
+  );
   const [gameMaxPlayers, setGameMaxPlayers] = useState(editingRoom?.maxPlayers ?? 300);
-  const [gameCardLimit, setGameCardLimit] = useState(8);
+  const [gameCardLimit, setGameCardLimit] = useState(editingRoom?.cardLimit ?? 8);
   const [gameJackpot, setGameJackpot] = useState(editingRoom?.jackpot ? "Mega Trueig Jackpot" : "None");
-  const [gamePromotion, setGamePromotion] = useState("None");
+  const [gamePromotion, setGamePromotion] = useState(editingRoom?.promotion ?? "None");
   const [gameFrequency, setGameFrequency] = useState(editingRoom?.frequency ?? (isCreatingNew ? "Every 10 min" : "One time"));
   const [formError, setFormError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
@@ -111,10 +121,13 @@ export function BackofficeDrawer({
           setStages(selected.winningStages);
         }
         if (selected.maxPlayers) setGameMaxPlayers(selected.maxPlayers);
+        if (selected.cardLimit) setGameCardLimit(selected.cardLimit);
+        if (selected.promotion) setGamePromotion(selected.promotion);
+        if (selected.gameDate) setGameDate(selected.gameDate);
         if (selected.startsIn) setGameStartTime(selected.startsIn);
         setGameJackpot(selected.jackpot ? "Mega Trueig Jackpot" : "None");
         if (selected.frequency) setGameFrequency(selected.frequency);
-        if (selected.callDelay) setGameSpeed(selected.callDelay <= 700 ? "Turbo" : selected.callDelay <= 1300 ? "Fast" : "Normal");
+        if (selected.callDelay) setGameSpeed(selected.callDelay <= 700 ? "Turbo" : selected.callDelay <= 1300 ? "Fast" : selected.callDelay <= 2200 ? "Normal" : "Slow");
       }
     }
   };
@@ -205,6 +218,9 @@ export function BackofficeDrawer({
         prize: Math.max(1, Number(prize) || 500),
         players: 0,
         maxPlayers: Number(gameMaxPlayers) || 300,
+        cardLimit: Math.max(1, Number(gameCardLimit) || 8),
+        promotion: gamePromotion !== "None" ? gamePromotion : undefined,
+        gameDate,
         cardsSold: 0,
         startsIn: gameStartTime || "18:00",
         pattern: stages.map((stage) => stage.name).join(" → ") || "One Line",
@@ -213,7 +229,7 @@ export function BackofficeDrawer({
         frequency: gameFrequency || "Every 10 min",
         cardRows: variant.includes("90") ? 3 : variant.includes("30") ? 3 : variant.includes("80") ? 4 : 5,
         cardColumns: variant.includes("90") ? 9 : variant.includes("30") ? 3 : variant.includes("80") ? 4 : 5,
-        callDelay: gameSpeed === "Turbo" ? 600 : gameSpeed === "Fast" ? 1200 : 1800,
+        callDelay: gameSpeed === "Turbo" ? 600 : gameSpeed === "Fast" ? 1200 : gameSpeed === "Slow" ? 3200 : 1800,
         winningStages: stages,
         rtp: 80,
         rtpMode: "dynamic",
@@ -222,7 +238,7 @@ export function BackofficeDrawer({
       };
       await apiClient.rooms.create(newGame);
       setRooms([...rooms, newGame]);
-      notify(`✓ New Bingo game "${newGame.name}" created (${finalStatus}) - Ticket: $${newGame.ticketPrice}, Prize: $${newGame.prize}!`);
+      notify(`✓ New Bingo game "${newGame.name}" created (${finalStatus}) - Ticket: $${newGame.ticketPrice}, Prize: $${newGame.prize}, Card Limit: ${newGame.cardLimit}!`);
     } else {
       const target = rooms.find((r) => r.id === gameRoomId);
       const updates: Partial<BingoRoomData> = {
@@ -232,7 +248,10 @@ export function BackofficeDrawer({
         ticketPrice: Math.max(0, Number(price) || 0),
         prize: Math.max(1, Number(prize) || (target?.prize ?? 500)),
         maxPlayers: Number(gameMaxPlayers) || 300,
-        callDelay: gameSpeed === "Turbo" ? 600 : gameSpeed === "Fast" ? 1200 : 1800,
+        cardLimit: Math.max(1, Number(gameCardLimit) || 8),
+        promotion: gamePromotion !== "None" ? gamePromotion : undefined,
+        gameDate,
+        callDelay: gameSpeed === "Turbo" ? 600 : gameSpeed === "Fast" ? 1200 : gameSpeed === "Slow" ? 3200 : 1800,
         winningStages: stages,
         pattern: stages.map((stage) => stage.name).join(" → ") || "One Line",
         jackpot: gameJackpot !== "None" ? 125480 : undefined,
@@ -243,7 +262,7 @@ export function BackofficeDrawer({
       setRooms(
         rooms.map((r) => (r.id === gameRoomId ? (res?.room ?? { ...r, ...updates }) : r)),
       );
-      notify(`✓ Game "${name || target?.name || gameRoomId}" updated (${finalStatus}) - Ticket: $${updates.ticketPrice}, Prize: $${updates.prize}!`);
+      notify(`✓ Game "${name || target?.name || gameRoomId}" updated (${finalStatus}) - Ticket: $${updates.ticketPrice}, Prize: $${updates.prize}, Card Limit: ${updates.cardLimit}!`);
     }
     return true;
   };
@@ -286,7 +305,8 @@ export function BackofficeDrawer({
         ticketPrice: price,
         prize,
         players: 0,
-        maxPlayers: 300,
+        maxPlayers: Number(gameMaxPlayers) || 300,
+        cardLimit: Math.max(1, Number(gameCardLimit) || 8),
         cardsSold: 0,
         startsIn: "15:00",
         pattern: stages.map((stage) => stage.name).join(" → "),
@@ -295,6 +315,7 @@ export function BackofficeDrawer({
         frequency: "Every 10 min",
         cardRows: variant.includes("90") ? 3 : variant.includes("30") ? 3 : variant.includes("80") ? 4 : 5,
         cardColumns: variant.includes("90") ? 9 : variant.includes("30") ? 3 : variant.includes("80") ? 4 : 5,
+        callDelay: gameSpeed === "Turbo" ? 600 : gameSpeed === "Fast" ? 1200 : 1800,
         winningStages: stages,
         rtp,
         rtpMode,
@@ -311,6 +332,9 @@ export function BackofficeDrawer({
         status,
         ticketPrice: price,
         prize,
+        maxPlayers: Number(gameMaxPlayers) || 300,
+        cardLimit: Math.max(1, Number(gameCardLimit) || 8),
+        callDelay: gameSpeed === "Turbo" ? 600 : gameSpeed === "Fast" ? 1200 : 1800,
         winningStages: stages,
         pattern: stages.map((stage) => stage.name).join(" → "),
         rtp,
@@ -327,6 +351,9 @@ export function BackofficeDrawer({
                 status,
                 ticketPrice: price,
                 prize,
+                maxPlayers: Number(gameMaxPlayers) || 300,
+                cardLimit: Math.max(1, Number(gameCardLimit) || 8),
+                callDelay: gameSpeed === "Turbo" ? 600 : gameSpeed === "Fast" ? 1200 : 1800,
                 winningStages: stages,
                 pattern: stages.map((stage) => stage.name).join(" → "),
                 rtp,
@@ -893,12 +920,29 @@ export function BackofficeDrawer({
                     )}
                   </label>
                   <label>Minimum cards<input type="number" defaultValue="1" /></label>
-                  <label>Maximum cards<input type="number" defaultValue="8" /></label>
+                  <label>
+                    Maximum cards
+                    <input
+                      type="number"
+                      min="1"
+                      max="100"
+                      value={gameCardLimit}
+                      onChange={(e) => setGameCardLimit(Number(e.target.value))}
+                    />
+                  </label>
                   <label>Cards per strip<input type="number" defaultValue={variant.includes("90") ? 6 : 1} /></label>
                   <label>Sales start time<input type="time" defaultValue="17:45" /></label>
                   <label>Sales close time<input type="time" defaultValue="17:59" /></label>
                   <label>Minimum players<input type="number" defaultValue="2" /></label>
-                  <label>Maximum players<input type="number" defaultValue={editingRoom?.maxPlayers ?? 300} /></label>
+                  <label>
+                    Maximum players
+                    <input
+                      type="number"
+                      min="1"
+                      value={gameMaxPlayers}
+                      onChange={(e) => setGameMaxPlayers(Number(e.target.value))}
+                    />
+                  </label>
                   <label>VIP requirement<select><option>None</option><option>Gold</option><option>Platinum</option></select></label>
                   <label>Country restrictions<input placeholder="None or comma-separated ISO codes" /></label>
                 </div>
@@ -909,11 +953,11 @@ export function BackofficeDrawer({
                   <label>Countdown<input type="number" defaultValue="5" /></label>
                   <label>
                     Ball calling speed
-                    <select>
-                      <option>Fast · 1.2s</option>
-                      <option>Turbo · 0.6s</option>
-                      <option>Normal · 2.1s</option>
-                      <option>Slow · 3.2s</option>
+                    <select value={gameSpeed} onChange={(e) => setGameSpeed(e.target.value)}>
+                      <option value="Fast">Fast · 1.2s</option>
+                      <option value="Turbo">Turbo · 0.6s</option>
+                      <option value="Normal">Normal · 1.8s</option>
+                      <option value="Slow">Slow · 3.2s</option>
                     </select>
                   </label>
                   {["Auto Daub", "Manual Daub", "Auto Bingo", "Manual Bingo Claim", "Chat"].map((item) => (

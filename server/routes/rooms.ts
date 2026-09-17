@@ -77,6 +77,9 @@ roomsRouter.post("/", (req: Request, res: Response) => {
     cardRows: variant.includes("90") ? 3 : variant.includes("30") ? 3 : variant.includes("80") ? 4 : 5,
     cardColumns: variant.includes("90") ? 9 : variant.includes("30") ? 3 : variant.includes("80") ? 4 : 5,
     callDelay: body.callDelay || (variant.includes("30") ? 600 : 1200),
+    cardLimit: body.cardLimit ? Math.max(1, Number(body.cardLimit)) : 8,
+    promotion: body.promotion && body.promotion !== "None" ? body.promotion : undefined,
+    gameDate: body.gameDate,
     winningStages: body.winningStages || [
       { name: "One Line", prize: Math.round(prize * 0.25), continueAfterWin: true },
       { name: "Full House", prize: Math.round(prize * 0.75), continueAfterWin: false },
@@ -111,7 +114,7 @@ roomsRouter.put("/:id", (req: Request, res: Response) => {
     id: existing.id, // preserve ID
   };
 
-  // Explicitly parse and apply numeric fields
+  // Explicitly parse and apply numeric and rule fields
   if (updates.ticketPrice !== undefined) {
     updated.ticketPrice = Math.max(0, Number(updates.ticketPrice));
   }
@@ -128,6 +131,18 @@ roomsRouter.put("/:id", (req: Request, res: Response) => {
   }
   if (updates.maxPlayers !== undefined) {
     updated.maxPlayers = Math.max(1, Number(updates.maxPlayers));
+  }
+  if (updates.cardLimit !== undefined) {
+    updated.cardLimit = Math.max(1, Number(updates.cardLimit));
+  }
+  if (updates.callDelay !== undefined) {
+    updated.callDelay = Math.max(300, Number(updates.callDelay));
+  }
+  if (updates.promotion !== undefined) {
+    updated.promotion = updates.promotion === "None" ? undefined : updates.promotion;
+  }
+  if (updates.gameDate !== undefined) {
+    updated.gameDate = updates.gameDate;
   }
 
   const nextRooms = [...store.rooms];

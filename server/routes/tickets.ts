@@ -23,7 +23,6 @@ ticketsRouter.get("/", (req: Request, res: Response) => {
 // POST /api/tickets/buy - Purchase bingo tickets for a room
 ticketsRouter.post("/buy", (req: Request, res: Response) => {
   const { roomId, count = 1, userId = "USR-11804" } = req.body;
-  const numCount = Math.max(1, Math.min(8, Number(count)));
 
   const room = store.rooms.find((r) => r.id === roomId);
   if (!room) {
@@ -31,7 +30,14 @@ ticketsRouter.post("/buy", (req: Request, res: Response) => {
     return;
   }
 
-  const totalCost = room.ticketPrice * numCount;
+  const maxAllowed = Math.max(1, room.cardLimit ?? 8);
+  const numCount = Math.max(1, Math.min(maxAllowed, Number(count)));
+
+  // Calculate promotion discount if configured
+  const freeCards = room.promotion === "Buy 3 Get 1" ? Math.floor(numCount / 4) : 0;
+  const payableCards = Math.max(0, numCount - freeCards);
+  const baseCost = room.ticketPrice * payableCards;
+  const totalCost = room.promotion === "Happy Hour" ? Math.round(baseCost * 0.75 * 100) / 100 : baseCost;
 
   if (store.wallet < totalCost) {
     res.status(400).json({

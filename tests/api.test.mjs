@@ -403,5 +403,60 @@ test("Game creation and update flow: persists stages, status, and emits real-tim
   assert.ok(filterJson.rooms.some((r) => r.id === gameId));
 });
 
+test("Game configuration rules: cardLimit, promotion discounts, and ticket purchasing reflect dynamically", async () => {
+  const promoGameId = `test-promo-game-${Date.now()}`;
 
+  // 1. Create a game with cardLimit = 4 and promotion = "Buy 3 Get 1"
+  const createRes = await fetch(`${BASE_URL}/rooms`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      id: promoGameId,
+      name: "Turbo Promo 30",
+      variant: "30-Ball Speed",
+      status: "Live",
+      ticketPrice: 2,
+      prize: 300,
+      maxPlayers: 2,
+      cardLimit: 4,
+      promotion: "Buy 3 Get 1",
+      callDelay: 600,
+    }),
+  });
+  assert.equal(createRes.status, 201);
+  const created = await createRes.json();
+  assert.equal(created.room.cardLimit, 4);
+  assert.equal(created.room.promotion, "Buy 3 Get 1");
+  assert.equal(created.room.maxPlayers, 2);
 
+  // 2. Deposit to have known balance
+  await fetch(`${BASE_URL}/wallet/deposit`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ amount: 100 }),
+  });
+  const walletBeforeRes = await fetch(`${BASE_URL}/wallet`);
+  const { balance: balanceBefore } = await walletBeforeRes.json();
+
+  // 3. Buy 4 cards: with "Buy 3 Get 1", 1 card is free, so cost = 3 * $2 = $6
+  const buyRes = await fetch(`${BASE_URL}/tickets/buy`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ roomId: promoGameId, count: 4 }),
+  });
+  assert.equal(buyRes.status, 201);
+  const buyJson = await buyRes.json();
+  assert.equal(buyJson.success, true);
+  assert.equal(buyJson.tickets.length, 4);
+  assert.equal(buyJson.wallet, balanceBefore - 6);
+
+  // 4. Update room cardLimit to 6 and verify persistence
+  const updateRes = await fetch(`${BASE_URL}/rooms/${promoGameId}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ cardLimit: 6 }),
+  });
+  assert.equal(updateRes.status, 200);
+  const updatedJson = await updateRes.json();
+  assert.equal(updatedJson.room.cardLimit, 6);
+});

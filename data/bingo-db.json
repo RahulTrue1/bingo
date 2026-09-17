@@ -4,9 +4,9 @@
       "id": "trueig-90",
       "name": "Trueig 910Classic",
       "variant": "90-Ball Classic",
-      "status": "Scheduled",
-      "ticketPrice": 0.5,
-      "prize": 274,
+      "status": "Live",
+      "ticketPrice": 1.5,
+      "prize": 25,
       "players": 195,
       "maxPlayers": 300,
       "cardsSold": 687,
@@ -45,11 +45,11 @@
       "name": "Turbo 30",
       "variant": "30-Ball Speed",
       "status": "Scheduled",
-      "ticketPrice": 1,
-      "prize": 223,
-      "players": 2,
-      "maxPlayers": 2,
-      "cardsSold": 262,
+      "ticketPrice": 80,
+      "prize": 100,
+      "players": 1,
+      "maxPlayers": 1,
+      "cardsSold": 265,
       "startsIn": "LIVE · Ball 11",
       "pattern": "Speed Full House → Two Lines",
       "accent": "coral",
@@ -72,13 +72,16 @@
           "prize": 50,
           "continueAfterWin": true
         }
-      ]
+      ],
+      "customRtp": true,
+      "cardLimit": 8,
+      "gameDate": "2026-08-22"
     },
     {
       "id": "diamond-75",
       "name": "Diamond 75",
       "variant": "75-Ball Pattern",
-      "status": "Live",
+      "status": "Starting Soon",
       "ticketPrice": 2,
       "prize": 1500,
       "players": 286,
@@ -337,8 +340,35 @@
       "rtpMode": "fixed"
     }
   ],
-  "wallet": 848,
+  "wallet": 658,
   "transactions": [
+    {
+      "id": "TXN-206420",
+      "timestamp": "22:34:42",
+      "player": "Ari.R",
+      "room": "Turbo 30",
+      "type": "Prize payout",
+      "amount": 50,
+      "status": "Completed"
+    },
+    {
+      "id": "TXN-750294",
+      "timestamp": "22:31:39",
+      "player": "Ari.R",
+      "room": "Turbo 30",
+      "type": "Ticket purchase",
+      "amount": -80,
+      "status": "Completed"
+    },
+    {
+      "id": "TXN-831888",
+      "timestamp": "22:30:13",
+      "player": "Ari.R",
+      "room": "Turbo 30",
+      "type": "Ticket purchase",
+      "amount": -160,
+      "status": "Completed"
+    },
     {
       "id": "TXN-145899",
       "timestamp": "22:19:37",
@@ -672,30 +702,27 @@
       "phase": "live",
       "countdown": 5,
       "called": [
-        2,
-        27,
-        30,
-        7,
+        10,
         19,
-        29,
-        14,
-        1,
-        12,
-        23,
-        17
+        8,
+        16,
+        18,
+        13
       ],
-      "current": 17,
+      "current": 13,
       "speed": "Turbo",
       "paused": false,
-      "stageIndex": 0,
+      "stageIndex": 1,
       "patternRound": 0,
-      "winnerNames": [],
-      "winnerPrize": 0,
-      "winnerPattern": "",
+      "winnerNames": [
+        "Ari.R"
+      ],
+      "winnerPrize": 50,
+      "winnerPattern": "Speed Full House",
       "livePlayers": 84,
       "liveCards": 256,
       "liveJackpot": 0,
-      "lastWinner": "LuckyStar · $420"
+      "lastWinner": "Ari.R · $50"
     },
     "diamond-75": {
       "roomId": "diamond-75",
@@ -873,6 +900,147 @@
     }
   },
   "tickets": [
+    {
+      "id": "TCK-338847",
+      "ticketIndex": 0,
+      "roomId": "turbo-30",
+      "userId": "USR-11804",
+      "variant": "30-Ball Speed",
+      "cells": [
+        {
+          "value": 8,
+          "column": "0"
+        },
+        {
+          "value": 22,
+          "column": "1"
+        },
+        {
+          "value": 7,
+          "column": "2"
+        },
+        {
+          "value": 17,
+          "column": "0"
+        },
+        {
+          "value": 5,
+          "column": "1"
+        },
+        {
+          "value": 30,
+          "column": "2"
+        },
+        {
+          "value": 3,
+          "column": "0"
+        },
+        {
+          "value": 19,
+          "column": "1"
+        },
+        {
+          "value": 15,
+          "column": "2"
+        }
+      ],
+      "daubed": [],
+      "purchasedAt": "2026-09-17T17:01:39.444Z"
+    },
+    {
+      "id": "TCK-124728",
+      "ticketIndex": 1,
+      "roomId": "turbo-30",
+      "userId": "USR-11804",
+      "variant": "30-Ball Speed",
+      "cells": [
+        {
+          "value": 15,
+          "column": "0"
+        },
+        {
+          "value": 20,
+          "column": "1"
+        },
+        {
+          "value": 28,
+          "column": "2"
+        },
+        {
+          "value": 14,
+          "column": "0"
+        },
+        {
+          "value": 6,
+          "column": "1"
+        },
+        {
+          "value": 5,
+          "column": "2"
+        },
+        {
+          "value": 22,
+          "column": "0"
+        },
+        {
+          "value": 13,
+          "column": "1"
+        },
+        {
+          "value": 1,
+          "column": "2"
+        }
+      ],
+      "daubed": [],
+      "purchasedAt": "2026-09-17T17:00:13.247Z"
+    },
+    {
+      "id": "TCK-447879",
+      "ticketIndex": 0,
+      "roomId": "turbo-30",
+      "userId": "USR-11804",
+      "variant": "30-Ball Speed",
+      "cells": [
+        {
+          "value": 22,
+          "column": "0"
+        },
+        {
+          "value": 28,
+          "column": "1"
+        },
+        {
+          "value": 24,
+          "column": "2"
+        },
+        {
+          "value": 25,
+          "column": "0"
+        },
+        {
+          "value": 16,
+          "column": "1"
+        },
+        {
+          "value": 20,
+          "column": "2"
+        },
+        {
+          "value": 30,
+          "column": "0"
+        },
+        {
+          "value": 7,
+          "column": "1"
+        },
+        {
+          "value": 13,
+          "column": "2"
+        }
+      ],
+      "daubed": [],
+      "purchasedAt": "2026-09-17T17:00:13.247Z"
+    },
     {
       "id": "TCK-466987",
       "ticketIndex": 2,
@@ -2086,6 +2254,24 @@
   ],
   "claims": [
     {
+      "id": "CLM-751008",
+      "roomId": "turbo-30",
+      "ticketId": "CARD-0",
+      "playerName": "Ari.R",
+      "pattern": "Speed Full House",
+      "status": "approved",
+      "prize": 50,
+      "timestamp": "10:34 PM",
+      "cells": [
+        10,
+        19,
+        8,
+        16,
+        18,
+        13
+      ]
+    },
+    {
       "id": "CLM-854104",
       "roomId": "trueig-90",
       "ticketId": "CARD-0",
@@ -2590,6 +2776,14 @@
   "chatMessages": {
     "diamond-75": [
       {
+        "id": "msg-1789664461611-rsdx",
+        "roomId": "diamond-75",
+        "user": "Hello",
+        "text": "Trueigtech Admin",
+        "time": "22:31",
+        "role": "player"
+      },
+      {
         "id": "c1",
         "roomId": "diamond-75",
         "user": "LuckyStar",
@@ -2615,6 +2809,14 @@
       }
     ],
     "turbo-30": [
+      {
+        "id": "msg-1789664442280-tjkf",
+        "roomId": "turbo-30",
+        "user": "Ari.R",
+        "text": "hi",
+        "time": "22:30",
+        "role": "player"
+      },
       {
         "id": "c4",
         "roomId": "turbo-30",
@@ -2784,6 +2986,153 @@
     "updatedBy": "Super Admin"
   },
   "auditFeed": [
+    {
+      "id": "feed-1789664962357",
+      "type": "alert",
+      "title": "Room updated",
+      "detail": "Turbo 30 settings modified (Ticket: $80, Prize: $100)",
+      "time": "22:39"
+    },
+    {
+      "id": "feed-1789664949293",
+      "type": "alert",
+      "title": "Room updated",
+      "detail": "Turbo 30 settings modified (Ticket: $80, Prize: $100)",
+      "time": "22:39"
+    },
+    {
+      "id": "feed-1789664933205",
+      "type": "alert",
+      "title": "Room updated",
+      "detail": "Turbo 30 settings modified (Ticket: $80, Prize: $100)",
+      "time": "22:38"
+    },
+    {
+      "id": "feed-1789664727061",
+      "type": "alert",
+      "title": "Room updated",
+      "detail": "Turbo 30 settings modified (Ticket: $80, Prize: $100)",
+      "time": "22:35"
+    },
+    {
+      "id": "feed-1789664724792",
+      "type": "alert",
+      "title": "Room updated",
+      "detail": "Turbo 30 settings modified (Ticket: $80, Prize: $100)",
+      "time": "22:35"
+    },
+    {
+      "id": "feed-1789664682917",
+      "type": "claim",
+      "title": "Bingo claim validated",
+      "detail": "Turbo 30 · Ari.R won $50 on Speed Full House",
+      "time": "22:34"
+    },
+    {
+      "id": "feed-1789664675395",
+      "type": "alert",
+      "title": "Round restarted",
+      "detail": "Game round reset in turbo-30",
+      "time": "22:34"
+    },
+    {
+      "id": "feed-1789664667514",
+      "type": "alert",
+      "title": "Room updated",
+      "detail": "Turbo 30 settings modified (Ticket: $80, Prize: $100)",
+      "time": "22:34"
+    },
+    {
+      "id": "feed-1789664653431",
+      "type": "alert",
+      "title": "Room updated",
+      "detail": "Turbo 30 settings modified (Ticket: $80, Prize: $100)",
+      "time": "22:34"
+    },
+    {
+      "id": "feed-1789664499444",
+      "type": "player",
+      "title": "Tickets purchased",
+      "detail": "1 card bought for Turbo 30 ($80.00)",
+      "time": "22:31"
+    },
+    {
+      "id": "feed-1789664491479",
+      "type": "alert",
+      "title": "Room updated",
+      "detail": "Turbo 30 settings modified (Ticket: $80, Prize: $100)",
+      "time": "22:31"
+    },
+    {
+      "id": "feed-1789664486178",
+      "type": "alert",
+      "title": "Room updated",
+      "detail": "Diamond 75 settings modified (Ticket: $2, Prize: $1500)",
+      "time": "22:31"
+    },
+    {
+      "id": "feed-1789664413247",
+      "type": "player",
+      "title": "Tickets purchased",
+      "detail": "2 cards bought for Turbo 30 ($160.00)",
+      "time": "22:30"
+    },
+    {
+      "id": "feed-1789664402616",
+      "type": "alert",
+      "title": "Room updated",
+      "detail": "Turbo 30 settings modified (Ticket: $80, Prize: $100)",
+      "time": "22:30"
+    },
+    {
+      "id": "feed-1789664297980",
+      "type": "alert",
+      "title": "Room updated",
+      "detail": "Turbo 30 settings modified (Ticket: $1, Prize: $100)",
+      "time": "22:28"
+    },
+    {
+      "id": "feed-1789664292013",
+      "type": "alert",
+      "title": "Room updated",
+      "detail": "Turbo 30 settings modified (Ticket: $1, Prize: $100)",
+      "time": "22:28"
+    },
+    {
+      "id": "feed-1789664286631",
+      "type": "alert",
+      "title": "Room updated",
+      "detail": "Turbo 30 settings modified (Ticket: $1, Prize: $100)",
+      "time": "22:28"
+    },
+    {
+      "id": "feed-1789664197701",
+      "type": "alert",
+      "title": "Room updated",
+      "detail": "Turbo 30 settings modified (Ticket: $1, Prize: $223)",
+      "time": "22:26"
+    },
+    {
+      "id": "feed-1789664141620",
+      "type": "alert",
+      "title": "Room updated",
+      "detail": "Trueig 910Classic settings modified (Ticket: $1.5, Prize: $25)",
+      "time": "22:25"
+    },
+    {
+      "id": "feed-1789664129669",
+      "type": "alert",
+      "title": "Room updated",
+      "detail": "Trueig 910Classic settings modified (Ticket: $1.5, Prize: $20)",
+      "time": "22:25"
+    },
+    {
+      "id": "feed-1789664108419",
+      "type": "alert",
+      "title": "Room updated",
+      "detail": "Trueig 910Classic settings modified (Ticket: $1.5, Prize: $20)",
+      "time": "22:25"
+    },
     {
       "id": "feed-1789664041863",
       "type": "alert",
@@ -2986,153 +3335,6 @@
       "title": "Room updated",
       "detail": "Turbo 30 settings modified",
       "time": "22:04"
-    },
-    {
-      "id": "feed-1789662839258",
-      "type": "alert",
-      "title": "Room updated",
-      "detail": "Turbo 30 settings modified",
-      "time": "22:03"
-    },
-    {
-      "id": "feed-1789662820887",
-      "type": "alert",
-      "title": "Room updated",
-      "detail": "Turbo 30 settings modified",
-      "time": "22:03"
-    },
-    {
-      "id": "feed-1789662740207",
-      "type": "alert",
-      "title": "Room updated",
-      "detail": "Trueig 910Classic settings modified",
-      "time": "22:02"
-    },
-    {
-      "id": "feed-1789662739275",
-      "type": "alert",
-      "title": "Room updated",
-      "detail": "Trueig 910Classic settings modified",
-      "time": "22:02"
-    },
-    {
-      "id": "feed-1789661895383",
-      "type": "alert",
-      "title": "Manual ball call",
-      "detail": "I-18 called manually in turbo-30",
-      "time": "21:48"
-    },
-    {
-      "id": "feed-1789661863185",
-      "type": "player",
-      "title": "Tickets purchased",
-      "detail": "1 card bought for Turbo 30 ($1.00)",
-      "time": "21:47"
-    },
-    {
-      "id": "feed-1789661851085",
-      "type": "alert",
-      "title": "Round cancelled",
-      "detail": "Cancelled and refunded turbo-30",
-      "time": "21:47"
-    },
-    {
-      "id": "feed-1789661848386",
-      "type": "alert",
-      "title": "Round restarted",
-      "detail": "Game round reset in turbo-30",
-      "time": "21:47"
-    },
-    {
-      "id": "feed-1789661844617",
-      "type": "alert",
-      "title": "Manual ball call",
-      "detail": "B-6 called manually in turbo-30",
-      "time": "21:47"
-    },
-    {
-      "id": "feed-1789661825436",
-      "type": "alert",
-      "title": "Round restarted",
-      "detail": "Game round reset in turbo-30",
-      "time": "21:47"
-    },
-    {
-      "id": "feed-1789661822620",
-      "type": "alert",
-      "title": "Manual ball call",
-      "detail": "O-68 called manually in turbo-30",
-      "time": "21:47"
-    },
-    {
-      "id": "feed-1789661812803",
-      "type": "player",
-      "title": "Tickets purchased",
-      "detail": "1 card bought for Turbo 30 ($1.00)",
-      "time": "21:46"
-    },
-    {
-      "id": "feed-1789661654587",
-      "type": "alert",
-      "title": "Promotion updated",
-      "detail": "Happy Hour Bingo status changed to Active",
-      "time": "21:44"
-    },
-    {
-      "id": "feed-1789661649753",
-      "type": "alert",
-      "title": "Promotion created",
-      "detail": "Happy Hour Bingo added to catalog",
-      "time": "21:44"
-    },
-    {
-      "id": "feed-1789661643054",
-      "type": "alert",
-      "title": "Promotion updated",
-      "detail": "Free Bingo Party status changed to Active",
-      "time": "21:44"
-    },
-    {
-      "id": "feed-1789661628271",
-      "type": "alert",
-      "title": "Promotion updated",
-      "detail": "Free Bingo Party status changed to Paused",
-      "time": "21:43"
-    },
-    {
-      "id": "feed-1789661612938",
-      "type": "alert",
-      "title": "Promotion updated",
-      "detail": "Free Bingo Party status changed to Active",
-      "time": "21:43"
-    },
-    {
-      "id": "feed-1789661602638",
-      "type": "alert",
-      "title": "Promotion updated",
-      "detail": "Free Bingo Party status changed to Paused",
-      "time": "21:43"
-    },
-    {
-      "id": "feed-1789661599686",
-      "type": "alert",
-      "title": "Promotion created",
-      "detail": "Happy Hour Bingo added to catalog",
-      "time": "21:43"
-    },
-    {
-      "id": "feed-1789661578337",
-      "type": "jackpot",
-      "title": "Jackpot contribution",
-      "detail": "+$1000.00 · Mega Trueig Jackpot",
-      "time": "21:42"
-    },
-    {
-      "id": "feed-1789661540355",
-      "type": "alert",
-      "title": "Room updated",
-      "detail": "Trueig 910Classic settings modified",
-      "time": "21:42"
     }
   ]
 }

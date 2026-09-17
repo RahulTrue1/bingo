@@ -34,6 +34,9 @@ export interface BingoRoomData {
   rtp?: number;
   rtpMode?: RtpMode;
   customRtp?: boolean;
+  cardLimit?: number;
+  promotion?: string;
+  gameDate?: string;
 }
 
 export interface BingoCardCell {

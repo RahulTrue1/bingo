@@ -28,6 +28,9 @@ export type BingoRoomData = {
   rtp?: number;
   rtpMode?: RtpMode;
   customRtp?: boolean;
+  cardLimit?: number;
+  promotion?: string;
+  gameDate?: string;
 };
 
 export const demoRooms: BingoRoomData[] = [

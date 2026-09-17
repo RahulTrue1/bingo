@@ -51,7 +51,14 @@ export function RoomCard({
           loading="lazy"
         />
         <div className="room-card-top">
-          <span className="room-tag">{room.tag}</span>
+          <div style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}>
+            <span className="room-tag">{room.tag}</span>
+            {room.promotion && room.promotion !== "None" && (
+              <span style={{ background: "rgba(254, 202, 87, 0.2)", border: "1px solid rgba(254, 202, 87, 0.6)", color: "#feca57", fontSize: "11px", fontWeight: 700, padding: "2px 7px", borderRadius: "10px" }}>
+                🎁 {room.promotion}
+              </span>
+            )}
+          </div>
           <button
             className={`favorite-button ${favorite ? "active" : ""}`}
             onClick={toggleFavorite}
@@ -93,6 +100,13 @@ export function RoomCard({
             <span>
               <small>PLAYERS</small>
               <b>{room.players} / {room.maxPlayers}</b>
+            </span>
+          </span>
+          <span>
+            <Ticket size={16} weight="duotone" />
+            <span>
+              <small>CARD LIMIT</small>
+              <b>Max {room.cardLimit ?? 8}</b>
             </span>
           </span>
           <span>
