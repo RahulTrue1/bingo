@@ -7,9 +7,9 @@
       "status": "Starting Soon",
       "ticketPrice": 0.5,
       "prize": 273,
-      "players": 192,
+      "players": 193,
       "maxPlayers": 300,
-      "cardsSold": 682,
+      "cardsSold": 685,
       "startsIn": "00:46",
       "pattern": "One Line → Two Lines → Full House",
       "accent": "teal",
@@ -317,9 +317,9 @@
       "status": "Open",
       "ticketPrice": 8,
       "prize": 5000,
-      "players": 384,
+      "players": 385,
       "maxPlayers": 512,
-      "cardsSold": 768,
+      "cardsSold": 771,
       "startsIn": "FRI · 20:00",
       "pattern": "Points Series",
       "accent": "violet",
@@ -332,8 +332,44 @@
       "rtpMode": "fixed"
     }
   ],
-  "wallet": 248.5,
+  "wallet": 265,
   "transactions": [
+    {
+      "id": "TXN-153924",
+      "timestamp": "20:34:30",
+      "player": "Ari.R",
+      "room": "Trueigtech Weekend Cup",
+      "type": "Ticket purchase",
+      "amount": -24,
+      "status": "Completed"
+    },
+    {
+      "id": "TXN-778881",
+      "timestamp": "00:16:27",
+      "player": "Ari.R",
+      "room": "Trueigtech Weekend Cup",
+      "type": "Ticket purchase",
+      "amount": -8,
+      "status": "Completed"
+    },
+    {
+      "id": "TXN-447714",
+      "timestamp": "00:13:25",
+      "player": "Ari.R",
+      "room": "Trueig 90 Classic",
+      "type": "Prize payout",
+      "amount": 50,
+      "status": "Completed"
+    },
+    {
+      "id": "TXN-431321",
+      "timestamp": "00:12:57",
+      "player": "Ari.R",
+      "room": "Trueig 90 Classic",
+      "type": "Ticket purchase",
+      "amount": -1.5,
+      "status": "Completed"
+    },
     {
       "id": "TXN-854201",
       "player": "TrueigQueen",
@@ -383,21 +419,34 @@
   "gameSessions": {
     "trueig-90": {
       "roomId": "trueig-90",
-      "phase": "selling",
+      "phase": "live",
       "countdown": 5,
-      "called": [],
-      "current": null,
+      "called": [
+        36,
+        53,
+        17,
+        34,
+        25,
+        11,
+        45,
+        54,
+        8,
+        71
+      ],
+      "current": 71,
       "speed": "Fast",
       "paused": false,
-      "stageIndex": 0,
+      "stageIndex": 1,
       "patternRound": 0,
-      "winnerNames": [],
-      "winnerPrize": 0,
-      "winnerPattern": "",
+      "winnerNames": [
+        "Ari.R"
+      ],
+      "winnerPrize": 50,
+      "winnerPattern": "Full House",
       "livePlayers": 192,
       "liveCards": 682,
       "liveJackpot": 0,
-      "lastWinner": "LuckyStar · $420"
+      "lastWinner": "Ari.R · $50"
     },
     "turbo-30": {
       "roomId": "turbo-30",
@@ -604,8 +653,722 @@
       "lastWinner": "LuckyStar · $420"
     }
   },
-  "tickets": [],
-  "claims": [],
+  "tickets": [
+    {
+      "id": "TCK-273670",
+      "ticketIndex": 2,
+      "roomId": "tournament",
+      "userId": "USR-11804",
+      "variant": "Tournament · 5 Rounds",
+      "cells": [
+        {
+          "value": 4,
+          "column": "B"
+        },
+        {
+          "value": 24,
+          "column": "I"
+        },
+        {
+          "value": 44,
+          "column": "N"
+        },
+        {
+          "value": 49,
+          "column": "G"
+        },
+        {
+          "value": 69,
+          "column": "O"
+        },
+        {
+          "value": 11,
+          "column": "B"
+        },
+        {
+          "value": 16,
+          "column": "I"
+        },
+        {
+          "value": 36,
+          "column": "N"
+        },
+        {
+          "value": 56,
+          "column": "G"
+        },
+        {
+          "value": 61,
+          "column": "O"
+        },
+        {
+          "value": 3,
+          "column": "B"
+        },
+        {
+          "value": 23,
+          "column": "I"
+        },
+        {
+          "value": "FREE",
+          "column": "N"
+        },
+        {
+          "value": 48,
+          "column": "G"
+        },
+        {
+          "value": 68,
+          "column": "O"
+        },
+        {
+          "value": 10,
+          "column": "B"
+        },
+        {
+          "value": 30,
+          "column": "I"
+        },
+        {
+          "value": 35,
+          "column": "N"
+        },
+        {
+          "value": 55,
+          "column": "G"
+        },
+        {
+          "value": 75,
+          "column": "O"
+        },
+        {
+          "value": 2,
+          "column": "B"
+        },
+        {
+          "value": 22,
+          "column": "I"
+        },
+        {
+          "value": 42,
+          "column": "N"
+        },
+        {
+          "value": 47,
+          "column": "G"
+        },
+        {
+          "value": 67,
+          "column": "O"
+        }
+      ],
+      "daubed": [],
+      "purchasedAt": "2026-09-17T15:04:30.806Z"
+    },
+    {
+      "id": "TCK-349647",
+      "ticketIndex": 1,
+      "roomId": "tournament",
+      "userId": "USR-11804",
+      "variant": "Tournament · 5 Rounds",
+      "cells": [
+        {
+          "value": 10,
+          "column": "B"
+        },
+        {
+          "value": 30,
+          "column": "I"
+        },
+        {
+          "value": 35,
+          "column": "N"
+        },
+        {
+          "value": 55,
+          "column": "G"
+        },
+        {
+          "value": 75,
+          "column": "O"
+        },
+        {
+          "value": 2,
+          "column": "B"
+        },
+        {
+          "value": 22,
+          "column": "I"
+        },
+        {
+          "value": 42,
+          "column": "N"
+        },
+        {
+          "value": 47,
+          "column": "G"
+        },
+        {
+          "value": 67,
+          "column": "O"
+        },
+        {
+          "value": 9,
+          "column": "B"
+        },
+        {
+          "value": 29,
+          "column": "I"
+        },
+        {
+          "value": "FREE",
+          "column": "N"
+        },
+        {
+          "value": 54,
+          "column": "G"
+        },
+        {
+          "value": 74,
+          "column": "O"
+        },
+        {
+          "value": 1,
+          "column": "B"
+        },
+        {
+          "value": 21,
+          "column": "I"
+        },
+        {
+          "value": 41,
+          "column": "N"
+        },
+        {
+          "value": 46,
+          "column": "G"
+        },
+        {
+          "value": 66,
+          "column": "O"
+        },
+        {
+          "value": 8,
+          "column": "B"
+        },
+        {
+          "value": 28,
+          "column": "I"
+        },
+        {
+          "value": 33,
+          "column": "N"
+        },
+        {
+          "value": 53,
+          "column": "G"
+        },
+        {
+          "value": 73,
+          "column": "O"
+        }
+      ],
+      "daubed": [],
+      "purchasedAt": "2026-09-17T15:04:30.806Z"
+    },
+    {
+      "id": "TCK-509085",
+      "ticketIndex": 0,
+      "roomId": "tournament",
+      "userId": "USR-11804",
+      "variant": "Tournament · 5 Rounds",
+      "cells": [
+        {
+          "value": 1,
+          "column": "B"
+        },
+        {
+          "value": 21,
+          "column": "I"
+        },
+        {
+          "value": 41,
+          "column": "N"
+        },
+        {
+          "value": 46,
+          "column": "G"
+        },
+        {
+          "value": 66,
+          "column": "O"
+        },
+        {
+          "value": 8,
+          "column": "B"
+        },
+        {
+          "value": 28,
+          "column": "I"
+        },
+        {
+          "value": 33,
+          "column": "N"
+        },
+        {
+          "value": 53,
+          "column": "G"
+        },
+        {
+          "value": 73,
+          "column": "O"
+        },
+        {
+          "value": 15,
+          "column": "B"
+        },
+        {
+          "value": 20,
+          "column": "I"
+        },
+        {
+          "value": "FREE",
+          "column": "N"
+        },
+        {
+          "value": 60,
+          "column": "G"
+        },
+        {
+          "value": 65,
+          "column": "O"
+        },
+        {
+          "value": 7,
+          "column": "B"
+        },
+        {
+          "value": 27,
+          "column": "I"
+        },
+        {
+          "value": 32,
+          "column": "N"
+        },
+        {
+          "value": 52,
+          "column": "G"
+        },
+        {
+          "value": 72,
+          "column": "O"
+        },
+        {
+          "value": 14,
+          "column": "B"
+        },
+        {
+          "value": 19,
+          "column": "I"
+        },
+        {
+          "value": 39,
+          "column": "N"
+        },
+        {
+          "value": 59,
+          "column": "G"
+        },
+        {
+          "value": 64,
+          "column": "O"
+        }
+      ],
+      "daubed": [],
+      "purchasedAt": "2026-09-17T15:04:30.806Z"
+    },
+    {
+      "id": "TCK-159417",
+      "ticketIndex": 2,
+      "roomId": "trueig-90",
+      "userId": "USR-11804",
+      "variant": "90-Ball Classic",
+      "cells": [
+        {
+          "value": 4,
+          "column": "0"
+        },
+        {
+          "value": "FREE",
+          "column": "1"
+        },
+        {
+          "value": 23,
+          "column": "2"
+        },
+        {
+          "value": "FREE",
+          "column": "3"
+        },
+        {
+          "value": 49,
+          "column": "4"
+        },
+        {
+          "value": "FREE",
+          "column": "5"
+        },
+        {
+          "value": 65,
+          "column": "6"
+        },
+        {
+          "value": "FREE",
+          "column": "7"
+        },
+        {
+          "value": 88,
+          "column": "8"
+        },
+        {
+          "value": "FREE",
+          "column": "0"
+        },
+        {
+          "value": 15,
+          "column": "1"
+        },
+        {
+          "value": 28,
+          "column": "2"
+        },
+        {
+          "value": 31,
+          "column": "3"
+        },
+        {
+          "value": "FREE",
+          "column": "4"
+        },
+        {
+          "value": 57,
+          "column": "5"
+        },
+        {
+          "value": "FREE",
+          "column": "6"
+        },
+        {
+          "value": 73,
+          "column": "7"
+        },
+        {
+          "value": "FREE",
+          "column": "8"
+        },
+        {
+          "value": 5,
+          "column": "0"
+        },
+        {
+          "value": 10,
+          "column": "1"
+        },
+        {
+          "value": "FREE",
+          "column": "2"
+        },
+        {
+          "value": "FREE",
+          "column": "3"
+        },
+        {
+          "value": 49,
+          "column": "4"
+        },
+        {
+          "value": "FREE",
+          "column": "5"
+        },
+        {
+          "value": 65,
+          "column": "6"
+        },
+        {
+          "value": "FREE",
+          "column": "7"
+        },
+        {
+          "value": 87,
+          "column": "8"
+        }
+      ],
+      "daubed": [],
+      "purchasedAt": "2026-09-16T18:42:57.865Z"
+    },
+    {
+      "id": "TCK-442830",
+      "ticketIndex": 1,
+      "roomId": "trueig-90",
+      "userId": "USR-11804",
+      "variant": "90-Ball Classic",
+      "cells": [
+        {
+          "value": 3,
+          "column": "0"
+        },
+        {
+          "value": "FREE",
+          "column": "1"
+        },
+        {
+          "value": 22,
+          "column": "2"
+        },
+        {
+          "value": "FREE",
+          "column": "3"
+        },
+        {
+          "value": 48,
+          "column": "4"
+        },
+        {
+          "value": "FREE",
+          "column": "5"
+        },
+        {
+          "value": 64,
+          "column": "6"
+        },
+        {
+          "value": "FREE",
+          "column": "7"
+        },
+        {
+          "value": 85,
+          "column": "8"
+        },
+        {
+          "value": "FREE",
+          "column": "0"
+        },
+        {
+          "value": 14,
+          "column": "1"
+        },
+        {
+          "value": 27,
+          "column": "2"
+        },
+        {
+          "value": 30,
+          "column": "3"
+        },
+        {
+          "value": "FREE",
+          "column": "4"
+        },
+        {
+          "value": 56,
+          "column": "5"
+        },
+        {
+          "value": "FREE",
+          "column": "6"
+        },
+        {
+          "value": 72,
+          "column": "7"
+        },
+        {
+          "value": "FREE",
+          "column": "8"
+        },
+        {
+          "value": 4,
+          "column": "0"
+        },
+        {
+          "value": 19,
+          "column": "1"
+        },
+        {
+          "value": "FREE",
+          "column": "2"
+        },
+        {
+          "value": "FREE",
+          "column": "3"
+        },
+        {
+          "value": 48,
+          "column": "4"
+        },
+        {
+          "value": "FREE",
+          "column": "5"
+        },
+        {
+          "value": 64,
+          "column": "6"
+        },
+        {
+          "value": "FREE",
+          "column": "7"
+        },
+        {
+          "value": 84,
+          "column": "8"
+        }
+      ],
+      "daubed": [],
+      "purchasedAt": "2026-09-16T18:42:57.865Z"
+    },
+    {
+      "id": "TCK-726598",
+      "ticketIndex": 0,
+      "roomId": "trueig-90",
+      "userId": "USR-11804",
+      "variant": "90-Ball Classic",
+      "cells": [
+        {
+          "value": 2,
+          "column": "0"
+        },
+        {
+          "value": "FREE",
+          "column": "1"
+        },
+        {
+          "value": 21,
+          "column": "2"
+        },
+        {
+          "value": "FREE",
+          "column": "3"
+        },
+        {
+          "value": 47,
+          "column": "4"
+        },
+        {
+          "value": "FREE",
+          "column": "5"
+        },
+        {
+          "value": 63,
+          "column": "6"
+        },
+        {
+          "value": "FREE",
+          "column": "7"
+        },
+        {
+          "value": 82,
+          "column": "8"
+        },
+        {
+          "value": "FREE",
+          "column": "0"
+        },
+        {
+          "value": 13,
+          "column": "1"
+        },
+        {
+          "value": 26,
+          "column": "2"
+        },
+        {
+          "value": 39,
+          "column": "3"
+        },
+        {
+          "value": "FREE",
+          "column": "4"
+        },
+        {
+          "value": 55,
+          "column": "5"
+        },
+        {
+          "value": "FREE",
+          "column": "6"
+        },
+        {
+          "value": 71,
+          "column": "7"
+        },
+        {
+          "value": "FREE",
+          "column": "8"
+        },
+        {
+          "value": 3,
+          "column": "0"
+        },
+        {
+          "value": 18,
+          "column": "1"
+        },
+        {
+          "value": "FREE",
+          "column": "2"
+        },
+        {
+          "value": "FREE",
+          "column": "3"
+        },
+        {
+          "value": 47,
+          "column": "4"
+        },
+        {
+          "value": "FREE",
+          "column": "5"
+        },
+        {
+          "value": 63,
+          "column": "6"
+        },
+        {
+          "value": "FREE",
+          "column": "7"
+        },
+        {
+          "value": 81,
+          "column": "8"
+        }
+      ],
+      "daubed": [],
+      "purchasedAt": "2026-09-16T18:42:57.865Z"
+    }
+  ],
+  "claims": [
+    {
+      "id": "CLM-579369",
+      "roomId": "trueig-90",
+      "ticketId": "CARD-0",
+      "playerName": "Ari.R",
+      "pattern": "Full House",
+      "status": "approved",
+      "prize": 50,
+      "timestamp": "12:13 AM",
+      "cells": [
+        36,
+        53,
+        17,
+        34,
+        25,
+        11,
+        45,
+        54,
+        8,
+        71
+      ]
+    }
+  ],
   "jackpots": [
     {
       "id": "mega-trueig",
@@ -658,7 +1421,7 @@
       "description": "Five-round progressive elimination tournament.",
       "entryFee": 8,
       "prizePool": 25000,
-      "playersCount": 384,
+      "playersCount": 385,
       "maxPlayers": 512,
       "startsAt": "22 Aug · 20:00",
       "status": "Registration open",
@@ -973,6 +1736,34 @@
     }
   ],
   "auditFeed": [
+    {
+      "id": "feed-1789657470806",
+      "type": "player",
+      "title": "Tickets purchased",
+      "detail": "3 cards bought for Trueigtech Weekend Cup ($24.00)",
+      "time": "20:34"
+    },
+    {
+      "id": "feed-1789584387564",
+      "type": "player",
+      "title": "Tournament registration",
+      "detail": "Ari.R joined Trueigtech Weekend Cup",
+      "time": "00:16"
+    },
+    {
+      "id": "feed-1789584205676",
+      "type": "claim",
+      "title": "Bingo claim validated",
+      "detail": "Trueig 90 Classic · Ari.R won $50 on Full House",
+      "time": "00:13"
+    },
+    {
+      "id": "feed-1789584177865",
+      "type": "player",
+      "title": "Tickets purchased",
+      "detail": "3 cards bought for Trueig 90 Classic ($1.50)",
+      "time": "00:12"
+    },
     {
       "id": "feed-1789579740486",
       "type": "alert",

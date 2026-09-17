@@ -37,10 +37,14 @@ export interface BingoCardModel {
   id: string;
   roomId?: string;
   player?: string;
+  userId?: string;
   variant?: string;
   price?: number;
-  numbers: number[][];
-  daubed: boolean[][];
+  numbers?: number[][];
+  cells?: Array<{ value: number | "FREE"; column: string }>;
+  daubed?: boolean[][] | number[];
+  ticketIndex?: number;
+  purchasedAt?: string;
   rows?: number;
   columns?: number;
 }
