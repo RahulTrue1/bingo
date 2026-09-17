@@ -45,6 +45,8 @@ export function GameRoom({
   const [winnerPrize, setWinnerPrize] = useState(0);
   const [winnerPattern, setWinnerPattern] = useState("");
   const [claimLocked, setClaimLocked] = useState(false);
+  const [showWinModal, setShowWinModal] = useState(false);
+  const [hasShownEndModal, setHasShownEndModal] = useState(false);
   const [chat, setChat] = useState("");
   const [livePlayers, setLivePlayers] = useState(room.players);
   const [liveCards, setLiveCards] = useState(room.cardsSold);
@@ -140,7 +142,9 @@ export function GameRoom({
             setWinnerNames([d.player]);
             if (d.prize) setWinnerPrize(d.prize);
             if (d.pattern) setWinnerPattern(d.pattern);
-            setPhase("winner");
+            setPhase("results");
+            setShowWinModal(true);
+            setHasShownEndModal(true);
             setLastWinner(`${d.player} · ${money(d.prize || 400)}`);
           }
         }
@@ -252,27 +256,53 @@ export function GameRoom({
     setWinnerPattern(activeStage.name);
     const jackpotQualified = room.jackpot && activeStage.name.includes("Full") && called.length <= (room.progressiveBallLimit ?? 42);
     const total = jackpotQualified ? liveJackpot : activeStage.prize;
-    setWinnerPrize(total / names.length);
-    setPhase("review");
-    window.setTimeout(() => {
-      setPhase("winner");
+    const splitPrize = Math.round((total / names.length) * 100) / 100;
+    setWinnerPrize(splitPrize);
+
+    const isIntermediate = Boolean(activeStage.continueAfterWin && stageIndex < stages.length - 1);
+
+    if (isIntermediate) {
+      // Intermediate stage win: do NOT block screen with modal! Keep user in live game!
       setLastWinner(`${names.join(" & ")} · ${money(total)}`);
-      setWallet(Math.round((wallet + (names.includes("Ari.R") ? total / names.length : 0)) * 100) / 100);
       if (names.includes("Ari.R")) {
+        setWallet(Math.round((wallet + splitPrize) * 100) / 100);
         apiClient.game.claim(room.id, { ticketId: `CARD-${activeCard}`, playerName: "Ari.R", manualPattern: activeStage.name }).then((res) => {
           if (res?.wallet !== undefined) setWallet(res.wallet);
         });
+        notify(`🎉 BINGO! You won ${activeStage.name} (${money(splitPrize)})! Game continuing to ${stages[stageIndex + 1]?.name ?? "next stage"}...`);
+      } else {
+        notify(`📢 ${names.join(" & ")} completed ${activeStage.name} (${money(splitPrize)} each). Round continues to ${stages[stageIndex + 1]?.name ?? "next stage"}!`);
       }
-      setMessages((items) => [...items, ["System", `${names.join(" & ")} won ${activeStage.name}! ${names.length > 1 ? `${money(total)} split equally.` : money(total)}`, "now"]]);
+      setMessages((items) => [
+        ...items,
+        ["System", `🎉 ${names.join(" & ")} won ${activeStage.name}! ${names.length > 1 ? `${money(total)} split equally.` : money(total)} · Advancing to ${stages[stageIndex + 1]?.name}`, "now"],
+      ]);
       window.setTimeout(() => {
-        if (activeStage.continueAfterWin && stageIndex < stages.length - 1) {
-          setStageIndex((value) => value + 1); setPhase("live"); setClaimLocked(false);
-          notify(`${activeStage.name} paid. The round continues to the next winning stage.`);
-        } else {
-          setPhase("results");
-        }
-      }, 2600);
-    }, 1200);
+        setStageIndex((value) => value + 1);
+        setClaimLocked(false);
+      }, 1500);
+    } else {
+      // Final stage win: Game Ends! Show modal once!
+      setLastWinner(`${names.join(" & ")} · ${money(total)}`);
+      if (names.includes("Ari.R")) {
+        setWallet(Math.round((wallet + splitPrize) * 100) / 100);
+        apiClient.game.claim(room.id, { ticketId: `CARD-${activeCard}`, playerName: "Ari.R", manualPattern: activeStage.name }).then((res) => {
+          if (res?.wallet !== undefined) setWallet(res.wallet);
+        });
+        notify(`🏆 Full House BINGO! You won ${money(splitPrize)}! Round complete.`);
+      } else {
+        notify(`🏆 Game round complete! ${names.join(" & ")} won ${activeStage.name} (${money(splitPrize)} each).`);
+      }
+      setMessages((items) => [
+        ...items,
+        ["System", `🏆 Final stage (${activeStage.name}) won by ${names.join(" & ")}! ${names.length > 1 ? `${money(total)} split equally.` : money(total)}`, "now"],
+      ]);
+      setPhase("results");
+      if (!hasShownEndModal) {
+        setShowWinModal(true);
+        setHasShownEndModal(true);
+      }
+    }
   }
 
   const togglePause = () => {
@@ -296,7 +326,17 @@ export function GameRoom({
   };
 
   const nextRound = () => {
-    setCalled([]); setCurrent(null); setManualMarks([]); setPhase("selling"); setCountdown(5); setPaused(false); setStageIndex(0); setClaimLocked(false); setWinnerNames([]);
+    setCalled([]);
+    setCurrent(null);
+    setManualMarks([]);
+    setPhase("selling");
+    setCountdown(5);
+    setPaused(false);
+    setStageIndex(0);
+    setClaimLocked(false);
+    setWinnerNames([]);
+    setShowWinModal(false);
+    setHasShownEndModal(false);
     if (room.id === "pattern-arena") setPatternRound((value) => (value + 1) % patternSeries.length);
     apiClient.game.restart(room.id).catch(() => {});
     notify(room.id === "pattern-arena" ? `Next pattern loaded: ${patternSeries[(patternRound + 1) % patternSeries.length]}.` : "Next round is open for tickets.");
@@ -586,39 +626,45 @@ export function GameRoom({
           </div>
         </aside>
       </div>
-      {(phase === "review" || phase === "winner") && (
-        <div className={`claim-overlay ${phase === "winner" ? "confirmed" : ""}`}>
+      {showWinModal && winnerNames.length > 0 && (
+        <div className="claim-overlay confirmed">
           <div className="claim-modal">
+            <button
+              type="button"
+              className="modal-close"
+              aria-label="Close win modal"
+              onClick={() => setShowWinModal(false)}
+            >
+              ×
+            </button>
             <div className="trueig-modal-brand">TRUEIGTECH BINGO ENGINE</div>
-            <div className="claim-icon">{phase === "winner" ? "✓" : <i />}</div>
+            <div className="claim-icon">✓</div>
             <span className="section-kicker">GAME TRUEIG-{2842 + patternRound}</span>
-            <h2>{phase === "winner" ? "Bingo confirmed!" : "Validating ticket…"}</h2>
+            <h2>Bingo confirmed!</h2>
             <p>
-              {phase === "winner"
-                ? `${winnerNames.join(" & ")} completed ${winnerPattern} after ${called.length} balls.`
-                : "Checking ownership, called numbers and the active winning pattern."}
+              {winnerNames.join(" & ")} completed {winnerPattern || activeStage.name} after {called.length} balls.
             </p>
-            {phase === "winner" ? (
-              <>
-                <div className="winner-avatars">
-                  {winnerNames.map((name) => <span key={name}>{name.slice(0, 2).toUpperCase()}</span>)}
-                </div>
-                <strong className="winner-prize">{money(winnerPrize)} each</strong>
-                <small>
-                  {winnerNames.length > 1
-                    ? `${winnerNames.length} simultaneous winners · prize split equally`
-                    : room.jackpot && winnerPattern.includes("Full")
-                      ? `Progressive qualified within ${room.progressiveBallLimit} balls`
-                      : `Winning Card #0${activeCard + 1}`}
-                </small>
-              </>
-            ) : (
-              <div className="validation-steps">
-                <span className="done">✓ Ticket ownership</span>
-                <span className="done">✓ Called-number history</span>
-                <span><i /> {activeStage.name} validation</span>
-              </div>
-            )}
+            <div className="winner-avatars">
+              {winnerNames.map((name) => (
+                <span key={name}>{name.slice(0, 2).toUpperCase()}</span>
+              ))}
+            </div>
+            <strong className="winner-prize">{money(winnerPrize)} each</strong>
+            <small>
+              {winnerNames.length > 1
+                ? `${winnerNames.length} simultaneous winners · prize split equally`
+                : room.jackpot && (winnerPattern || activeStage.name).includes("Full")
+                  ? `Progressive qualified within ${room.progressiveBallLimit ?? 42} balls`
+                  : `Winning Card #0${activeCard + 1}`}
+            </small>
+            <button
+              type="button"
+              className="admin-primary"
+              style={{ marginTop: "18px", width: "100%", padding: "10px" }}
+              onClick={() => setShowWinModal(false)}
+            >
+              Continue to round results
+            </button>
           </div>
         </div>
       )}

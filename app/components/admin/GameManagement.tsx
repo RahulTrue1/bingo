@@ -59,6 +59,8 @@ export function GameManagement({
               <th>Game</th>
               <th>Room</th>
               <th>Variant</th>
+              <th>Ticket</th>
+              <th>Prize</th>
               <th>Winning stages</th>
               <th>Start</th>
               <th>Status</th>
@@ -75,6 +77,8 @@ export function GameManagement({
                 </td>
                 <td><b>{room.name}</b></td>
                 <td>{room.variant}</td>
+                <td><b style={{ color: "#2bddaa" }}>{room.ticketPrice > 0 ? `$${room.ticketPrice.toFixed(2)}` : "Free"}</b></td>
+                <td><b style={{ color: "#f1c962" }}>${room.prize?.toLocaleString()}</b></td>
                 <td>
                   <span className="speed-label">
                     {room.winningStages?.map((stage) => stage.name).join(" → ") ?? room.pattern}

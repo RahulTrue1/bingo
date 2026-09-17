@@ -44,7 +44,7 @@ roomsRouter.get("/:id", (req: Request, res: Response) => {
 // POST /api/rooms - Create new room
 roomsRouter.post("/", (req: Request, res: Response) => {
   const body = req.body as Partial<BingoRoomData>;
-  if (!body.name) {
+  if (!body.name || !body.name.trim()) {
     res.status(400).json({ success: false, error: "Room name is required" });
     return;
   }
@@ -55,29 +55,31 @@ roomsRouter.post("/", (req: Request, res: Response) => {
     return;
   }
 
+  const ticketPrice = body.ticketPrice !== undefined ? Math.max(0, Number(body.ticketPrice)) : 1;
+  const prize = body.prize !== undefined ? Math.max(1, Number(body.prize)) : 500;
   const variant = body.variant || "75-Ball Pattern";
   const newRoom: BingoRoomData = {
     id,
-    name: body.name,
+    name: body.name.trim(),
     variant,
     status: body.status || "Open",
-    ticketPrice: typeof body.ticketPrice === "number" ? body.ticketPrice : 1,
-    prize: typeof body.prize === "number" ? body.prize : 500,
+    ticketPrice,
+    prize,
     jackpot: body.jackpot,
     players: 0,
     maxPlayers: body.maxPlayers || 300,
     cardsSold: 0,
     startsIn: body.startsIn || "10:00",
     pattern: body.pattern || (body.winningStages ? body.winningStages.map((s) => s.name).join(" → ") : "One Line"),
-    accent: body.accent || "violet",
+    accent: body.accent || (variant.includes("90") ? "teal" : variant.includes("30") ? "coral" : variant.includes("80") ? "blue" : "violet"),
     tag: body.tag || "NEW",
     frequency: body.frequency || "Every 10 min",
     cardRows: variant.includes("90") ? 3 : variant.includes("30") ? 3 : variant.includes("80") ? 4 : 5,
     cardColumns: variant.includes("90") ? 9 : variant.includes("30") ? 3 : variant.includes("80") ? 4 : 5,
-    callDelay: body.callDelay || 1200,
+    callDelay: body.callDelay || (variant.includes("30") ? 600 : 1200),
     winningStages: body.winningStages || [
-      { name: "One Line", prize: 100, continueAfterWin: true },
-      { name: "Full House", prize: 400, continueAfterWin: false },
+      { name: "One Line", prize: Math.round(prize * 0.25), continueAfterWin: true },
+      { name: "Full House", prize: Math.round(prize * 0.75), continueAfterWin: false },
     ],
     rtp: body.rtp ?? 80,
     rtpMode: body.rtpMode ?? "dynamic",
@@ -85,9 +87,9 @@ roomsRouter.post("/", (req: Request, res: Response) => {
   };
 
   store.rooms = [...store.rooms, newRoom];
-  store.addAudit("player", "New room created", `${newRoom.name} (${newRoom.variant})`);
+  store.addAudit("player", "New room created", `${newRoom.name} (${newRoom.variant}) - Ticket: $${newRoom.ticketPrice}, Prize: $${newRoom.prize}`);
 
-  syncBus.emitChange("rooms", "create", newRoom, newRoom.id, `Room "${newRoom.name}" created.`);
+  syncBus.emitChange("rooms", "create", newRoom, newRoom.id, `Room "${newRoom.name}" created (Ticket: $${newRoom.ticketPrice}, Prize: $${newRoom.prize}).`);
 
   res.status(201).json({ success: true, room: newRoom });
 });
@@ -109,8 +111,13 @@ roomsRouter.put("/:id", (req: Request, res: Response) => {
     id: existing.id, // preserve ID
   };
 
-  // If dynamic RTP mode and price/cards changed, auto adjust dynamic prize if applicable
-  if (updated.rtpMode === "dynamic" && (updates.ticketPrice !== undefined || updates.rtp !== undefined)) {
+  // Explicitly parse and apply numeric fields
+  if (updates.ticketPrice !== undefined) {
+    updated.ticketPrice = Math.max(0, Number(updates.ticketPrice));
+  }
+  if (updates.prize !== undefined) {
+    updated.prize = Math.max(1, Number(updates.prize));
+  } else if (updated.rtpMode === "dynamic" && (updates.ticketPrice !== undefined || updates.rtp !== undefined)) {
     const dyn = RTPEngine.calculateDynamicPrize(
       updated.cardsSold,
       updated.ticketPrice,
@@ -119,14 +126,17 @@ roomsRouter.put("/:id", (req: Request, res: Response) => {
     );
     if (dyn > 0) updated.prize = Math.round(dyn);
   }
+  if (updates.maxPlayers !== undefined) {
+    updated.maxPlayers = Math.max(1, Number(updates.maxPlayers));
+  }
 
   const nextRooms = [...store.rooms];
   nextRooms[index] = updated;
   store.rooms = nextRooms;
 
-  store.addAudit("alert", "Room updated", `${updated.name} settings modified`);
+  store.addAudit("alert", "Room updated", `${updated.name} settings modified (Ticket: $${updated.ticketPrice}, Prize: $${updated.prize})`);
 
-  syncBus.emitChange("rooms", "update", updated, updated.id, `Room "${updated.name}" updated.`);
+  syncBus.emitChange("rooms", "update", updated, updated.id, `Room "${updated.name}" updated (Ticket: $${updated.ticketPrice}, Prize: $${updated.prize}).`);
 
   res.json({ success: true, room: updated });
 });

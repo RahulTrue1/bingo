@@ -4,12 +4,12 @@
       "id": "trueig-90",
       "name": "Trueig 910Classic",
       "variant": "90-Ball Classic",
-      "status": "Live",
+      "status": "Scheduled",
       "ticketPrice": 0.5,
       "prize": 274,
-      "players": 194,
+      "players": 195,
       "maxPlayers": 300,
-      "cardsSold": 686,
+      "cardsSold": 687,
       "startsIn": "00:46",
       "pattern": "One Line → Two Lines → Full House",
       "accent": "teal",
@@ -44,28 +44,33 @@
       "id": "turbo-30",
       "name": "Turbo 30",
       "variant": "30-Ball Speed",
-      "status": "Live",
+      "status": "Scheduled",
       "ticketPrice": 1,
-      "prize": 218,
-      "players": 87,
-      "maxPlayers": 150,
-      "cardsSold": 259,
+      "prize": 223,
+      "players": 2,
+      "maxPlayers": 2,
+      "cardsSold": 262,
       "startsIn": "LIVE · Ball 11",
-      "pattern": "3 × 3 Coverall",
+      "pattern": "Speed Full House → Two Lines",
       "accent": "coral",
       "featured": true,
       "tag": "SPEED",
       "frequency": "Every 2 min",
       "cardRows": 3,
       "cardColumns": 3,
-      "callDelay": 650,
+      "callDelay": 1200,
       "rtp": 85,
       "rtpMode": "dynamic",
       "winningStages": [
         {
           "name": "Speed Full House",
-          "prize": 218,
-          "continueAfterWin": false
+          "prize": 50,
+          "continueAfterWin": true
+        },
+        {
+          "name": "Two Lines",
+          "prize": 50,
+          "continueAfterWin": true
         }
       ]
     },
@@ -332,8 +337,98 @@
       "rtpMode": "fixed"
     }
   ],
-  "wallet": 489.5,
+  "wallet": 848,
   "transactions": [
+    {
+      "id": "TXN-145899",
+      "timestamp": "22:19:37",
+      "player": "Ari.R",
+      "room": "plue 30",
+      "type": "Ticket purchase",
+      "amount": -3,
+      "status": "Completed"
+    },
+    {
+      "id": "TXN-845556",
+      "timestamp": "22:17:37",
+      "player": "Ari.R",
+      "room": "Cashier",
+      "type": "Deposit",
+      "amount": 50,
+      "status": "Completed"
+    },
+    {
+      "id": "TXN-499345",
+      "timestamp": "22:17:37",
+      "player": "Ari.R",
+      "room": "Cashier",
+      "type": "Deposit",
+      "amount": 50,
+      "status": "Completed"
+    },
+    {
+      "id": "TXN-712545",
+      "timestamp": "22:17:37",
+      "player": "Ari.R",
+      "room": "Cashier",
+      "type": "Deposit",
+      "amount": 50,
+      "status": "Completed"
+    },
+    {
+      "id": "TXN-558207",
+      "timestamp": "22:17:37",
+      "player": "Ari.R",
+      "room": "Cashier",
+      "type": "Deposit",
+      "amount": 50,
+      "status": "Completed"
+    },
+    {
+      "id": "TXN-950056",
+      "timestamp": "22:17:37",
+      "player": "Ari.R",
+      "room": "Cashier",
+      "type": "Deposit",
+      "amount": 50,
+      "status": "Completed"
+    },
+    {
+      "id": "TXN-614739",
+      "timestamp": "22:17:36",
+      "player": "Ari.R",
+      "room": "Cashier",
+      "type": "Deposit",
+      "amount": 50,
+      "status": "Completed"
+    },
+    {
+      "id": "TXN-115281",
+      "timestamp": "22:17:36",
+      "player": "Ari.R",
+      "room": "Cashier",
+      "type": "Deposit",
+      "amount": 50,
+      "status": "Completed"
+    },
+    {
+      "id": "TXN-661311",
+      "timestamp": "22:16:56",
+      "player": "Ari.R",
+      "room": "Trueig 910Classic",
+      "type": "Prize payout",
+      "amount": 12,
+      "status": "Completed"
+    },
+    {
+      "id": "TXN-631959",
+      "timestamp": "22:16:41",
+      "player": "Ari.R",
+      "room": "Trueig 910Classic",
+      "type": "Ticket purchase",
+      "amount": -0.5,
+      "status": "Completed"
+    },
     {
       "id": "TXN-925663",
       "timestamp": "21:47:43",
@@ -560,55 +655,36 @@
       "current": 32,
       "speed": "Fast",
       "paused": false,
-      "stageIndex": 1,
+      "stageIndex": 2,
       "patternRound": 0,
       "winnerNames": [
         "Ari.R"
       ],
-      "winnerPrize": 50,
+      "winnerPrize": 12,
       "winnerPattern": "Full House",
       "livePlayers": 192,
       "liveCards": 682,
       "liveJackpot": 0,
-      "lastWinner": "Ari.R · $50"
+      "lastWinner": "Ari.R · $12"
     },
     "turbo-30": {
       "roomId": "turbo-30",
       "phase": "live",
       "countdown": 5,
       "called": [
-        24,
-        21,
-        10,
-        15,
-        19,
+        2,
         27,
-        16,
-        23,
-        17,
-        3,
-        12,
         30,
         7,
-        2,
-        28,
-        8,
-        6,
-        4,
-        25,
-        5,
-        9,
-        18,
-        22,
-        13,
-        11,
+        19,
         29,
         14,
-        20,
         1,
-        26
+        12,
+        23,
+        17
       ],
-      "current": 26,
+      "current": 17,
       "speed": "Turbo",
       "paused": false,
       "stageIndex": 0,
@@ -797,6 +873,266 @@
     }
   },
   "tickets": [
+    {
+      "id": "TCK-466987",
+      "ticketIndex": 2,
+      "roomId": "turbo-30",
+      "userId": "USR-11804",
+      "variant": "30-Ball Speed",
+      "cells": [
+        {
+          "value": 28,
+          "column": "0"
+        },
+        {
+          "value": 6,
+          "column": "1"
+        },
+        {
+          "value": 25,
+          "column": "2"
+        },
+        {
+          "value": 15,
+          "column": "0"
+        },
+        {
+          "value": 2,
+          "column": "1"
+        },
+        {
+          "value": 30,
+          "column": "2"
+        },
+        {
+          "value": 29,
+          "column": "0"
+        },
+        {
+          "value": 10,
+          "column": "1"
+        },
+        {
+          "value": 4,
+          "column": "2"
+        }
+      ],
+      "daubed": [],
+      "purchasedAt": "2026-09-17T16:49:37.407Z"
+    },
+    {
+      "id": "TCK-638710",
+      "ticketIndex": 1,
+      "roomId": "turbo-30",
+      "userId": "USR-11804",
+      "variant": "30-Ball Speed",
+      "cells": [
+        {
+          "value": 7,
+          "column": "0"
+        },
+        {
+          "value": 3,
+          "column": "1"
+        },
+        {
+          "value": 5,
+          "column": "2"
+        },
+        {
+          "value": 16,
+          "column": "0"
+        },
+        {
+          "value": 23,
+          "column": "1"
+        },
+        {
+          "value": 2,
+          "column": "2"
+        },
+        {
+          "value": 14,
+          "column": "0"
+        },
+        {
+          "value": 25,
+          "column": "1"
+        },
+        {
+          "value": 13,
+          "column": "2"
+        }
+      ],
+      "daubed": [],
+      "purchasedAt": "2026-09-17T16:49:37.407Z"
+    },
+    {
+      "id": "TCK-659161",
+      "ticketIndex": 0,
+      "roomId": "turbo-30",
+      "userId": "USR-11804",
+      "variant": "30-Ball Speed",
+      "cells": [
+        {
+          "value": 7,
+          "column": "0"
+        },
+        {
+          "value": 9,
+          "column": "1"
+        },
+        {
+          "value": 24,
+          "column": "2"
+        },
+        {
+          "value": 21,
+          "column": "0"
+        },
+        {
+          "value": 11,
+          "column": "1"
+        },
+        {
+          "value": 15,
+          "column": "2"
+        },
+        {
+          "value": 17,
+          "column": "0"
+        },
+        {
+          "value": 4,
+          "column": "1"
+        },
+        {
+          "value": 13,
+          "column": "2"
+        }
+      ],
+      "daubed": [],
+      "purchasedAt": "2026-09-17T16:49:37.407Z"
+    },
+    {
+      "id": "TCK-786476",
+      "ticketIndex": 0,
+      "roomId": "trueig-90",
+      "userId": "USR-11804",
+      "variant": "90-Ball Classic",
+      "cells": [
+        {
+          "value": 8,
+          "column": "0"
+        },
+        {
+          "value": "FREE",
+          "column": "1"
+        },
+        {
+          "value": 28,
+          "column": "2"
+        },
+        {
+          "value": "FREE",
+          "column": "3"
+        },
+        {
+          "value": 44,
+          "column": "4"
+        },
+        {
+          "value": "FREE",
+          "column": "5"
+        },
+        {
+          "value": 60,
+          "column": "6"
+        },
+        {
+          "value": "FREE",
+          "column": "7"
+        },
+        {
+          "value": 81,
+          "column": "8"
+        },
+        {
+          "value": "FREE",
+          "column": "0"
+        },
+        {
+          "value": 10,
+          "column": "1"
+        },
+        {
+          "value": 23,
+          "column": "2"
+        },
+        {
+          "value": 36,
+          "column": "3"
+        },
+        {
+          "value": "FREE",
+          "column": "4"
+        },
+        {
+          "value": 52,
+          "column": "5"
+        },
+        {
+          "value": "FREE",
+          "column": "6"
+        },
+        {
+          "value": 78,
+          "column": "7"
+        },
+        {
+          "value": "FREE",
+          "column": "8"
+        },
+        {
+          "value": 9,
+          "column": "0"
+        },
+        {
+          "value": 15,
+          "column": "1"
+        },
+        {
+          "value": "FREE",
+          "column": "2"
+        },
+        {
+          "value": "FREE",
+          "column": "3"
+        },
+        {
+          "value": 44,
+          "column": "4"
+        },
+        {
+          "value": "FREE",
+          "column": "5"
+        },
+        {
+          "value": 60,
+          "column": "6"
+        },
+        {
+          "value": "FREE",
+          "column": "7"
+        },
+        {
+          "value": 80,
+          "column": "8"
+        }
+      ],
+      "daubed": [],
+      "purchasedAt": "2026-09-17T16:46:41.476Z"
+    },
     {
       "id": "TCK-728575",
       "ticketIndex": 0,
@@ -1750,6 +2086,35 @@
   ],
   "claims": [
     {
+      "id": "CLM-854104",
+      "roomId": "trueig-90",
+      "ticketId": "CARD-0",
+      "playerName": "Ari.R",
+      "pattern": "Full House",
+      "status": "approved",
+      "prize": 12,
+      "timestamp": "10:16 PM",
+      "cells": [
+        36,
+        53,
+        17,
+        34,
+        25,
+        11,
+        45,
+        54,
+        8,
+        71,
+        84,
+        64,
+        12,
+        31,
+        18,
+        3,
+        32
+      ]
+    },
+    {
       "id": "CLM-579369",
       "roomId": "trueig-90",
       "ticketId": "CARD-0",
@@ -2420,6 +2785,139 @@
   },
   "auditFeed": [
     {
+      "id": "feed-1789664041863",
+      "type": "alert",
+      "title": "Room updated",
+      "detail": "Trueig 910Classic settings modified (Ticket: $0.5, Prize: $274)",
+      "time": "22:24"
+    },
+    {
+      "id": "feed-1789664036556",
+      "type": "alert",
+      "title": "Room updated",
+      "detail": "Trueig 910Classic settings modified (Ticket: $1.5, Prize: $600)",
+      "time": "22:23"
+    },
+    {
+      "id": "feed-1789663996813",
+      "type": "alert",
+      "title": "Room updated",
+      "detail": "Trueig 910Classic settings modified",
+      "time": "22:23"
+    },
+    {
+      "id": "feed-1789663869891",
+      "type": "alert",
+      "title": "Room updated",
+      "detail": "Turbo 30 settings modified",
+      "time": "22:21"
+    },
+    {
+      "id": "feed-1789663848970",
+      "type": "alert",
+      "title": "Room updated",
+      "detail": "Trueig 910Classic settings modified",
+      "time": "22:20"
+    },
+    {
+      "id": "feed-1789663837267",
+      "type": "alert",
+      "title": "Room updated",
+      "detail": "plue 30 settings modified",
+      "time": "22:20"
+    },
+    {
+      "id": "feed-1789663820638",
+      "type": "alert",
+      "title": "Round restarted",
+      "detail": "Game round reset in turbo-30",
+      "time": "22:20"
+    },
+    {
+      "id": "feed-1789663817754",
+      "type": "alert",
+      "title": "Room updated",
+      "detail": "plue 30 settings modified",
+      "time": "22:20"
+    },
+    {
+      "id": "feed-1789663777407",
+      "type": "player",
+      "title": "Tickets purchased",
+      "detail": "3 cards bought for plue 30 ($3.00)",
+      "time": "22:19"
+    },
+    {
+      "id": "feed-1789663757606",
+      "type": "alert",
+      "title": "Room updated",
+      "detail": "plue 30 settings modified",
+      "time": "22:19"
+    },
+    {
+      "id": "feed-1789663657705",
+      "type": "player",
+      "title": "Wallet deposit",
+      "detail": "+$50.00 deposited by Ari.R",
+      "time": "22:17"
+    },
+    {
+      "id": "feed-1789663657536",
+      "type": "player",
+      "title": "Wallet deposit",
+      "detail": "+$50.00 deposited by Ari.R",
+      "time": "22:17"
+    },
+    {
+      "id": "feed-1789663657391",
+      "type": "player",
+      "title": "Wallet deposit",
+      "detail": "+$50.00 deposited by Ari.R",
+      "time": "22:17"
+    },
+    {
+      "id": "feed-1789663657219",
+      "type": "player",
+      "title": "Wallet deposit",
+      "detail": "+$50.00 deposited by Ari.R",
+      "time": "22:17"
+    },
+    {
+      "id": "feed-1789663657099",
+      "type": "player",
+      "title": "Wallet deposit",
+      "detail": "+$50.00 deposited by Ari.R",
+      "time": "22:17"
+    },
+    {
+      "id": "feed-1789663656722",
+      "type": "player",
+      "title": "Wallet deposit",
+      "detail": "+$50.00 deposited by Ari.R",
+      "time": "22:17"
+    },
+    {
+      "id": "feed-1789663656144",
+      "type": "player",
+      "title": "Wallet deposit",
+      "detail": "+$50.00 deposited by Ari.R",
+      "time": "22:17"
+    },
+    {
+      "id": "feed-1789663616774",
+      "type": "claim",
+      "title": "Bingo claim validated",
+      "detail": "Trueig 910Classic · Ari.R won $12 on Full House",
+      "time": "22:16"
+    },
+    {
+      "id": "feed-1789663601477",
+      "type": "player",
+      "title": "Tickets purchased",
+      "detail": "1 card bought for Trueig 910Classic ($0.50)",
+      "time": "22:16"
+    },
+    {
       "id": "feed-1789663529696",
       "type": "alert",
       "title": "Room updated",
@@ -2635,139 +3133,6 @@
       "title": "Room updated",
       "detail": "Trueig 910Classic settings modified",
       "time": "21:42"
-    },
-    {
-      "id": "feed-1789661530084",
-      "type": "alert",
-      "title": "Room updated",
-      "detail": "Trueig 910Classic settings modified",
-      "time": "21:42"
-    },
-    {
-      "id": "feed-1789661515030",
-      "type": "alert",
-      "title": "Room updated",
-      "detail": "Trueig 91 Classic settings modified",
-      "time": "21:41"
-    },
-    {
-      "id": "feed-1789661315179",
-      "type": "alert",
-      "title": "Room updated",
-      "detail": "Trueig 90 Classic settings modified",
-      "time": "21:38"
-    },
-    {
-      "id": "feed-1789661261491",
-      "type": "alert",
-      "title": "Room updated",
-      "detail": "Trueig 90 Classic settings modified",
-      "time": "21:37"
-    },
-    {
-      "id": "feed-1789661250043",
-      "type": "alert",
-      "title": "Room updated",
-      "detail": "Trueig 90 Classic settings modified",
-      "time": "21:37"
-    },
-    {
-      "id": "feed-1789660101286",
-      "type": "alert",
-      "title": "Broadcast announcement",
-      "detail": "Test Broadcast via Vite Proxy",
-      "time": "21:18"
-    },
-    {
-      "id": "feed-1789659502477",
-      "type": "player",
-      "title": "Tournament registration",
-      "detail": "Ari.R joined Trueigtech Weekend Cup",
-      "time": "21:08"
-    },
-    {
-      "id": "feed-1789659474744",
-      "type": "player",
-      "title": "Wallet deposit",
-      "detail": "+$50.00 deposited by Ari.R",
-      "time": "21:07"
-    },
-    {
-      "id": "feed-1789659474556",
-      "type": "player",
-      "title": "Wallet deposit",
-      "detail": "+$50.00 deposited by Ari.R",
-      "time": "21:07"
-    },
-    {
-      "id": "feed-1789659474109",
-      "type": "player",
-      "title": "Wallet deposit",
-      "detail": "+$50.00 deposited by Ari.R",
-      "time": "21:07"
-    },
-    {
-      "id": "feed-1789659473741",
-      "type": "player",
-      "title": "Wallet deposit",
-      "detail": "+$50.00 deposited by Ari.R",
-      "time": "21:07"
-    },
-    {
-      "id": "feed-1789659472893",
-      "type": "player",
-      "title": "Wallet deposit",
-      "detail": "+$50.00 deposited by Ari.R",
-      "time": "21:07"
-    },
-    {
-      "id": "feed-1789659435309",
-      "type": "player",
-      "title": "Tickets purchased",
-      "detail": "1 card bought for Trueig 90 Classic ($0.50)",
-      "time": "21:07"
-    },
-    {
-      "id": "feed-1789659038399",
-      "type": "player",
-      "title": "Tournament registration",
-      "detail": "Ari.R joined Trueigtech Weekend Cup",
-      "time": "21:00"
-    },
-    {
-      "id": "feed-1789658884129",
-      "type": "player",
-      "title": "Tickets purchased",
-      "detail": "1 card bought for Turbo 30 ($1.00)",
-      "time": "20:58"
-    },
-    {
-      "id": "feed-1789658414505",
-      "type": "player",
-      "title": "Tournament registration",
-      "detail": "Ari.R joined Trueigtech Weekend Cup",
-      "time": "20:50"
-    },
-    {
-      "id": "feed-1789657470806",
-      "type": "player",
-      "title": "Tickets purchased",
-      "detail": "3 cards bought for Trueigtech Weekend Cup ($24.00)",
-      "time": "20:34"
-    },
-    {
-      "id": "feed-1789584387564",
-      "type": "player",
-      "title": "Tournament registration",
-      "detail": "Ari.R joined Trueigtech Weekend Cup",
-      "time": "00:16"
-    },
-    {
-      "id": "feed-1789584205676",
-      "type": "claim",
-      "title": "Bingo claim validated",
-      "detail": "Trueig 90 Classic · Ari.R won $50 on Full House",
-      "time": "00:13"
     }
   ]
 }

@@ -60,8 +60,10 @@ export function BackofficeDrawer({
   const [gameJackpot, setGameJackpot] = useState(editingRoom?.jackpot ? "Mega Trueig Jackpot" : "None");
   const [gamePromotion, setGamePromotion] = useState("None");
   const [gameFrequency, setGameFrequency] = useState(editingRoom?.frequency ?? (isCreatingNew ? "Every 10 min" : "One time"));
+  const [formError, setFormError] = useState<string | null>(null);
 
   const handleSelectGameRoom = (targetId: string) => {
+    setFormError(null);
     setGameRoomId(targetId);
     if (targetId === "new") {
       setName("Trueig Mega 75");
@@ -99,17 +101,75 @@ export function BackofficeDrawer({
     }
   };
 
-  const saveGameWithStatus = async (customStatus?: BingoStatus) => {
+  const handleVariantChange = (newVariant: string) => {
+    setVariant(newVariant);
+    if (newVariant.includes("30")) {
+      setGameSpeed("Turbo");
+    } else if (newVariant.includes("90")) {
+      setGameSpeed("Fast");
+    } else if (newVariant.includes("80")) {
+      setGameSpeed("Fast");
+    } else {
+      setGameSpeed("Normal");
+    }
+  };
+
+  const validateForm = (): boolean => {
+    if (!name.trim() || name.trim().length < 2) {
+      setFormError("Game / Room name is required (minimum 2 characters).");
+      return false;
+    }
+    if (Number(price) < 0) {
+      setFormError("Ticket price cannot be negative.");
+      return false;
+    }
+    if (Number(prize) <= 0) {
+      setFormError("Prize pool must be greater than $0.");
+      return false;
+    }
+    if (stages.length === 0) {
+      setFormError("At least one winning stage must be configured.");
+      return false;
+    }
+    const stagesSum = stages.reduce((acc, s) => acc + (Number(s.prize) || 0), 0);
+    if (stagesSum > Number(prize)) {
+      setFormError(`Winning stage prizes ($${stagesSum}) exceed the prize pool ($${prize}). Auto-sync prize or adjust stages.`);
+      return false;
+    }
+    for (const s of stages) {
+      if (!s.name.trim()) {
+        setFormError("All winning stages must have a name.");
+        return false;
+      }
+      if (Number(s.prize) < 0) {
+        setFormError("Stage prizes cannot be negative.");
+        return false;
+      }
+    }
+    if (Number(gameMaxPlayers) < 1) {
+      setFormError("Maximum players must be at least 1.");
+      return false;
+    }
+    if (Number(gameCardLimit) < 1) {
+      setFormError("Card limit must be at least 1.");
+      return false;
+    }
+    setFormError(null);
+    return true;
+  };
+
+  const saveGameWithStatus = async (customStatus?: BingoStatus): Promise<boolean> => {
+    if (!validateForm()) return false;
     const finalStatus: BingoStatus = customStatus || status || "Live";
     if (gameRoomId === "new") {
       const id = name.toLowerCase().replace(/[^a-z0-9]+/g, "-") || `game-${Date.now()}`;
       const newGame: BingoRoomData = {
         id,
-        name,
+        name: name.trim(),
         variant,
         status: finalStatus,
-        ticketPrice: Number(price) || 0,
-        prize: Number(prize) || 0,
+        ticketPrice: Math.max(0, Number(price) || 0),
+        prize: Math.max(1, Number(prize) || 500),
         players: 0,
         maxPlayers: Number(gameMaxPlayers) || 300,
         cardsSold: 0,
@@ -129,15 +189,15 @@ export function BackofficeDrawer({
       };
       await apiClient.rooms.create(newGame);
       setRooms([...rooms, newGame]);
-      notify(`✓ New Bingo game "${newGame.name}" created (${finalStatus}) and published to player lobby!`);
+      notify(`✓ New Bingo game "${newGame.name}" created (${finalStatus}) - Ticket: $${newGame.ticketPrice}, Prize: $${newGame.prize}!`);
     } else {
       const target = rooms.find((r) => r.id === gameRoomId);
       const updates: Partial<BingoRoomData> = {
-        name,
+        name: name.trim(),
         variant,
         status: finalStatus,
-        ticketPrice: Number(price) || 0,
-        prize: Number(prize) || 0,
+        ticketPrice: Math.max(0, Number(price) || 0),
+        prize: Math.max(1, Number(prize) || (target?.prize ?? 500)),
         maxPlayers: Number(gameMaxPlayers) || 300,
         callDelay: gameSpeed === "Turbo" ? 600 : gameSpeed === "Fast" ? 1200 : 1800,
         winningStages: stages,
@@ -150,8 +210,9 @@ export function BackofficeDrawer({
       setRooms(
         rooms.map((r) => (r.id === gameRoomId ? (res?.room ?? { ...r, ...updates }) : r)),
       );
-      notify(`✓ Game "${target?.name ?? gameRoomId}" updated (${finalStatus}) and synced across player screens!`);
+      notify(`✓ Game "${name || target?.name || gameRoomId}" updated (${finalStatus}) - Ticket: $${updates.ticketPrice}, Prize: $${updates.prize}!`);
     }
+    return true;
   };
 
   const titleMap: Record<string, string> = {
@@ -242,7 +303,8 @@ export function BackofficeDrawer({
       );
       notify(`✓ Room "${editingRoom.name}" saved successfully.`);
     } else if (action.kind === "create-game") {
-      await saveGameWithStatus();
+      const ok = await saveGameWithStatus();
+      if (!ok) return;
     }
     close();
   };
@@ -330,6 +392,49 @@ export function BackofficeDrawer({
           </div>
         </div>
       ))}
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          padding: "10px 14px",
+          marginTop: "12px",
+          background: "rgba(255,255,255,0.04)",
+          borderRadius: "8px",
+          border: "1px solid rgba(255,255,255,0.08)",
+          fontSize: "12px",
+        }}
+      >
+        <span>
+          Stage prizes total:{" "}
+          <strong
+            style={{
+              color:
+                stages.reduce((acc, s) => acc + (Number(s.prize) || 0), 0) > prize
+                  ? "#ff5c7a"
+                  : "#2bddaa",
+            }}
+          >
+            ${stages.reduce((acc, s) => acc + (Number(s.prize) || 0), 0).toLocaleString()}
+          </strong>{" "}
+          / Prize pool: <strong>${prize.toLocaleString()}</strong>
+        </span>
+        {stages.reduce((acc, s) => acc + (Number(s.prize) || 0), 0) !== prize && (
+          <button
+            type="button"
+            className="outline-button"
+            style={{ fontSize: "11px", padding: "4px 8px" }}
+            onClick={() => {
+              const sum = stages.reduce((acc, s) => acc + (Number(s.prize) || 0), 0);
+              setPrize(sum);
+              setFormError(null);
+            }}
+          >
+            Auto-sync prize to match stages ($
+            {stages.reduce((acc, s) => acc + (Number(s.prize) || 0), 0)})
+          </button>
+        )}
+      </div>
     </div>
   );
 
@@ -516,6 +621,25 @@ export function BackofficeDrawer({
       <aside className={`admin-drawer ${isRoom || isGame ? "wide" : ""}`}>
         <DrawerHeader title={title} close={close} />
         <form className="drawer-body" onSubmit={submit}>
+          {formError && (
+            <div
+              style={{
+                background: "rgba(255, 92, 122, 0.15)",
+                border: "1px solid rgba(255, 92, 122, 0.4)",
+                borderRadius: "8px",
+                padding: "10px 14px",
+                color: "#ff8499",
+                fontSize: "12px",
+                marginBottom: "16px",
+                display: "flex",
+                alignItems: "center",
+                gap: "8px",
+              }}
+            >
+              <span>⚠️</span>
+              <span>{formError}</span>
+            </div>
+          )}
           {isRoom && (
             <>
               <div className="drawer-section">
@@ -697,14 +821,23 @@ export function BackofficeDrawer({
                     <input
                       type="text"
                       value={name}
-                      onChange={(e) => setName(e.target.value)}
+                      onChange={(e) => {
+                        setName(e.target.value);
+                        setFormError(null);
+                      }}
                       placeholder="e.g. Trueig Gold 75"
                       required
                     />
                   </label>
                   <label>
                     Bingo type
-                    <select value={variant} onChange={(e) => setVariant(e.target.value)}>
+                    <select
+                      value={variant}
+                      onChange={(e) => {
+                        handleVariantChange(e.target.value);
+                        setFormError(null);
+                      }}
+                    >
                       <option>90-Ball Classic</option>
                       <option>75-Ball Pattern</option>
                       <option>30-Ball Speed</option>
@@ -730,12 +863,32 @@ export function BackofficeDrawer({
                     <input type="time" value={gameStartTime} onChange={(e) => setGameStartTime(e.target.value)} />
                   </label>
                   <label>
-                    Ticket price
-                    <input type="number" step="0.5" value={price} onChange={(event) => setPrice(Number(event.target.value))} />
+                    Ticket price ($)
+                    <input
+                      type="number"
+                      step="any"
+                      min="0"
+                      value={price}
+                      onChange={(event) => {
+                        setPrice(Math.max(0, Number(event.target.value)));
+                        setFormError(null);
+                      }}
+                      required
+                    />
                   </label>
                   <label>
-                    Prize
-                    <input type="number" value={prize} onChange={(event) => setPrize(Number(event.target.value))} />
+                    Prize ($)
+                    <input
+                      type="number"
+                      step="any"
+                      min="1"
+                      value={prize}
+                      onChange={(event) => {
+                        setPrize(Math.max(1, Number(event.target.value)));
+                        setFormError(null);
+                      }}
+                      required
+                    />
                   </label>
                   <label>
                     Call speed
@@ -750,6 +903,7 @@ export function BackofficeDrawer({
                     Maximum players
                     <input
                       type="number"
+                      min="1"
                       value={gameMaxPlayers}
                       onChange={(e) => setGameMaxPlayers(Number(e.target.value))}
                     />
@@ -758,6 +912,8 @@ export function BackofficeDrawer({
                     Card limit
                     <input
                       type="number"
+                      min="1"
+                      max="100"
                       value={gameCardLimit}
                       onChange={(e) => setGameCardLimit(Number(e.target.value))}
                     />
@@ -795,8 +951,8 @@ export function BackofficeDrawer({
                   type="button"
                   className="outline-button"
                   onClick={async () => {
-                    await saveGameWithStatus("Scheduled");
-                    close();
+                    const ok = await saveGameWithStatus("Scheduled");
+                    if (ok) close();
                   }}
                 >
                   Schedule game
@@ -805,8 +961,8 @@ export function BackofficeDrawer({
                   type="button"
                   className="admin-primary"
                   onClick={async () => {
-                    await saveGameWithStatus("Live");
-                    close();
+                    const ok = await saveGameWithStatus("Live");
+                    if (ok) close();
                   }}
                 >
                   Start immediately
