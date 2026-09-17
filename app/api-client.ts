@@ -191,6 +191,36 @@ export interface TopRoomModel {
   trend: string;
 }
 
+export interface PlatformSettingsModel {
+  initialCountdown: number;
+  timeBetweenBalls: number;
+  voiceCaller: "Trueigtech Nova" | "Trueigtech Max" | "Off";
+  animation: "Premium ball motion" | "Minimal" | "Off";
+  autoCall: boolean;
+  manualCallEnabled: boolean;
+  pauseOnBingoClaim: boolean;
+  resumeAfterWinner: boolean;
+  gameEndDelay: number;
+  autoDaubDefault: boolean;
+  soundEffects: boolean;
+  maintenanceMode: boolean;
+  platformName: string;
+  currencySymbol: string;
+  updatedAt?: string;
+  updatedBy?: string;
+}
+
+export interface SyncEventModel<T = unknown> {
+  id: string;
+  revision: number;
+  timestamp: string;
+  entity: string;
+  action: string;
+  roomId?: string;
+  data?: T;
+  message?: string;
+}
+
 export interface ActivityFeedModel {
   type: string;
   title: string;
@@ -398,6 +428,18 @@ export const apiClient = {
         body: JSON.stringify({ amount }),
       });
     },
+    async update(id: string, updates: Partial<JackpotModel>) {
+      return request<{ success: boolean; jackpot: JackpotModel }>(`/jackpots/${id}`, {
+        method: "PUT",
+        body: JSON.stringify(updates),
+      });
+    },
+    async reset(id: string, resetAmount?: number) {
+      return request<{ success: boolean; jackpot: JackpotModel; message: string }>(`/jackpots/${id}/reset`, {
+        method: "POST",
+        body: JSON.stringify({ resetAmount }),
+      });
+    },
   },
 
   tournaments: {
@@ -513,6 +555,79 @@ export const apiClient = {
     },
     async liveControl() {
       return request<{ success: boolean; liveGames: GameStateModel[] }>("/admin/live-control");
+    },
+  },
+
+  settings: {
+    async get() {
+      const res = await request<{ success: boolean; settings: PlatformSettingsModel }>("/settings");
+      return res?.settings ?? null;
+    },
+    async update(settings: Partial<PlatformSettingsModel>) {
+      return request<{ success: boolean; settings: PlatformSettingsModel; message: string }>("/settings", {
+        method: "PUT",
+        body: JSON.stringify(settings),
+      });
+    },
+  },
+
+  sync: {
+    subscribe(onEvent: (event: SyncEventModel) => void): () => void {
+      if (typeof window === "undefined") return () => {};
+      const url = `${API_BASE}/sync/events`;
+      let es: EventSource | null = null;
+      let closed = false;
+      let reconnectTimer: number | null = null;
+
+      function connect() {
+        if (closed) return;
+        try {
+          es = new EventSource(url);
+          es.onmessage = (e) => {
+            try {
+              const parsed = JSON.parse(e.data);
+              onEvent(parsed);
+            } catch {
+              // ignore ping/comments
+            }
+          };
+          es.onerror = () => {
+            if (es) {
+              es.close();
+              es = null;
+            }
+            if (!closed) {
+              reconnectTimer = window.setTimeout(connect, 3000);
+            }
+          };
+        } catch {
+          if (!closed) {
+            reconnectTimer = window.setTimeout(connect, 4000);
+          }
+        }
+      }
+
+      connect();
+
+      return () => {
+        closed = true;
+        if (reconnectTimer) window.clearTimeout(reconnectTimer);
+        if (es) es.close();
+      };
+    },
+    async status(since = 0) {
+      return request<{
+        success: boolean;
+        revision: number;
+        events: SyncEventModel[];
+        summary: Record<string, unknown>;
+      }>(`/sync/status?since=${since}`);
+    },
+    async broadcast(message: string, entity = "announcement", action = "broadcast", data?: unknown, roomId?: string) {
+      return request<{ success: boolean; event: SyncEventModel }>("/sync/broadcast", {
+        method: "POST",
+        body: JSON.stringify({ message, entity, action, data, roomId }),
+      });
     },
   },
 };

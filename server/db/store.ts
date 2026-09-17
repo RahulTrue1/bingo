@@ -7,6 +7,7 @@ import type {
   GameSession,
   HeroBanner,
   Jackpot,
+  PlatformSettings,
   PlayerProfile,
   PlayerTicket,
   Promotion,
@@ -33,6 +34,7 @@ export interface DatabaseSchema {
   mutedUsers: string[];
   patterns: SavedPattern[];
   players: PlayerProfile[];
+  settings: PlatformSettings;
   auditFeed: Array<{
     id: string;
     type: "claim" | "jackpot" | "player" | "alert";
@@ -799,6 +801,25 @@ function createInitialSessions(): Record<string, GameSession> {
   return sessions;
 }
 
+export const defaultSettings: PlatformSettings = {
+  initialCountdown: 5,
+  timeBetweenBalls: 1.2,
+  voiceCaller: "Trueigtech Nova",
+  animation: "Premium ball motion",
+  autoCall: true,
+  manualCallEnabled: true,
+  pauseOnBingoClaim: true,
+  resumeAfterWinner: true,
+  gameEndDelay: 4,
+  autoDaubDefault: true,
+  soundEffects: true,
+  maintenanceMode: false,
+  platformName: "Trueigtech Bingo",
+  currencySymbol: "$",
+  updatedAt: new Date().toISOString(),
+  updatedBy: "Super Admin",
+};
+
 class Store {
   private data: DatabaseSchema;
   private saveTimeout: NodeJS.Timeout | null = null;
@@ -867,6 +888,7 @@ class Store {
           mutedUsers: parsed.mutedUsers || ["RiskyB"],
           patterns: parsed.patterns || defaultPatterns,
           players: parsed.players || defaultPlayers,
+          settings: parsed.settings ? { ...defaultSettings, ...parsed.settings } : { ...defaultSettings },
           auditFeed: parsed.auditFeed || defaultAuditFeed,
         };
       }
@@ -889,6 +911,7 @@ class Store {
       mutedUsers: ["RiskyB"],
       patterns: [...defaultPatterns],
       players: [...defaultPlayers],
+      settings: { ...defaultSettings },
       auditFeed: [...defaultAuditFeed],
     };
   }
@@ -979,6 +1002,14 @@ class Store {
 
   get auditFeed() {
     return this.data.auditFeed;
+  }
+
+  get settings(): PlatformSettings {
+    return this.data.settings || defaultSettings;
+  }
+  set settings(v: PlatformSettings) {
+    this.data.settings = v;
+    this.save();
   }
 
   public addTransaction(tx: Omit<Transaction, "id" | "timestamp">): Transaction {

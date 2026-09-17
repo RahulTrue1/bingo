@@ -1,5 +1,6 @@
 import express, { type Request, type Response } from "express";
 import { store } from "../db/store.ts";
+import { syncBus } from "../services/sync-bus.ts";
 import type { HeroBanner } from "../types.ts";
 
 export const bannersRouter = express.Router();
@@ -43,6 +44,8 @@ bannersRouter.post("/", (req: Request, res: Response) => {
   store.addAudit("alert", "Banner created", `Banner "${banner.title}" added to lobby`);
   store.save();
 
+  syncBus.emitChange("banners", "create", banner, banner.id, `Banner "${banner.title}" created.`);
+
   res.status(201).json({ success: true, banner });
 });
 
@@ -56,6 +59,8 @@ bannersRouter.put("/:id", (req: Request, res: Response) => {
 
   Object.assign(banner, req.body);
   store.save();
+
+  syncBus.emitChange("banners", "update", banner, banner.id, `Banner "${banner.title}" updated.`);
 
   res.json({ success: true, banner });
 });

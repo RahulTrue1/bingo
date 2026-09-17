@@ -1,5 +1,6 @@
 import express, { type Request, type Response } from "express";
 import { store } from "../db/store.ts";
+import { syncBus } from "../services/sync-bus.ts";
 import type { Tournament } from "../types.ts";
 
 export const tournamentsRouter = express.Router();
@@ -66,6 +67,9 @@ tournamentsRouter.post("/:id/register", (req: Request, res: Response) => {
   store.addAudit("player", "Tournament registration", `${playerName} joined ${t.name}`);
   store.save();
 
+  syncBus.emitChange("tournaments", "register", t, t.id, `${playerName} registered for ${t.name}`);
+  syncBus.emitChange("wallet", "tournament-fee", { wallet: store.wallet, fee: t.entryFee });
+
   res.json({
     success: true,
     tournament: t,
@@ -87,6 +91,8 @@ tournamentsRouter.put("/:id", (req: Request, res: Response) => {
 
   store.addAudit("alert", "Tournament updated", `${t.name} rules edited`);
   store.save();
+
+  syncBus.emitChange("tournaments", "update", t, t.id, `Tournament "${t.name}" updated.`);
 
   res.json({ success: true, tournament: t });
 });

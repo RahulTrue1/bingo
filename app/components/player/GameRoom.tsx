@@ -84,6 +84,113 @@ export function GameRoom({
   const ballLabel = useCallback((value: number) => ballCount === 75 ? BingoEngine.label(value) : `${value}`, [ballCount]);
   const targetCells = (name: string) => patternCells(name, rows, columns, ballCount);
 
+  // Real-time synchronization with server game session and backoffice live control
+  useEffect(() => {
+    // 1. Initial hydration from server
+    apiClient.chat.get(room.id).then((chatMessages) => {
+      if (chatMessages && chatMessages.length > 0) {
+        setMessages(chatMessages.map((m) => [m.sender, m.text, m.time]));
+      }
+    }).catch(() => {});
+
+    apiClient.game.getState(room.id).then((res) => {
+      if (res?.state) {
+        if (res.state.paused !== undefined) setPaused(res.state.paused);
+        if (Array.isArray(res.state.called) && res.state.called.length > 0) {
+          setCalled(res.state.called);
+          if (res.state.current) setCurrent(res.state.current);
+        }
+      }
+    }).catch(() => {});
+
+    // 2. Real-time Server-Sent Events (SSE) listener
+    const unsubscribe = apiClient.sync.subscribe((event) => {
+      // Game session events
+      if (event.entity === "game" && (!event.roomId || event.roomId === room.id)) {
+        if (event.action === "pause") {
+          setPaused(true);
+          notify("⏸ Game paused by operator.");
+        } else if (event.action === "resume") {
+          setPaused(false);
+          notify("▶ Game resumed by operator.");
+        } else if (event.action === "manual-call") {
+          const num = (event.data as { ball?: number })?.ball;
+          if (num) {
+            setCurrent(num);
+            setCalled((prev) => (prev.includes(num) ? prev : [...prev, num]));
+            notify(`Ball ${ballLabel(num)} called manually by operator.`);
+          }
+        } else if (event.action === "cancel") {
+          setPaused(true);
+          setPhase("selling");
+          notify(event.message || "Round was cancelled and refunded by operator.");
+          apiClient.wallet.get().then((w) => {
+            if (w && typeof w.balance === "number") setWallet(w.balance);
+          });
+        } else if (event.action === "restart") {
+          setCalled([]);
+          setCurrent(null);
+          setPhase("countdown");
+          setCountdown(5);
+          setPaused(false);
+          notify("Round restarted by operator.");
+        } else if (event.action === "declare-winner") {
+          const d = event.data as { player?: string; prize?: number; pattern?: string };
+          if (d?.player) {
+            setWinnerNames([d.player]);
+            if (d.prize) setWinnerPrize(d.prize);
+            if (d.pattern) setWinnerPattern(d.pattern);
+            setPhase("winner");
+            setLastWinner(`${d.player} · ${money(d.prize || 400)}`);
+          }
+        }
+      }
+
+      // Chat events
+      if (event.entity === "chat" && (!event.roomId || event.roomId === room.id)) {
+        if (event.action === "message") {
+          const m = event.data as { user: string; text: string; time: string };
+          if (m) setMessages((prev) => [...prev.slice(-20), [m.user, m.text, m.time]]);
+        } else if (event.action === "broadcast") {
+          const b = event.data as { text: string; time: string };
+          if (b?.text) setMessages((prev) => [...prev.slice(-20), ["Operator", `📢 ${b.text}`, b.time || "now"]]);
+        }
+      }
+
+      // System announcements
+      if (event.entity === "announcement") {
+        const msg = event.message || (event.data as { text?: string })?.text;
+        if (msg) notify(`📢 ${msg}`);
+      }
+
+      // Platform Settings changes
+      if (event.entity === "settings") {
+        const s = event.data as { autoDaubDefault?: boolean; voiceCaller?: string };
+        if (s?.autoDaubDefault !== undefined) setAutoDaub(s.autoDaubDefault);
+        if (s?.voiceCaller !== undefined) setVoiceOn(s.voiceCaller !== "Off");
+      }
+    });
+
+    // 3. Periodic state sync polling
+    const pollInterval = window.setInterval(async () => {
+      try {
+        const res = await apiClient.game.getState(room.id);
+        if (res?.state) {
+          if (res.state.paused !== undefined && res.state.paused !== paused) {
+            setPaused(res.state.paused);
+          }
+        }
+      } catch {
+        // quiet fallback
+      }
+    }, 2500);
+
+    return () => {
+      unsubscribe();
+      window.clearInterval(pollInterval);
+    };
+  }, [ballLabel, notify, paused, room.id, setWallet]);
+
   useEffect(() => {
     if (phase !== "countdown") return;
     const timer = window.setTimeout(() => {

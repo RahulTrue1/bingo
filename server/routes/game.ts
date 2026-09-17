@@ -1,6 +1,7 @@
 import express, { type Request, type Response } from "express";
 import { store } from "../db/store.ts";
 import { BingoEngine, PatternValidator } from "../services/bingo-engine.ts";
+import { syncBus } from "../services/sync-bus.ts";
 import type { BingoClaim, GameSession } from "../types.ts";
 
 export const gameRouter = express.Router();
@@ -63,6 +64,14 @@ gameRouter.post("/:roomId/call-next", (req: Request, res: Response) => {
   session.phase = "live";
   store.save();
 
+  syncBus.emitChange(
+    "game",
+    "call-next",
+    { ball: next, label: BingoEngine.label(next), state: session },
+    req.params.roomId,
+    `Ball ${BingoEngine.label(next)} called.`
+  );
+
   res.json({
     success: true,
     ball: next,
@@ -94,6 +103,14 @@ gameRouter.post("/:roomId/manual-call", (req: Request, res: Response) => {
 
   store.addAudit("alert", "Manual ball call", `${BingoEngine.label(num)} called manually in ${req.params.roomId}`);
 
+  syncBus.emitChange(
+    "game",
+    "manual-call",
+    { ball: num, label: BingoEngine.label(num), state: session },
+    req.params.roomId,
+    `Ball ${BingoEngine.label(num)} called manually by operator.`
+  );
+
   res.json({
     success: true,
     ball: num,
@@ -107,6 +124,15 @@ gameRouter.post("/:roomId/pause", (req: Request, res: Response) => {
   const session = getOrCreateSession(req.params.roomId);
   session.paused = true;
   store.save();
+
+  syncBus.emitChange(
+    "game",
+    "pause",
+    { state: session },
+    req.params.roomId,
+    "Game paused by operator."
+  );
+
   res.json({ success: true, state: session });
 });
 
@@ -116,6 +142,15 @@ gameRouter.post("/:roomId/resume", (req: Request, res: Response) => {
   session.paused = false;
   session.phase = "live";
   store.save();
+
+  syncBus.emitChange(
+    "game",
+    "resume",
+    { state: session },
+    req.params.roomId,
+    "Game resumed by operator."
+  );
+
   res.json({ success: true, state: session });
 });
 
@@ -133,6 +168,14 @@ gameRouter.post("/:roomId/restart", (req: Request, res: Response) => {
   store.save();
 
   store.addAudit("alert", "Round restarted", `Game round reset in ${req.params.roomId}`);
+
+  syncBus.emitChange(
+    "game",
+    "restart",
+    { state: session },
+    req.params.roomId,
+    "Game round restarted."
+  );
 
   res.json({ success: true, state: session });
 });
@@ -157,10 +200,19 @@ gameRouter.post("/:roomId/cancel", (req: Request, res: Response) => {
       amount: refundAmount,
       status: "Completed",
     });
+    syncBus.emitChange("wallet", "refund", { wallet: store.wallet, refundAmount }, req.params.roomId);
   }
 
   store.addAudit("alert", "Round cancelled", `Cancelled and refunded ${req.params.roomId}`);
   store.save();
+
+  syncBus.emitChange(
+    "game",
+    "cancel",
+    { state: session, refundAmount },
+    req.params.roomId,
+    `Round cancelled by operator. Refunded $${refundAmount.toFixed(2)} to wallet.`
+  );
 
   res.json({
     success: true,
@@ -239,6 +291,15 @@ gameRouter.post("/:roomId/claim", (req: Request, res: Response) => {
     } else {
       session.phase = "winner";
     }
+
+    syncBus.emitChange(
+      "game",
+      "claim",
+      { claim, state: session },
+      req.params.roomId,
+      `🎉 BINGO! ${playerName} won $${prize.toFixed(2)} with ${patternToTest}!`
+    );
+    syncBus.emitChange("wallet", "win", { wallet: store.wallet, prize });
   } else {
     store.addAudit("alert", "Claim rejected", `${room.name} · Invalid pattern claimed by ${playerName}`);
   }
@@ -279,6 +340,15 @@ gameRouter.post("/:roomId/declare-winner", (req: Request, res: Response) => {
   store.addAudit("claim", "Operator declared winner", `${player} awarded $${prize} in ${room?.name ?? req.params.roomId}`);
   store.save();
 
+  syncBus.emitChange(
+    "game",
+    "declare-winner",
+    { state: session, player, prize: Number(prize), pattern },
+    req.params.roomId,
+    `Operator declared ${player} the winner with prize $${Number(prize).toFixed(2)}!`
+  );
+  syncBus.emitChange("wallet", "payout", { wallet: store.wallet, prize: Number(prize) });
+
   res.json({
     success: true,
     state: session,
@@ -312,6 +382,17 @@ gameRouter.post("/:roomId/claims/:claimId/review", (req: Request, res: Response)
     `${claim.playerName} · ${claim.pattern} in ${req.params.roomId}`
   );
   store.save();
+
+  syncBus.emitChange(
+    "game",
+    "review-claim",
+    { claim, action },
+    req.params.roomId,
+    `Claim ${action}d for ${claim.playerName}.`
+  );
+  if (action === "approve" && claim.prize > 0) {
+    syncBus.emitChange("wallet", "claim-approved", { wallet: store.wallet, prize: claim.prize });
+  }
 
   res.json({ success: true, claim, wallet: store.wallet });
 });

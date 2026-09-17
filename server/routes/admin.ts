@@ -1,5 +1,6 @@
 import express, { type Request, type Response } from "express";
 import { store } from "../db/store.ts";
+import { syncBus } from "../services/sync-bus.ts";
 
 export const adminRouter = express.Router();
 
@@ -85,6 +86,8 @@ adminRouter.post("/players/:id/action", (req: Request, res: Response) => {
   }
 
   store.save();
+
+  syncBus.emitChange("players", "action", { player, action }, undefined, `Action '${action}' applied to ${player.username}.`);
 
   res.json({
     success: true,

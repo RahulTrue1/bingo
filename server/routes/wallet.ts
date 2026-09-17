@@ -1,5 +1,6 @@
 import express, { type Request, type Response } from "express";
 import { store } from "../db/store.ts";
+import { syncBus } from "../services/sync-bus.ts";
 
 export const walletRouter = express.Router();
 
@@ -43,6 +44,8 @@ walletRouter.post("/deposit", (req: Request, res: Response) => {
 
   store.addAudit("player", "Wallet deposit", `+$${num.toFixed(2)} deposited by Ari.R`);
 
+  syncBus.emitChange("wallet", "deposit", { balance: store.wallet, transaction: tx });
+
   res.json({
     success: true,
     balance: store.wallet,
@@ -80,6 +83,8 @@ walletRouter.post("/withdraw", (req: Request, res: Response) => {
   });
 
   store.addAudit("player", "Wallet withdrawal", `-$${num.toFixed(2)} withdrawn by Ari.R`);
+
+  syncBus.emitChange("wallet", "withdraw", { balance: store.wallet, transaction: tx });
 
   res.json({
     success: true,

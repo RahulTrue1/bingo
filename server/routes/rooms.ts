@@ -1,6 +1,7 @@
 import express, { type Request, type Response } from "express";
 import { store } from "../db/store.ts";
 import { RTPEngine } from "../services/bingo-engine.ts";
+import { syncBus } from "../services/sync-bus.ts";
 import type { BingoRoomData } from "../types.ts";
 
 export const roomsRouter = express.Router();
@@ -86,6 +87,8 @@ roomsRouter.post("/", (req: Request, res: Response) => {
   store.rooms = [...store.rooms, newRoom];
   store.addAudit("player", "New room created", `${newRoom.name} (${newRoom.variant})`);
 
+  syncBus.emitChange("rooms", "create", newRoom, newRoom.id, `Room "${newRoom.name}" created.`);
+
   res.status(201).json({ success: true, room: newRoom });
 });
 
@@ -123,6 +126,8 @@ roomsRouter.put("/:id", (req: Request, res: Response) => {
 
   store.addAudit("alert", "Room updated", `${updated.name} settings modified`);
 
+  syncBus.emitChange("rooms", "update", updated, updated.id, `Room "${updated.name}" updated.`);
+
   res.json({ success: true, room: updated });
 });
 
@@ -145,6 +150,8 @@ roomsRouter.post("/:id/duplicate", (req: Request, res: Response) => {
   };
 
   store.rooms = [...store.rooms, duplicate];
+  syncBus.emitChange("rooms", "duplicate", duplicate, duplicate.id, `Room "${duplicate.name}" duplicated.`);
+
   res.status(201).json({ success: true, room: duplicate });
 });
 
@@ -158,6 +165,8 @@ roomsRouter.delete("/:id", (req: Request, res: Response) => {
 
   store.rooms = store.rooms.filter((r) => r.id !== req.params.id);
   store.addAudit("alert", "Room deleted", req.params.id);
+  syncBus.emitChange("rooms", "delete", { id: req.params.id }, req.params.id, `Room "${req.params.id}" deleted.`);
+
   res.json({ success: true, message: "Room deleted" });
 });
 
@@ -183,6 +192,8 @@ roomsRouter.post("/rtp-policy", (req: Request, res: Response) => {
 
   store.rooms = updatedRooms;
   store.addAudit("alert", "Network RTP updated", `Global target set to ${numRtp}% (${syncMode})`);
+
+  syncBus.emitChange("rooms", "rtp-policy", updatedRooms, undefined, `Network RTP policy set to ${numRtp}%.`);
 
   res.json({
     success: true,

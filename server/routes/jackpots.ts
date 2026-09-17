@@ -1,5 +1,6 @@
 import express, { type Request, type Response } from "express";
 import { store } from "../db/store.ts";
+import { syncBus } from "../services/sync-bus.ts";
 import type { Jackpot } from "../types.ts";
 
 export const jackpotsRouter = express.Router();
@@ -47,6 +48,14 @@ jackpotsRouter.post("/:id/contribute", (req: Request, res: Response) => {
   store.addAudit("jackpot", "Jackpot contribution", `+$${num.toFixed(2)} · ${jp.name}`);
   store.save();
 
+  syncBus.emitChange(
+    "jackpots",
+    "contribute",
+    jp,
+    jp.id,
+    `Jackpot ${jp.name} increased to $${jp.currentAmount.toFixed(2)}`
+  );
+
   res.json({
     success: true,
     jackpot: jp,
@@ -68,6 +77,14 @@ jackpotsRouter.put("/:id", (req: Request, res: Response) => {
   store.addAudit("alert", "Jackpot configuration updated", `${jp.name} settings changed`);
   store.save();
 
+  syncBus.emitChange(
+    "jackpots",
+    "update",
+    jp,
+    jp.id,
+    `Jackpot ${jp.name} configuration updated.`
+  );
+
   res.json({ success: true, jackpot: jp });
 });
 
@@ -79,13 +96,22 @@ jackpotsRouter.post("/:id/reset", (req: Request, res: Response) => {
     return;
   }
 
-  jp.currentAmount = jp.resetAmount;
-  store.addAudit("jackpot", "Jackpot reset", `${jp.name} reset to $${jp.resetAmount}`);
+  const resetVal = req.body?.resetAmount ? Number(req.body.resetAmount) : jp.resetAmount;
+  jp.currentAmount = resetVal;
+  store.addAudit("jackpot", "Jackpot reset", `${jp.name} reset to $${resetVal}`);
   store.save();
+
+  syncBus.emitChange(
+    "jackpots",
+    "reset",
+    jp,
+    jp.id,
+    `Jackpot ${jp.name} reset to $${jp.currentAmount.toFixed(2)}.`
+  );
 
   res.json({
     success: true,
     jackpot: jp,
-    message: `${jp.name} reset to $${jp.resetAmount.toFixed(2)}.`,
+    message: `${jp.name} reset to $${jp.currentAmount.toFixed(2)}.`,
   });
 });

@@ -1,5 +1,6 @@
 import express, { type Request, type Response } from "express";
 import { store } from "../db/store.ts";
+import { syncBus } from "../services/sync-bus.ts";
 import type { ChatMessage } from "../types.ts";
 
 export const chatRouter = express.Router();
@@ -51,6 +52,8 @@ chatRouter.post("/:roomId", (req: Request, res: Response) => {
 
   store.save();
 
+  syncBus.emitChange("chat", "message", message, req.params.roomId);
+
   res.status(201).json({
     success: true,
     message,
@@ -66,6 +69,7 @@ chatRouter.post("/:roomId/moderate", (req: Request, res: Response) => {
     store.chatMessages[req.params.roomId] = list.filter((m) => m.id !== targetMessageId);
     store.addAudit("alert", "Chat message deleted", `Deleted message from ${req.params.roomId}`);
     store.save();
+    syncBus.emitChange("chat", "delete-message", { targetMessageId }, req.params.roomId);
     res.json({ success: true, message: "Message deleted" });
     return;
   }
@@ -74,9 +78,11 @@ chatRouter.post("/:roomId/moderate", (req: Request, res: Response) => {
     if (store.mutedUsers.includes(targetUser)) {
       store.mutedUsers = store.mutedUsers.filter((u) => u !== targetUser);
       store.addAudit("player", "Player unmuted", `${targetUser} unmuted in chat`);
+      syncBus.emitChange("chat", "unmute", { user: targetUser }, req.params.roomId);
     } else {
       store.mutedUsers.push(targetUser);
       store.addAudit("alert", "Player muted", `${targetUser} muted for 30 minutes`);
+      syncBus.emitChange("chat", "mute", { user: targetUser }, req.params.roomId);
     }
     store.save();
     res.json({ success: true, mutedUsers: store.mutedUsers });
@@ -113,6 +119,9 @@ chatRouter.post("/broadcast", (req: Request, res: Response) => {
 
   store.addAudit("alert", "Admin broadcast sent", text);
   store.save();
+
+  syncBus.emitChange("chat", "broadcast", { text, time, targetRooms }, undefined, text);
+  syncBus.emitChange("announcement", "broadcast", { text, time }, undefined, text);
 
   res.json({ success: true, message: "Broadcast sent", targetRoomsCount: targetRooms.length });
 });

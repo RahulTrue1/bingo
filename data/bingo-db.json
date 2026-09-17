@@ -7,9 +7,9 @@
       "status": "Starting Soon",
       "ticketPrice": 0.5,
       "prize": 273,
-      "players": 193,
+      "players": 194,
       "maxPlayers": 300,
-      "cardsSold": 685,
+      "cardsSold": 686,
       "startsIn": "00:46",
       "pattern": "One Line → Two Lines → Full House",
       "accent": "teal",
@@ -332,8 +332,71 @@
       "rtpMode": "fixed"
     }
   ],
-  "wallet": 248,
+  "wallet": 489.5,
   "transactions": [
+    {
+      "id": "TXN-231432",
+      "timestamp": "21:08:22",
+      "player": "Ari.R",
+      "room": "Trueigtech Weekend Cup",
+      "type": "Ticket purchase",
+      "amount": -8,
+      "status": "Completed"
+    },
+    {
+      "id": "TXN-635550",
+      "timestamp": "21:07:54",
+      "player": "Ari.R",
+      "room": "Cashier",
+      "type": "Deposit",
+      "amount": 50,
+      "status": "Completed"
+    },
+    {
+      "id": "TXN-964548",
+      "timestamp": "21:07:54",
+      "player": "Ari.R",
+      "room": "Cashier",
+      "type": "Deposit",
+      "amount": 50,
+      "status": "Completed"
+    },
+    {
+      "id": "TXN-725066",
+      "timestamp": "21:07:54",
+      "player": "Ari.R",
+      "room": "Cashier",
+      "type": "Deposit",
+      "amount": 50,
+      "status": "Completed"
+    },
+    {
+      "id": "TXN-224906",
+      "timestamp": "21:07:53",
+      "player": "Ari.R",
+      "room": "Cashier",
+      "type": "Deposit",
+      "amount": 50,
+      "status": "Completed"
+    },
+    {
+      "id": "TXN-105096",
+      "timestamp": "21:07:52",
+      "player": "Ari.R",
+      "room": "Cashier",
+      "type": "Deposit",
+      "amount": 50,
+      "status": "Completed"
+    },
+    {
+      "id": "TXN-145290",
+      "timestamp": "21:07:15",
+      "player": "Ari.R",
+      "room": "Trueig 90 Classic",
+      "type": "Ticket purchase",
+      "amount": -0.5,
+      "status": "Completed"
+    },
     {
       "id": "TXN-255161",
       "timestamp": "21:00:38",
@@ -458,9 +521,16 @@
         45,
         54,
         8,
-        71
+        71,
+        84,
+        64,
+        12,
+        31,
+        18,
+        3,
+        32
       ],
-      "current": 71,
+      "current": 32,
       "speed": "Fast",
       "paused": false,
       "stageIndex": 1,
@@ -689,6 +759,125 @@
     }
   },
   "tickets": [
+    {
+      "id": "TCK-294073",
+      "ticketIndex": 0,
+      "roomId": "trueig-90",
+      "userId": "USR-11804",
+      "variant": "90-Ball Classic",
+      "cells": [
+        {
+          "value": 9,
+          "column": "0"
+        },
+        {
+          "value": "FREE",
+          "column": "1"
+        },
+        {
+          "value": 22,
+          "column": "2"
+        },
+        {
+          "value": "FREE",
+          "column": "3"
+        },
+        {
+          "value": 48,
+          "column": "4"
+        },
+        {
+          "value": "FREE",
+          "column": "5"
+        },
+        {
+          "value": 64,
+          "column": "6"
+        },
+        {
+          "value": "FREE",
+          "column": "7"
+        },
+        {
+          "value": 83,
+          "column": "8"
+        },
+        {
+          "value": "FREE",
+          "column": "0"
+        },
+        {
+          "value": 14,
+          "column": "1"
+        },
+        {
+          "value": 27,
+          "column": "2"
+        },
+        {
+          "value": 30,
+          "column": "3"
+        },
+        {
+          "value": "FREE",
+          "column": "4"
+        },
+        {
+          "value": 56,
+          "column": "5"
+        },
+        {
+          "value": "FREE",
+          "column": "6"
+        },
+        {
+          "value": 72,
+          "column": "7"
+        },
+        {
+          "value": "FREE",
+          "column": "8"
+        },
+        {
+          "value": 1,
+          "column": "0"
+        },
+        {
+          "value": 19,
+          "column": "1"
+        },
+        {
+          "value": "FREE",
+          "column": "2"
+        },
+        {
+          "value": "FREE",
+          "column": "3"
+        },
+        {
+          "value": 48,
+          "column": "4"
+        },
+        {
+          "value": "FREE",
+          "column": "5"
+        },
+        {
+          "value": 64,
+          "column": "6"
+        },
+        {
+          "value": "FREE",
+          "column": "7"
+        },
+        {
+          "value": 82,
+          "column": "8"
+        }
+      ],
+      "daubed": [],
+      "purchasedAt": "2026-09-17T15:37:15.309Z"
+    },
     {
       "id": "TCK-898927",
       "ticketIndex": 0,
@@ -1607,7 +1796,7 @@
       "description": "Five-round progressive elimination tournament.",
       "entryFee": 8,
       "prizePool": 25000,
-      "playersCount": 387,
+      "playersCount": 388,
       "maxPlayers": 512,
       "startsAt": "22 Aug · 20:00",
       "status": "Registration open",
@@ -2035,7 +2224,81 @@
       "status": "Restricted"
     }
   ],
+  "settings": {
+    "initialCountdown": 5,
+    "timeBetweenBalls": 1.2,
+    "voiceCaller": "Trueigtech Nova",
+    "animation": "Premium ball motion",
+    "autoCall": true,
+    "manualCallEnabled": true,
+    "pauseOnBingoClaim": true,
+    "resumeAfterWinner": true,
+    "gameEndDelay": 4,
+    "autoDaubDefault": true,
+    "soundEffects": true,
+    "maintenanceMode": false,
+    "platformName": "Trueigtech Bingo",
+    "currencySymbol": "$",
+    "updatedAt": "2026-09-17T15:43:29.002Z",
+    "updatedBy": "Super Admin"
+  },
   "auditFeed": [
+    {
+      "id": "feed-1789660101286",
+      "type": "alert",
+      "title": "Broadcast announcement",
+      "detail": "Test Broadcast via Vite Proxy",
+      "time": "21:18"
+    },
+    {
+      "id": "feed-1789659502477",
+      "type": "player",
+      "title": "Tournament registration",
+      "detail": "Ari.R joined Trueigtech Weekend Cup",
+      "time": "21:08"
+    },
+    {
+      "id": "feed-1789659474744",
+      "type": "player",
+      "title": "Wallet deposit",
+      "detail": "+$50.00 deposited by Ari.R",
+      "time": "21:07"
+    },
+    {
+      "id": "feed-1789659474556",
+      "type": "player",
+      "title": "Wallet deposit",
+      "detail": "+$50.00 deposited by Ari.R",
+      "time": "21:07"
+    },
+    {
+      "id": "feed-1789659474109",
+      "type": "player",
+      "title": "Wallet deposit",
+      "detail": "+$50.00 deposited by Ari.R",
+      "time": "21:07"
+    },
+    {
+      "id": "feed-1789659473741",
+      "type": "player",
+      "title": "Wallet deposit",
+      "detail": "+$50.00 deposited by Ari.R",
+      "time": "21:07"
+    },
+    {
+      "id": "feed-1789659472893",
+      "type": "player",
+      "title": "Wallet deposit",
+      "detail": "+$50.00 deposited by Ari.R",
+      "time": "21:07"
+    },
+    {
+      "id": "feed-1789659435309",
+      "type": "player",
+      "title": "Tickets purchased",
+      "detail": "1 card bought for Trueig 90 Classic ($0.50)",
+      "time": "21:07"
+    },
     {
       "id": "feed-1789659038399",
       "type": "player",

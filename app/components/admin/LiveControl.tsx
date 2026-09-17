@@ -23,18 +23,24 @@ export function LiveControl({
   const [speed, setSpeed] = useState("Fast · 1.2 sec");
   const [claim, setClaim] = useState<"pending" | "approved" | "rejected">("pending");
 
+  const targetRoomId = selectedGame.name.toLowerCase().includes("turbo")
+    ? "turbo-30"
+    : selectedGame.name.toLowerCase().includes("quick")
+    ? "quick-80"
+    : "diamond-75";
+
   const nextBall = () => {
     const next = BingoEngine.nextNumber(Array.from({ length: ball }, (_, index) => index + 1)) ?? ball;
     setBall(next);
-    apiClient.game.manualCall("diamond-75", next);
+    apiClient.game.manualCall(targetRoomId, next);
     notify(`${BingoEngine.label(next)} called manually.`);
   };
 
   const changeState = (next: typeof state, message: string) => {
     setState(next);
-    if (next === "paused") apiClient.game.pause("diamond-75");
-    else if (next === "live") apiClient.game.resume("diamond-75");
-    else if (next === "cancelled") apiClient.game.cancel("diamond-75");
+    if (next === "paused") apiClient.game.pause(targetRoomId);
+    else if (next === "live") apiClient.game.resume(targetRoomId);
+    else if (next === "cancelled") apiClient.game.cancel(targetRoomId);
     notify(message);
   };
 
@@ -130,11 +136,11 @@ export function LiveControl({
           <button onClick={() => openAction({ kind: "manual-call" })}>Manual call</button>
           <button
             onClick={() => {
-              apiClient.game.restart("diamond-75");
+              apiClient.game.restart(targetRoomId);
               setBall(1);
               setState("live");
               setClaim("pending");
-              notify("Round restarted from Ball 1.");
+              notify(`Round restarted from Ball 1 for ${selectedGame.name}.`);
             }}
           >
             Restart game

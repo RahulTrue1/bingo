@@ -34,34 +34,52 @@ export function JackpotExperience({
   const [rulesOpen, setRulesOpen] = useState(false);
 
   useEffect(() => {
-    apiClient.jackpots
-      .list()
-      .then((list) => {
-        if (list && list.length > 0) {
-          const dynamicTiers = list.map((j) => {
-            const icon =
-              (j.iconKey && iconMap[j.iconKey as keyof typeof iconMap]) ||
-              (j.key === "major" ? Star : j.key === "mini" ? Club : Diamond);
-            return {
-              key: j.key || j.id,
-              name: j.name,
-              amount: j.currentAmount,
-              reset: j.resetAmount || j.startingAmount,
-              contribution: j.contributionPercent,
-              price: j.price || 2,
-              players: j.players || 50,
-              variant: j.variant || "75-Ball",
-              pattern: j.qualifyingPattern || "Full House in 42 balls",
-              difficulty: j.difficulty || "Hard",
-              reward: j.reward || "Huge",
-              icon,
-            };
-          });
-          setTiers(dynamicTiers);
-        }
-      })
-      .catch(() => {});
-  }, []);
+    const refreshJackpots = () => {
+      apiClient.jackpots
+        .list()
+        .then((list) => {
+          if (list && list.length > 0) {
+            const dynamicTiers = list.map((j) => {
+              const icon =
+                (j.iconKey && iconMap[j.iconKey as keyof typeof iconMap]) ||
+                (j.key === "major" ? Star : j.key === "mini" ? Club : Diamond);
+              return {
+                key: j.key || j.id,
+                name: j.name,
+                amount: j.currentAmount,
+                reset: j.resetAmount || j.startingAmount,
+                contribution: j.contributionPercent,
+                price: j.price || 2,
+                players: j.players || 50,
+                variant: j.variant || "75-Ball",
+                pattern: j.qualifyingPattern || "Full House in 42 balls",
+                difficulty: j.difficulty || "Hard",
+                reward: j.reward || "Huge",
+                icon,
+              };
+            });
+            setTiers(dynamicTiers);
+          }
+        })
+        .catch(() => {});
+    };
+
+    refreshJackpots();
+
+    const unsubscribe = apiClient.sync.subscribe((event) => {
+      if (event.entity === "jackpots") {
+        refreshJackpots();
+        if (event.message) notify(event.message);
+      }
+    });
+
+    const poll = window.setInterval(refreshJackpots, 4000);
+
+    return () => {
+      unsubscribe();
+      window.clearInterval(poll);
+    };
+  }, [notify]);
 
   const active = tiers[selectedTier] ?? tiers[0];
   const eligibleRooms = rooms.filter((room) => room.variant.includes(active.variant.slice(0, 2)));

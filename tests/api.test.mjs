@@ -202,3 +202,51 @@ test("GET /api/banners returns dynamic lobby slides", async () => {
   assert.ok(json.banners.some((b) => b.roomId === "tournament"));
 });
 
+test("GET /api/sync/status returns revision and history", async () => {
+  const res = await fetch(`${BASE_URL}/sync/status`);
+  assert.equal(res.status, 200);
+  const json = await res.json();
+  assert.equal(json.success, true);
+  assert.ok(typeof json.revision === "number");
+  assert.ok(Array.isArray(json.events));
+  assert.ok(json.summary);
+});
+
+test("POST /api/sync/broadcast emits announcement event", async () => {
+  const msg = `System Test Announcement ${Date.now()}`;
+  const res = await fetch(`${BASE_URL}/sync/broadcast`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ message: msg, entity: "announcement", action: "broadcast" }),
+  });
+  assert.equal(res.status, 200);
+  const json = await res.json();
+  assert.equal(json.success, true);
+  assert.equal(json.event.message, msg);
+});
+
+test("GET /api/settings and PUT /api/settings updates platform settings", async () => {
+  const getRes = await fetch(`${BASE_URL}/settings`);
+  assert.equal(getRes.status, 200);
+  const getJson = await getRes.json();
+  assert.equal(getJson.success, true);
+  assert.ok(getJson.settings);
+  assert.ok(typeof getJson.settings.timeBetweenBalls === "number");
+
+  const putRes = await fetch(`${BASE_URL}/settings`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      timeBetweenBalls: 1.5,
+      voiceCaller: "Trueigtech Max",
+      updatedBy: "AdminTest",
+    }),
+  });
+  assert.equal(putRes.status, 200);
+  const putJson = await putRes.json();
+  assert.equal(putJson.success, true);
+  assert.equal(putJson.settings.timeBetweenBalls, 1.5);
+  assert.equal(putJson.settings.voiceCaller, "Trueigtech Max");
+});
+
+

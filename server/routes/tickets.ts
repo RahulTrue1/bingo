@@ -1,6 +1,7 @@
 import express, { type Request, type Response } from "express";
 import { store } from "../db/store.ts";
 import { BingoEngine } from "../services/bingo-engine.ts";
+import { syncBus } from "../services/sync-bus.ts";
 import type { PlayerTicket } from "../types.ts";
 
 export const ticketsRouter = express.Router();
@@ -100,6 +101,9 @@ ticketsRouter.post("/buy", (req: Request, res: Response) => {
   );
 
   store.save();
+
+  syncBus.emitChange("wallet", "ticket-purchase", { wallet: store.wallet, totalCost, count: numCount }, room.id);
+  syncBus.emitChange("rooms", "update", room, room.id);
 
   res.status(201).json({
     success: true,

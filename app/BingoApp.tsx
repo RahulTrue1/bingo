@@ -27,21 +27,65 @@ export default function Home({ initialMode = "player" }: { initialMode?: AppMode
   const [wallet, setWallet] = useState(248.5);
   const [toast, setToast] = useState("");
 
-  useEffect(() => {
-    apiClient.rooms.list().then((list) => {
-      if (list && list.length) setRooms(list);
-    });
-    apiClient.wallet.get().then((w) => {
-      if (w && typeof w.balance === "number") setWallet(w.balance);
-    });
-  }, []);
-
-  const activeRoom = rooms.find((room) => room.id === activeRoomId) ?? rooms[0];
-
   const notify = useCallback((message: string) => {
     setToast(message);
-    window.setTimeout(() => setToast(""), 2600);
+    window.setTimeout(() => setToast(""), 3000);
   }, []);
+
+  const refreshRooms = useCallback(() => {
+    apiClient.rooms.list().then((list) => {
+      if (list && list.length) setRooms(list);
+    }).catch(() => {});
+  }, []);
+
+  const refreshWallet = useCallback(() => {
+    apiClient.wallet.get().then((w) => {
+      if (w && typeof w.balance === "number") setWallet(w.balance);
+    }).catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    refreshRooms();
+    refreshWallet();
+
+    // 1. Real-time Server-Sent Events (SSE) listener
+    const unsubscribe = apiClient.sync.subscribe((event) => {
+      if (event.entity === "rooms") {
+        refreshRooms();
+        if (event.message && mode === "player") notify(event.message);
+      } else if (event.entity === "wallet") {
+        refreshWallet();
+      } else if (event.entity === "announcement" || (event.entity === "chat" && event.action === "broadcast")) {
+        const msg = event.message || (event.data as { text?: string })?.text;
+        if (msg) notify(`📢 ${msg}`);
+      } else if (event.entity === "all") {
+        refreshRooms();
+        refreshWallet();
+      }
+    });
+
+    // 2. Continuous background drift polling fallback
+    let lastRev = 0;
+    const pollTimer = window.setInterval(async () => {
+      try {
+        const status = await apiClient.sync.status(lastRev);
+        if (status && status.revision > lastRev) {
+          lastRev = status.revision;
+          refreshRooms();
+          refreshWallet();
+        }
+      } catch {
+        // quiet fallback
+      }
+    }, 3500);
+
+    return () => {
+      unsubscribe();
+      window.clearInterval(pollTimer);
+    };
+  }, [mode, notify, refreshRooms, refreshWallet]);
+
+  const activeRoom = rooms.find((room) => room.id === activeRoomId) ?? rooms[0];
 
   function enterRoom(room: BingoRoomData) {
     setActiveRoomId(room.id);

@@ -209,3 +209,23 @@ export interface PlayerProfile {
   lastLogin: string;
   status: "Active" | "Restricted" | "Suspended";
 }
+
+export interface PlatformSettings {
+  initialCountdown: number;
+  timeBetweenBalls: number;
+  voiceCaller: "Trueigtech Nova" | "Trueigtech Max" | "Off";
+  animation: "Premium ball motion" | "Minimal" | "Off";
+  autoCall: boolean;
+  manualCallEnabled: boolean;
+  pauseOnBingoClaim: boolean;
+  resumeAfterWinner: boolean;
+  gameEndDelay: number;
+  autoDaubDefault: boolean;
+  soundEffects: boolean;
+  maintenanceMode: boolean;
+  platformName: string;
+  currencySymbol: string;
+  updatedAt: string;
+  updatedBy: string;
+}
+

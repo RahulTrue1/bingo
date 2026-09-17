@@ -18,35 +18,75 @@ export function DrawerSpecialForm({
   const [policyRtp, setPolicyRtp] = useState(80);
   const [syncMode, setSyncMode] = useState("all");
 
+  // Caller state
+  const [countdown, setCountdown] = useState(5);
+  const [delay, setDelay] = useState(1.2);
+  const [voice, setVoice] = useState<"Trueigtech Nova" | "Trueigtech Max" | "Off">("Trueigtech Nova");
+  const [autoDaub, setAutoDaub] = useState(true);
+
+  // Jackpot state
+  const [jpAmount, setJpAmount] = useState(125480);
+  const [jpReset, setJpReset] = useState(50000);
+  const [jpContribution, setJpContribution] = useState(2.5);
+
+  // Promotion state
+  const [promoTitle, setPromoTitle] = useState("Happy Hour Bingo");
+  const [promoCategory, setPromoCategory] = useState<"All offers" | "Free cards" | "Ticket deals" | "VIP" | "Tournaments" | "Deposit bonus" | "Cashback">("Ticket deals");
+  const [promoRewardVal, setPromoRewardVal] = useState(15);
+  const [promoRoom, setPromoRoom] = useState("diamond-75");
+
+  // Announcement state
+  const [announcementMsg, setAnnouncementMsg] = useState("Free Bingo starts in 5 minutes. Claim your Trueigtech card now!");
+  const [audience, setAudience] = useState("all");
+
+  // Manual Call state
+  const [manualBall, setManualBall] = useState(17);
+  const [manualRoom, setManualRoom] = useState(rooms[0]?.id || "diamond-75");
+
+  // Declare Winner state
+  const [winPlayer, setWinPlayer] = useState("LuckyStar");
+  const [winPrize, setWinPrize] = useState(400);
+  const [winPattern, setWinPattern] = useState("One Line");
+  const [winRoom, setWinRoom] = useState(rooms[0]?.id || "diamond-75");
+
   if (kind === "caller-config")
     return (
       <div className="drawer-section">
         <h3>Caller behavior</h3>
         <div className="drawer-form-grid">
-          <label>Initial countdown<input type="number" defaultValue="5" /></label>
-          <label>Time between balls<input type="number" step="0.1" defaultValue="1.2" /></label>
+          <label>Initial countdown (s)<input type="number" value={countdown} onChange={(e) => setCountdown(Number(e.target.value))} /></label>
+          <label>Time between balls (s)<input type="number" step="0.1" value={delay} onChange={(e) => setDelay(Number(e.target.value))} /></label>
           <label>
             Voice caller
-            <select><option>Trueigtech Nova</option><option>Trueigtech Max</option><option>Off</option></select>
+            <select value={voice} onChange={(e) => setVoice(e.target.value as "Trueigtech Nova" | "Trueigtech Max" | "Off")}>
+              <option>Trueigtech Nova</option>
+              <option>Trueigtech Max</option>
+              <option>Off</option>
+            </select>
           </label>
-          <label>
-            Animation
-            <select><option>Premium ball motion</option><option>Minimal</option><option>Off</option></select>
+          <label className="check-field">
+            <input type="checkbox" checked={autoDaub} onChange={(e) => setAutoDaub(e.target.checked)} />
+            Auto-daub default
           </label>
-          {["Auto call", "Manual call enabled", "Pause on Bingo claim", "Resume after winner"].map((item) => (
-            <label className="check-field" key={item}>
-              <input type="checkbox" defaultChecked />{item}
-            </label>
-          ))}
-          <label>Game end delay<input type="number" defaultValue="4" /></label>
         </div>
-        <button
-          type="button"
-          className="full-outline"
-          onClick={() => notify("Caller preview: B-17. Voice and animation settings applied.")}
-        >
-          Preview B-17 call
-        </button>
+        <div className="special-actions" style={{ marginTop: "20px" }}>
+          <button
+            type="button"
+            className="admin-primary"
+            onClick={async () => {
+              await apiClient.settings.update({
+                initialCountdown: countdown,
+                timeBetweenBalls: delay,
+                voiceCaller: voice,
+                autoDaubDefault: autoDaub,
+              });
+              notify("✓ Caller settings saved and synchronized across all rooms.");
+              close();
+            }}
+          >
+            Save caller settings
+          </button>
+        </div>
       </div>
     );
 
@@ -56,68 +96,37 @@ export function DrawerSpecialForm({
         <h3>Jackpot configuration</h3>
         <div className="drawer-form-grid">
           <label>Jackpot name<input defaultValue="Mega Trueig Jackpot" /></label>
-          <label>
-            Jackpot type
-            <select><option>Progressive</option><option>Guaranteed</option><option>Community</option></select>
-          </label>
-          <label>Starting amount<input type="number" defaultValue="50000" /></label>
-          <label>Current amount<input type="number" defaultValue="125480" /></label>
-          <label>Contribution %<input type="number" step="0.1" defaultValue="2.5" /></label>
-          <label>Maximum amount<input type="number" defaultValue="250000" /></label>
-          <label>
-            Qualifying Bingo type
-            <select><option>75-Ball Progressive</option><option>90-Ball</option></select>
-          </label>
-          <label>
-            Qualifying pattern
-            <select><option>Full House</option><option>Blackout</option></select>
-          </label>
-          <label>Maximum ball count<input type="number" defaultValue="42" /></label>
-          <label>Reset amount<input type="number" defaultValue="50000" /></label>
-          <label>Start date<input type="date" defaultValue="2026-08-21" /></label>
-          <label>End date<input type="date" defaultValue="2026-12-31" /></label>
-          <label>
-            Status
-            <select><option>Active</option><option>Paused</option></select>
-          </label>
+          <label>Current amount ($)<input type="number" value={jpAmount} onChange={(e) => setJpAmount(Number(e.target.value))} /></label>
+          <label>Reset amount ($)<input type="number" value={jpReset} onChange={(e) => setJpReset(Number(e.target.value))} /></label>
+          <label>Contribution %<input type="number" step="0.1" value={jpContribution} onChange={(e) => setJpContribution(Number(e.target.value))} /></label>
         </div>
-        <div className="special-actions">
-          <button type="button" onClick={() => notify("Jackpot paused.")}>Pause</button>
-          <button type="button" onClick={() => notify("Jackpot resumed.")}>Resume</button>
+        <div className="special-actions" style={{ marginTop: "20px", display: "flex", gap: "8px", flexWrap: "wrap" }}>
+          <button
+            type="button"
+            className="admin-primary"
+            onClick={async () => {
+              await apiClient.jackpots.update("mega-trueig", {
+                currentAmount: jpAmount,
+                resetAmount: jpReset,
+                contributionPercent: jpContribution,
+              });
+              notify("✓ Jackpot configuration updated and broadcast to player ladder.");
+              close();
+            }}
+          >
+            Save jackpot
+          </button>
           <button
             type="button"
             className="danger-button"
-            onClick={() => {
-              apiClient.jackpots.reset("mega-trueig", 50000);
-              notify("Jackpot reset to $50,000 after confirmation.");
+            onClick={async () => {
+              await apiClient.jackpots.reset("mega-trueig", jpReset);
+              notify(`✓ Jackpot reset to $${jpReset.toLocaleString()}!`);
+              close();
             }}
           >
             Reset jackpot
           </button>
-        </div>
-      </div>
-    );
-
-  if (kind.includes("tournament"))
-    return (
-      <div className="drawer-section">
-        <h3>Tournament configuration</h3>
-        <div className="drawer-form-grid">
-          <label>Tournament name<input defaultValue="Trueigtech Weekend Cup" /></label>
-          <label className="full">Description<textarea defaultValue="Five-round progressive elimination tournament." /></label>
-          <label>
-            Bingo rooms
-            <select multiple><option>Diamond 75</option><option>Trueig 90 Classic</option><option>Turbo 30</option></select>
-          </label>
-          <label>Start date<input type="date" defaultValue="2026-08-22" /></label>
-          <label>End date<input type="date" defaultValue="2026-08-24" /></label>
-          <label>Entry fee<input type="number" defaultValue="8" /></label>
-          <label>Maximum players<input type="number" defaultValue="512" /></label>
-          <label>Number of rounds<input type="number" defaultValue="5" /></label>
-          <label>Prize pool<input type="number" defaultValue="25000" /></label>
-          <label>Points rules<textarea defaultValue="Line 10 · Pattern 25 · Full House 50" /></label>
-          <label>Qualification rules<textarea defaultValue="Top 50% advance each round"/></label>
-          <label>Leaderboard rules<textarea defaultValue="Points, wins, fastest Bingo"/></label>
         </div>
       </div>
     );
@@ -127,31 +136,47 @@ export function DrawerSpecialForm({
       <div className="drawer-section">
         <h3>Promotion builder</h3>
         <div className="drawer-form-grid">
-          <label>Promotion name<input defaultValue="Trueigtech Happy Hour" /></label>
+          <label>Promotion name<input value={promoTitle} onChange={(e) => setPromoTitle(e.target.value)} /></label>
           <label>
-            Promotion type
-            <select>
-              <option>Free Bingo</option>
-              <option>Free Cards</option>
-              <option>Buy 3 Get 1</option>
-              <option>Happy Hour</option>
-              <option>Cashback</option>
-              <option>Tournament Entry</option>
-              <option>VIP Access</option>
-              <option>Deposit Bonus</option>
-              <option>Daily Reward</option>
+            Category
+            <select value={promoCategory} onChange={(e) => setPromoCategory(e.target.value as typeof promoCategory)}>
+              <option value="Ticket deals">Ticket deals</option>
+              <option value="Free cards">Free cards</option>
+              <option value="Deposit bonus">Deposit bonus</option>
+              <option value="Cashback">Cashback</option>
+              <option value="VIP">VIP</option>
+              <option value="Tournaments">Tournaments</option>
             </select>
           </label>
-          <label>Start date<input type="date" defaultValue="2026-08-22" /></label>
-          <label>End date<input type="date" defaultValue="2026-09-22" /></label>
+          <label>Reward value ($)<input type="number" value={promoRewardVal} onChange={(e) => setPromoRewardVal(Number(e.target.value))} /></label>
           <label>
-            Eligible rooms
-            <select><option>All rooms</option><option>Diamond 75</option><option>Turbo 30</option></select>
+            Target Room
+            <select value={promoRoom} onChange={(e) => setPromoRoom(e.target.value)}>
+              {rooms.map((r) => <option key={r.id} value={r.id}>{r.name}</option>)}
+            </select>
           </label>
-          <label>
-            Status
-            <select><option>Active</option><option>Draft</option><option>Paused</option></select>
-          </label>
+        </div>
+        <div className="special-actions" style={{ marginTop: "20px" }}>
+          <button
+            type="button"
+            className="admin-primary"
+            onClick={async () => {
+              await apiClient.promotions.create({
+                title: promoTitle,
+                category: promoCategory,
+                rewardValue: promoRewardVal,
+                roomId: promoRoom,
+                reward: `$${promoRewardVal} bonus`,
+                badge: "NEW",
+                status: "Active",
+                featured: true,
+              });
+              notify(`✓ Promotion "${promoTitle}" created and visible to players!`);
+              close();
+            }}
+          >
+            Create promotion
+          </button>
         </div>
       </div>
     );
@@ -163,30 +188,35 @@ export function DrawerSpecialForm({
         <div className="drawer-form-grid">
           <label>
             Audience
-            <select><option>All players</option><option>Active rooms</option><option>VIP players</option><option>Tournament entrants</option></select>
-          </label>
-          <label>
-            Priority
-            <select><option>Normal</option><option>Important</option><option>Urgent</option></select>
+            <select value={audience} onChange={(e) => setAudience(e.target.value)}>
+              <option value="all">All players</option>
+              <option value="diamond-75">Diamond 75 room</option>
+              <option value="trueig-90">Trueig 90 Classic room</option>
+              <option value="turbo-30">Turbo 30 room</option>
+            </select>
           </label>
           <label className="full">
             Message
-            <textarea defaultValue="Free Bingo starts in 5 minutes. Claim your Trueigtech card now!" />
+            <textarea value={announcementMsg} onChange={(e) => setAnnouncementMsg(e.target.value)} />
           </label>
-          <label>Action label<input defaultValue="Claim free card" /></label>
-          <label>
-            Linked screen
-            <select><option>Free Bingo Party</option><option>Promotions</option><option>Lobby</option></select>
-          </label>
-          <label>Schedule<input type="datetime-local" defaultValue="2026-08-21T18:00" /></label>
         </div>
-        <button
-          type="button"
-          className="full-outline"
-          onClick={() => notify("Test announcement sent to your admin account.")}
-        >
-          Send test notification
-        </button>
+        <div className="special-actions" style={{ marginTop: "20px" }}>
+          <button
+            type="button"
+            className="admin-primary"
+            onClick={async () => {
+              if (audience === "all") {
+                await apiClient.chat.broadcast(announcementMsg);
+              } else {
+                await apiClient.chat.send(audience, announcementMsg, "System", "admin");
+              }
+              notify("✓ Announcement broadcast to all player screens!");
+              close();
+            }}
+          >
+            Broadcast announcement now
+          </button>
+        </div>
       </div>
     );
 
@@ -194,8 +224,29 @@ export function DrawerSpecialForm({
     return (
       <div className="drawer-section">
         <h3>Manual ball call</h3>
-        <label>Ball number<input type="number" min="1" max="75" defaultValue="17" /></label>
-        <p className="form-hint">The number is checked against call history before broadcast.</p>
+        <div className="drawer-form-grid">
+          <label>
+            Room
+            <select value={manualRoom} onChange={(e) => setManualRoom(e.target.value)}>
+              {rooms.map((r) => <option key={r.id} value={r.id}>{r.name}</option>)}
+            </select>
+          </label>
+          <label>Ball number (1-75)<input type="number" min="1" max="75" value={manualBall} onChange={(e) => setManualBall(Number(e.target.value))} /></label>
+        </div>
+        <p className="form-hint">The ball will be drawn immediately and pushed to all player cards.</p>
+        <div className="special-actions" style={{ marginTop: "20px" }}>
+          <button
+            type="button"
+            className="admin-primary"
+            onClick={async () => {
+              await apiClient.game.manualCall(manualRoom, manualBall);
+              notify(`✓ Ball ${manualBall} manually called in ${manualRoom}.`);
+              close();
+            }}
+          >
+            Call ball number
+          </button>
+        </div>
       </div>
     );
 
@@ -204,18 +255,39 @@ export function DrawerSpecialForm({
       <div className="drawer-section">
         <h3>Manual winner declaration</h3>
         <div className="drawer-form-grid">
-          <label>Player<input defaultValue="LuckyStar" /></label>
-          <label>Card ID<input defaultValue="284237" /></label>
+          <label>
+            Room
+            <select value={winRoom} onChange={(e) => setWinRoom(e.target.value)}>
+              {rooms.map((r) => <option key={r.id} value={r.id}>{r.name}</option>)}
+            </select>
+          </label>
+          <label>Player username<input value={winPlayer} onChange={(e) => setWinPlayer(e.target.value)} /></label>
           <label>
             Winning stage
-            <select><option>One Line</option><option>Diamond</option><option>Full House</option></select>
+            <select value={winPattern} onChange={(e) => setWinPattern(e.target.value)}>
+              <option>One Line</option>
+              <option>Diamond</option>
+              <option>Full House</option>
+            </select>
           </label>
-          <label>Prize<input type="number" defaultValue="400" /></label>
-          <label>Winner count<input type="number" defaultValue="1" /></label>
-          <label>
-            Split rule
-            <select><option>Split equally</option><option>Fixed per winner</option></select>
-          </label>
+          <label>Prize ($)<input type="number" value={winPrize} onChange={(e) => setWinPrize(Number(e.target.value))} /></label>
+        </div>
+        <div className="special-actions" style={{ marginTop: "20px" }}>
+          <button
+            type="button"
+            className="admin-primary"
+            onClick={async () => {
+              await apiClient.game.declareWinner(winRoom, {
+                player: winPlayer,
+                prize: winPrize,
+                pattern: winPattern,
+              });
+              notify(`✓ Winner ${winPlayer} declared with $${winPrize} prize!`);
+              close();
+            }}
+          >
+            Declare winner & award prize
+          </button>
         </div>
       </div>
     );
@@ -249,10 +321,6 @@ export function DrawerSpecialForm({
               <option value="all">Update all {rooms.length} rooms immediately</option>
               <option value="non-custom">Update rooms without custom overrides</option>
             </select>
-          </label>
-          <label className="full">
-            Policy Description
-            <textarea defaultValue="Standard network payout policy ensuring positive operator house margin across all active games." />
           </label>
         </div>
 

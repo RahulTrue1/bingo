@@ -8,6 +8,8 @@ import { jackpotsRouter } from "./routes/jackpots.ts";
 import { patternsRouter } from "./routes/patterns.ts";
 import { promotionsRouter } from "./routes/promotions.ts";
 import { roomsRouter } from "./routes/rooms.ts";
+import { settingsRouter } from "./routes/settings.ts";
+import { syncRouter } from "./routes/sync.ts";
 import { ticketsRouter } from "./routes/tickets.ts";
 import { tournamentsRouter } from "./routes/tournaments.ts";
 import { walletRouter } from "./routes/wallet.ts";
@@ -50,6 +52,8 @@ app.use("/api/banners", bannersRouter);
 app.use("/api/chat", chatRouter);
 app.use("/api/patterns", patternsRouter);
 app.use("/api/admin", adminRouter);
+app.use("/api/sync", syncRouter);
+app.use("/api/settings", settingsRouter);
 
 // 404 handler for unmatched routes
 app.use((_req: Request, res: Response) => {

@@ -1,5 +1,6 @@
 import express, { type Request, type Response } from "express";
 import { store } from "../db/store.ts";
+import { syncBus } from "../services/sync-bus.ts";
 import type { Promotion } from "../types.ts";
 
 export const promotionsRouter = express.Router();
@@ -74,6 +75,8 @@ promotionsRouter.post("/", (req: Request, res: Response) => {
   store.addAudit("alert", "Promotion created", `${promo.title} added to catalog`);
   store.save();
 
+  syncBus.emitChange("promotions", "create", promo, promo.id, `Promotion "${promo.title}" created.`);
+
   res.status(201).json({ success: true, promotion: promo });
 });
 
@@ -109,10 +112,13 @@ promotionsRouter.post("/:id/claim", (req: Request, res: Response) => {
       amount: promo.rewardValue,
       status: "Completed",
     });
+    syncBus.emitChange("wallet", "promotion-credit", { wallet: store.wallet, amount: promo.rewardValue });
   }
 
   store.addAudit("player", "Promotion claimed", `${playerName} claimed ${promo.title}`);
   store.save();
+
+  syncBus.emitChange("promotions", "claim", promo, promo.id, `${playerName} claimed ${promo.title}`);
 
   res.json({
     success: true,
@@ -135,6 +141,14 @@ promotionsRouter.put("/:id", (req: Request, res: Response) => {
 
   store.addAudit("alert", "Promotion updated", `${promo.title} status changed to ${promo.status}`);
   store.save();
+
+  syncBus.emitChange(
+    "promotions",
+    "update",
+    promo,
+    promo.id,
+    `Promotion "${promo.title}" updated (${promo.status}).`
+  );
 
   res.json({ success: true, promotion: promo });
 });

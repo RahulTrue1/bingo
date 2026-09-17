@@ -101,34 +101,56 @@ export function PromotionExperience({
   const [rulesPromo, setRulesPromo] = useState<typeof playerPromotions[0] | null>(null);
 
   useEffect(() => {
-    apiClient.promotions
-      .list()
-      .then((list) => {
-        if (list && list.length > 0) {
-          const mapped = list.map((p) => ({
-            code: p.code || p.id,
-            title: p.title,
-            shortTitle: p.shortTitle || p.title,
-            description: p.description,
-            roomId: p.roomId || "free-party",
-            category: (p.category || "All offers") as PromotionCategory,
-            image: p.image || "/promotions/free-bingo-reward.png",
-            accent: p.accent || "cyan",
-            reward: p.reward || (p.rewardValue ? `$${p.rewardValue} bonus` : "Special reward"),
-            ends: p.ends || "Ongoing",
-            featured: Boolean(p.featured),
-          }));
-          setPromotions(mapped);
-        }
-      })
-      .catch(() => {});
+    const refreshPromos = () => {
+      apiClient.promotions
+        .list()
+        .then((list) => {
+          if (list && list.length > 0) {
+            const mapped = list.map((p) => ({
+              code: p.code || p.id,
+              title: p.title,
+              shortTitle: p.shortTitle || p.title,
+              description: p.description,
+              roomId: p.roomId || "free-party",
+              category: (p.category || "All offers") as PromotionCategory,
+              image: p.image || "/promotions/free-bingo-reward.png",
+              accent: p.accent || "cyan",
+              reward: p.reward || (p.rewardValue ? `$${p.rewardValue} bonus` : "Special reward"),
+              ends: p.ends || "Ongoing",
+              featured: Boolean(p.featured),
+            }));
+            setPromotions(mapped);
+          }
+        })
+        .catch(() => {});
+    };
 
-    apiClient.wallet
-      .get()
-      .then((w) => {
-        if (w && typeof w.balance === "number") setWallet(w.balance);
-      })
-      .catch(() => {});
+    const refreshWallet = () => {
+      apiClient.wallet
+        .get()
+        .then((w) => {
+          if (w && typeof w.balance === "number") setWallet(w.balance);
+        })
+        .catch(() => {});
+    };
+
+    refreshPromos();
+    refreshWallet();
+
+    const unsubscribe = apiClient.sync.subscribe((event) => {
+      if (event.entity === "promotions") {
+        refreshPromos();
+      } else if (event.entity === "wallet") {
+        refreshWallet();
+      }
+    });
+
+    const poll = window.setInterval(refreshPromos, 4000);
+
+    return () => {
+      unsubscribe();
+      window.clearInterval(poll);
+    };
   }, []);
 
   const featured = promotions.filter((item) => item.featured);
