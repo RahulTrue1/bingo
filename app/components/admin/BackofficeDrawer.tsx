@@ -509,7 +509,6 @@ export function BackofficeDrawer({
     );
 
   const isRoom = action.kind === "create-room" || action.kind === "edit-room";
-  const isGame = action.kind === "create-game";
 
   return (
     <div className="admin-drawer-backdrop">

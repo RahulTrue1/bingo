@@ -18,23 +18,23 @@
       "frequency": "Every 10 min",
       "cardRows": 3,
       "cardColumns": 9,
-      "callDelay": 1350,
+      "callDelay": 1200,
       "rtp": 80,
       "rtpMode": "dynamic",
       "winningStages": [
         {
           "name": "One Line",
-          "prize": 50,
+          "prize": 8,
           "continueAfterWin": true
         },
         {
           "name": "Two Lines",
-          "prize": 80,
+          "prize": 12,
           "continueAfterWin": true
         },
         {
           "name": "Full House",
-          "prize": 135,
+          "prize": 0,
           "continueAfterWin": false
         }
       ],
@@ -2420,6 +2420,34 @@
   },
   "auditFeed": [
     {
+      "id": "feed-1789663529696",
+      "type": "alert",
+      "title": "Room updated",
+      "detail": "Trueig 910Classic settings modified",
+      "time": "22:15"
+    },
+    {
+      "id": "feed-1789663524292",
+      "type": "alert",
+      "title": "Room updated",
+      "detail": "Trueig 910Classic settings modified",
+      "time": "22:15"
+    },
+    {
+      "id": "feed-1789663390700",
+      "type": "alert",
+      "title": "Room updated",
+      "detail": "Trueig 910Classic settings modified",
+      "time": "22:13"
+    },
+    {
+      "id": "feed-1789663352337",
+      "type": "alert",
+      "title": "Room updated",
+      "detail": "Trueig 910Classic settings modified",
+      "time": "22:12"
+    },
+    {
       "id": "feed-1789663259148",
       "type": "alert",
       "title": "Room deleted",
@@ -2740,34 +2768,6 @@
       "title": "Bingo claim validated",
       "detail": "Trueig 90 Classic · Ari.R won $50 on Full House",
       "time": "00:13"
-    },
-    {
-      "id": "feed-1789584177865",
-      "type": "player",
-      "title": "Tickets purchased",
-      "detail": "3 cards bought for Trueig 90 Classic ($1.50)",
-      "time": "00:12"
-    },
-    {
-      "id": "feed-1789579740486",
-      "type": "alert",
-      "title": "Manual ball call",
-      "detail": "G-51 called manually in diamond-75",
-      "time": "22:59"
-    },
-    {
-      "id": "feed-1789579732438",
-      "type": "alert",
-      "title": "Room updated",
-      "detail": "Trueig 90 Classic settings modified",
-      "time": "22:58"
-    },
-    {
-      "id": "feed-1",
-      "type": "claim",
-      "title": "Bingo claim validated",
-      "detail": "Diamond 75 · Card #284201",
-      "time": "14:32"
     }
   ]
 }
