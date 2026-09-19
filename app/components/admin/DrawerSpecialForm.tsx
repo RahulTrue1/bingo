@@ -59,6 +59,61 @@ export function DrawerSpecialForm({
   const [bannerTheme, setBannerTheme] = useState("tournament");
   const [bannerImage, setBannerImage] = useState("/banners/weekend-cup-jackpot.png");
 
+  // Tournament state
+  const [tourneyName, setTourneyName] = useState("Trueig Premier Cup");
+  const [tourneyFee, setTourneyFee] = useState(10);
+  const [tourneyPrize, setTourneyPrize] = useState(25000);
+  const [tourneyMax, setTourneyMax] = useState(512);
+  const [tourneyStarts, setTourneyStarts] = useState("Tomorrow · 20:00");
+
+  if (kind.includes("tournament"))
+    return (
+      <div className="drawer-section">
+        <h3>{kind === "edit-tournament" ? "Edit tournament" : "Tournament builder"}</h3>
+        <p style={{ fontSize: "12px", color: "var(--muted)", marginBottom: "14px" }}>
+          Configure multi-round progressive tournament rules and prizes.
+        </p>
+        <div className="drawer-form-grid">
+          <label>Tournament name<input value={tourneyName} onChange={(e) => setTourneyName(e.target.value)} /></label>
+          <label>Entry fee ($)<input type="number" step="0.5" value={tourneyFee} onChange={(e) => setTourneyFee(Number(e.target.value))} /></label>
+          <label>Guaranteed prize pool ($)<input type="number" value={tourneyPrize} onChange={(e) => setTourneyPrize(Number(e.target.value))} /></label>
+          <label>Max players capacity<input type="number" value={tourneyMax} onChange={(e) => setTourneyMax(Number(e.target.value))} /></label>
+          <label>Start time<input value={tourneyStarts} onChange={(e) => setTourneyStarts(e.target.value)} /></label>
+        </div>
+        <div className="special-actions" style={{ marginTop: "20px" }}>
+          <button
+            type="button"
+            className="admin-primary"
+            onClick={async () => {
+              if (kind === "edit-tournament") {
+                await apiClient.tournaments.update("weekend-cup", {
+                  name: tourneyName,
+                  entryFee: tourneyFee,
+                  prizePool: tourneyPrize,
+                  maxPlayers: tourneyMax,
+                  startsAt: tourneyStarts,
+                });
+                notify(`✓ Tournament "${tourneyName}" updated and synchronized!`);
+              } else {
+                await apiClient.tournaments.create({
+                  name: tourneyName,
+                  entryFee: tourneyFee,
+                  prizePool: tourneyPrize,
+                  maxPlayers: tourneyMax,
+                  startsAt: tourneyStarts,
+                  description: "Multi-round progressive bingo tournament.",
+                });
+                notify(`✓ Tournament "${tourneyName}" created and opened for player registration!`);
+              }
+              close();
+            }}
+          >
+            {kind === "edit-tournament" ? "Save tournament" : "Create tournament"}
+          </button>
+        </div>
+      </div>
+    );
+
   if (kind === "caller-config")
     return (
       <div className="drawer-section">

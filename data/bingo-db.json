@@ -7,9 +7,9 @@
       "status": "Live",
       "ticketPrice": 1.5,
       "prize": 25,
-      "players": 195,
+      "players": 197,
       "maxPlayers": 300,
-      "cardsSold": 687,
+      "cardsSold": 693,
       "startsIn": "00:46",
       "pattern": "One Line → Two Lines → Full House",
       "accent": "teal",
@@ -338,10 +338,135 @@
       "callDelay": 900,
       "rtp": 80,
       "rtpMode": "fixed"
+    },
+    {
+      "id": "galaxy-75-speed",
+      "name": "Galaxy 75 Speed",
+      "variant": "90-Ball Classic",
+      "status": "Open",
+      "ticketPrice": 0.5,
+      "prize": 274,
+      "players": 0,
+      "maxPlayers": 300,
+      "cardsSold": 0,
+      "startsIn": "15:00",
+      "pattern": "One Line → Two Lines → Full House",
+      "accent": "violet",
+      "tag": "NEW",
+      "frequency": "Every 10 min",
+      "cardRows": 3,
+      "cardColumns": 9,
+      "callDelay": 1200,
+      "cardLimit": 8,
+      "winningStages": [
+        {
+          "name": "One Line",
+          "prize": 50,
+          "continueAfterWin": true
+        },
+        {
+          "name": "Two Lines",
+          "prize": 80,
+          "continueAfterWin": true
+        },
+        {
+          "name": "Full House",
+          "prize": 140,
+          "continueAfterWin": false
+        }
+      ],
+      "rtp": 80,
+      "rtpMode": "dynamic",
+      "customRtp": false
+    },
+    {
+      "id": "trueig-90-copy-7489",
+      "name": "Trueig 910Classic Copy",
+      "variant": "90-Ball Classic",
+      "status": "Open",
+      "ticketPrice": 1.5,
+      "prize": 25,
+      "players": 0,
+      "maxPlayers": 300,
+      "cardsSold": 0,
+      "startsIn": "00:46",
+      "pattern": "One Line → Two Lines → Full House",
+      "accent": "teal",
+      "featured": true,
+      "tag": "CLASSIC",
+      "frequency": "Every 10 min",
+      "cardRows": 3,
+      "cardColumns": 9,
+      "callDelay": 1200,
+      "rtp": 80,
+      "rtpMode": "dynamic",
+      "winningStages": [
+        {
+          "name": "One Line",
+          "prize": 8,
+          "continueAfterWin": true
+        },
+        {
+          "name": "Two Lines",
+          "prize": 12,
+          "continueAfterWin": true
+        },
+        {
+          "name": "Full House",
+          "prize": 0,
+          "continueAfterWin": false
+        }
+      ],
+      "customRtp": true
     }
   ],
-  "wallet": 658,
+  "wallet": 625,
   "transactions": [
+    {
+      "id": "TXN-170368",
+      "timestamp": "13:33:23",
+      "player": "Ari.R",
+      "room": "Trueigtech Weekend Cup",
+      "type": "Ticket purchase",
+      "amount": -8,
+      "status": "Completed"
+    },
+    {
+      "id": "TXN-855053",
+      "timestamp": "12:46:52",
+      "player": "Ari.R",
+      "room": "Trueigtech Weekend Cup",
+      "type": "Ticket purchase",
+      "amount": -8,
+      "status": "Completed"
+    },
+    {
+      "id": "TXN-509959",
+      "timestamp": "12:46:41",
+      "player": "Ari.R",
+      "room": "Trueig 910Classic",
+      "type": "Ticket purchase",
+      "amount": -4.5,
+      "status": "Completed"
+    },
+    {
+      "id": "TXN-709398",
+      "timestamp": "12:35:32",
+      "player": "Ari.R",
+      "room": "Trueigtech Weekend Cup",
+      "type": "Ticket purchase",
+      "amount": -8,
+      "status": "Completed"
+    },
+    {
+      "id": "TXN-976740",
+      "timestamp": "12:35:27",
+      "player": "Ari.R",
+      "room": "Trueig 910Classic",
+      "type": "Ticket purchase",
+      "amount": -4.5,
+      "status": "Completed"
+    },
     {
       "id": "TXN-206420",
       "timestamp": "22:34:42",
@@ -680,9 +805,14 @@
         31,
         18,
         3,
-        32
+        32,
+        60,
+        38,
+        29,
+        52,
+        65
       ],
-      "current": 32,
+      "current": 65,
       "speed": "Fast",
       "paused": false,
       "stageIndex": 2,
@@ -900,6 +1030,720 @@
     }
   },
   "tickets": [
+    {
+      "id": "TCK-161886",
+      "ticketIndex": 2,
+      "roomId": "trueig-90",
+      "userId": "USR-11804",
+      "variant": "90-Ball Classic",
+      "cells": [
+        {
+          "value": 3,
+          "column": "0"
+        },
+        {
+          "value": "FREE",
+          "column": "1"
+        },
+        {
+          "value": 26,
+          "column": "2"
+        },
+        {
+          "value": "FREE",
+          "column": "3"
+        },
+        {
+          "value": 42,
+          "column": "4"
+        },
+        {
+          "value": "FREE",
+          "column": "5"
+        },
+        {
+          "value": 68,
+          "column": "6"
+        },
+        {
+          "value": "FREE",
+          "column": "7"
+        },
+        {
+          "value": 85,
+          "column": "8"
+        },
+        {
+          "value": "FREE",
+          "column": "0"
+        },
+        {
+          "value": 18,
+          "column": "1"
+        },
+        {
+          "value": 21,
+          "column": "2"
+        },
+        {
+          "value": 34,
+          "column": "3"
+        },
+        {
+          "value": "FREE",
+          "column": "4"
+        },
+        {
+          "value": 50,
+          "column": "5"
+        },
+        {
+          "value": "FREE",
+          "column": "6"
+        },
+        {
+          "value": 76,
+          "column": "7"
+        },
+        {
+          "value": "FREE",
+          "column": "8"
+        },
+        {
+          "value": 4,
+          "column": "0"
+        },
+        {
+          "value": 13,
+          "column": "1"
+        },
+        {
+          "value": "FREE",
+          "column": "2"
+        },
+        {
+          "value": "FREE",
+          "column": "3"
+        },
+        {
+          "value": 42,
+          "column": "4"
+        },
+        {
+          "value": "FREE",
+          "column": "5"
+        },
+        {
+          "value": 68,
+          "column": "6"
+        },
+        {
+          "value": "FREE",
+          "column": "7"
+        },
+        {
+          "value": 84,
+          "column": "8"
+        }
+      ],
+      "daubed": [],
+      "purchasedAt": "2026-09-19T07:16:41.394Z"
+    },
+    {
+      "id": "TCK-696184",
+      "ticketIndex": 1,
+      "roomId": "trueig-90",
+      "userId": "USR-11804",
+      "variant": "90-Ball Classic",
+      "cells": [
+        {
+          "value": 2,
+          "column": "0"
+        },
+        {
+          "value": "FREE",
+          "column": "1"
+        },
+        {
+          "value": 25,
+          "column": "2"
+        },
+        {
+          "value": "FREE",
+          "column": "3"
+        },
+        {
+          "value": 41,
+          "column": "4"
+        },
+        {
+          "value": "FREE",
+          "column": "5"
+        },
+        {
+          "value": 67,
+          "column": "6"
+        },
+        {
+          "value": "FREE",
+          "column": "7"
+        },
+        {
+          "value": 82,
+          "column": "8"
+        },
+        {
+          "value": "FREE",
+          "column": "0"
+        },
+        {
+          "value": 17,
+          "column": "1"
+        },
+        {
+          "value": 20,
+          "column": "2"
+        },
+        {
+          "value": 33,
+          "column": "3"
+        },
+        {
+          "value": "FREE",
+          "column": "4"
+        },
+        {
+          "value": 59,
+          "column": "5"
+        },
+        {
+          "value": "FREE",
+          "column": "6"
+        },
+        {
+          "value": 75,
+          "column": "7"
+        },
+        {
+          "value": "FREE",
+          "column": "8"
+        },
+        {
+          "value": 3,
+          "column": "0"
+        },
+        {
+          "value": 12,
+          "column": "1"
+        },
+        {
+          "value": "FREE",
+          "column": "2"
+        },
+        {
+          "value": "FREE",
+          "column": "3"
+        },
+        {
+          "value": 41,
+          "column": "4"
+        },
+        {
+          "value": "FREE",
+          "column": "5"
+        },
+        {
+          "value": 67,
+          "column": "6"
+        },
+        {
+          "value": "FREE",
+          "column": "7"
+        },
+        {
+          "value": 81,
+          "column": "8"
+        }
+      ],
+      "daubed": [],
+      "purchasedAt": "2026-09-19T07:16:41.394Z"
+    },
+    {
+      "id": "TCK-189531",
+      "ticketIndex": 0,
+      "roomId": "trueig-90",
+      "userId": "USR-11804",
+      "variant": "90-Ball Classic",
+      "cells": [
+        {
+          "value": 1,
+          "column": "0"
+        },
+        {
+          "value": "FREE",
+          "column": "1"
+        },
+        {
+          "value": 24,
+          "column": "2"
+        },
+        {
+          "value": "FREE",
+          "column": "3"
+        },
+        {
+          "value": 40,
+          "column": "4"
+        },
+        {
+          "value": "FREE",
+          "column": "5"
+        },
+        {
+          "value": 66,
+          "column": "6"
+        },
+        {
+          "value": "FREE",
+          "column": "7"
+        },
+        {
+          "value": 90,
+          "column": "8"
+        },
+        {
+          "value": "FREE",
+          "column": "0"
+        },
+        {
+          "value": 16,
+          "column": "1"
+        },
+        {
+          "value": 29,
+          "column": "2"
+        },
+        {
+          "value": 32,
+          "column": "3"
+        },
+        {
+          "value": "FREE",
+          "column": "4"
+        },
+        {
+          "value": 58,
+          "column": "5"
+        },
+        {
+          "value": "FREE",
+          "column": "6"
+        },
+        {
+          "value": 74,
+          "column": "7"
+        },
+        {
+          "value": "FREE",
+          "column": "8"
+        },
+        {
+          "value": 2,
+          "column": "0"
+        },
+        {
+          "value": 11,
+          "column": "1"
+        },
+        {
+          "value": "FREE",
+          "column": "2"
+        },
+        {
+          "value": "FREE",
+          "column": "3"
+        },
+        {
+          "value": 40,
+          "column": "4"
+        },
+        {
+          "value": "FREE",
+          "column": "5"
+        },
+        {
+          "value": 66,
+          "column": "6"
+        },
+        {
+          "value": "FREE",
+          "column": "7"
+        },
+        {
+          "value": 89,
+          "column": "8"
+        }
+      ],
+      "daubed": [],
+      "purchasedAt": "2026-09-19T07:16:41.394Z"
+    },
+    {
+      "id": "TCK-987751",
+      "ticketIndex": 2,
+      "roomId": "trueig-90",
+      "userId": "USR-11804",
+      "variant": "90-Ball Classic",
+      "cells": [
+        {
+          "value": 1,
+          "column": "0"
+        },
+        {
+          "value": "FREE",
+          "column": "1"
+        },
+        {
+          "value": 25,
+          "column": "2"
+        },
+        {
+          "value": "FREE",
+          "column": "3"
+        },
+        {
+          "value": 41,
+          "column": "4"
+        },
+        {
+          "value": "FREE",
+          "column": "5"
+        },
+        {
+          "value": 67,
+          "column": "6"
+        },
+        {
+          "value": "FREE",
+          "column": "7"
+        },
+        {
+          "value": 86,
+          "column": "8"
+        },
+        {
+          "value": "FREE",
+          "column": "0"
+        },
+        {
+          "value": 17,
+          "column": "1"
+        },
+        {
+          "value": 20,
+          "column": "2"
+        },
+        {
+          "value": 33,
+          "column": "3"
+        },
+        {
+          "value": "FREE",
+          "column": "4"
+        },
+        {
+          "value": 59,
+          "column": "5"
+        },
+        {
+          "value": "FREE",
+          "column": "6"
+        },
+        {
+          "value": 75,
+          "column": "7"
+        },
+        {
+          "value": "FREE",
+          "column": "8"
+        },
+        {
+          "value": 2,
+          "column": "0"
+        },
+        {
+          "value": 12,
+          "column": "1"
+        },
+        {
+          "value": "FREE",
+          "column": "2"
+        },
+        {
+          "value": "FREE",
+          "column": "3"
+        },
+        {
+          "value": 41,
+          "column": "4"
+        },
+        {
+          "value": "FREE",
+          "column": "5"
+        },
+        {
+          "value": 67,
+          "column": "6"
+        },
+        {
+          "value": "FREE",
+          "column": "7"
+        },
+        {
+          "value": 85,
+          "column": "8"
+        }
+      ],
+      "daubed": [],
+      "purchasedAt": "2026-09-19T07:05:27.421Z"
+    },
+    {
+      "id": "TCK-568466",
+      "ticketIndex": 1,
+      "roomId": "trueig-90",
+      "userId": "USR-11804",
+      "variant": "90-Ball Classic",
+      "cells": [
+        {
+          "value": 9,
+          "column": "0"
+        },
+        {
+          "value": "FREE",
+          "column": "1"
+        },
+        {
+          "value": 24,
+          "column": "2"
+        },
+        {
+          "value": "FREE",
+          "column": "3"
+        },
+        {
+          "value": 40,
+          "column": "4"
+        },
+        {
+          "value": "FREE",
+          "column": "5"
+        },
+        {
+          "value": 66,
+          "column": "6"
+        },
+        {
+          "value": "FREE",
+          "column": "7"
+        },
+        {
+          "value": 83,
+          "column": "8"
+        },
+        {
+          "value": "FREE",
+          "column": "0"
+        },
+        {
+          "value": 16,
+          "column": "1"
+        },
+        {
+          "value": 29,
+          "column": "2"
+        },
+        {
+          "value": 32,
+          "column": "3"
+        },
+        {
+          "value": "FREE",
+          "column": "4"
+        },
+        {
+          "value": 58,
+          "column": "5"
+        },
+        {
+          "value": "FREE",
+          "column": "6"
+        },
+        {
+          "value": 74,
+          "column": "7"
+        },
+        {
+          "value": "FREE",
+          "column": "8"
+        },
+        {
+          "value": 1,
+          "column": "0"
+        },
+        {
+          "value": 11,
+          "column": "1"
+        },
+        {
+          "value": "FREE",
+          "column": "2"
+        },
+        {
+          "value": "FREE",
+          "column": "3"
+        },
+        {
+          "value": 40,
+          "column": "4"
+        },
+        {
+          "value": "FREE",
+          "column": "5"
+        },
+        {
+          "value": 66,
+          "column": "6"
+        },
+        {
+          "value": "FREE",
+          "column": "7"
+        },
+        {
+          "value": 82,
+          "column": "8"
+        }
+      ],
+      "daubed": [],
+      "purchasedAt": "2026-09-19T07:05:27.421Z"
+    },
+    {
+      "id": "TCK-639163",
+      "ticketIndex": 0,
+      "roomId": "trueig-90",
+      "userId": "USR-11804",
+      "variant": "90-Ball Classic",
+      "cells": [
+        {
+          "value": 8,
+          "column": "0"
+        },
+        {
+          "value": "FREE",
+          "column": "1"
+        },
+        {
+          "value": 23,
+          "column": "2"
+        },
+        {
+          "value": "FREE",
+          "column": "3"
+        },
+        {
+          "value": 49,
+          "column": "4"
+        },
+        {
+          "value": "FREE",
+          "column": "5"
+        },
+        {
+          "value": 65,
+          "column": "6"
+        },
+        {
+          "value": "FREE",
+          "column": "7"
+        },
+        {
+          "value": 80,
+          "column": "8"
+        },
+        {
+          "value": "FREE",
+          "column": "0"
+        },
+        {
+          "value": 15,
+          "column": "1"
+        },
+        {
+          "value": 28,
+          "column": "2"
+        },
+        {
+          "value": 31,
+          "column": "3"
+        },
+        {
+          "value": "FREE",
+          "column": "4"
+        },
+        {
+          "value": 57,
+          "column": "5"
+        },
+        {
+          "value": "FREE",
+          "column": "6"
+        },
+        {
+          "value": 73,
+          "column": "7"
+        },
+        {
+          "value": "FREE",
+          "column": "8"
+        },
+        {
+          "value": 9,
+          "column": "0"
+        },
+        {
+          "value": 10,
+          "column": "1"
+        },
+        {
+          "value": "FREE",
+          "column": "2"
+        },
+        {
+          "value": "FREE",
+          "column": "3"
+        },
+        {
+          "value": 49,
+          "column": "4"
+        },
+        {
+          "value": "FREE",
+          "column": "5"
+        },
+        {
+          "value": 65,
+          "column": "6"
+        },
+        {
+          "value": "FREE",
+          "column": "7"
+        },
+        {
+          "value": 90,
+          "column": "8"
+        }
+      ],
+      "daubed": [],
+      "purchasedAt": "2026-09-19T07:05:27.421Z"
+    },
     {
       "id": "TCK-338847",
       "ticketIndex": 0,
@@ -2328,7 +3172,7 @@
       "id": "mega-trueig",
       "name": "Mega Trueig Jackpot",
       "variant": "75-Ball Progressive",
-      "currentAmount": 126480.6,
+      "currentAmount": 127480.6,
       "startingAmount": 50000,
       "maximumAmount": 250000,
       "resetAmount": 50000,
@@ -2341,6 +3185,12 @@
         "diamond-75"
       ],
       "history": [
+        {
+          "type": "Manual adjustment",
+          "amount": 1000,
+          "time": "12:47",
+          "user": "John Dawson"
+        },
         {
           "type": "Manual adjustment",
           "amount": 1000,
@@ -2485,7 +3335,7 @@
       "description": "Five-round progressive elimination tournament.",
       "entryFee": 8,
       "prizePool": 25000,
-      "playersCount": 388,
+      "playersCount": 391,
       "maxPlayers": 512,
       "startsAt": "22 Aug · 20:00",
       "status": "Registration open",
@@ -2509,37 +3359,38 @@
           "player": "LuckyStar",
           "points": 285,
           "wins": 4,
-          "status": "Qualified"
+          "status": "Qualified",
+          "fast": "21 balls"
         },
         {
           "rank": 2,
           "player": "BingoMaster",
           "points": 240,
           "wins": 3,
-          "status": "Qualified"
+          "status": "Qualified",
+          "fast": "24 balls"
         },
         {
           "rank": 3,
           "player": "SpeedySam",
           "points": 215,
           "wins": 2,
-          "status": "Qualified"
+          "status": "Qualified",
+          "fast": "26 balls"
         },
         {
           "rank": 4,
-          "player": "Ari.R",
-          "points": 190,
-          "wins": 2,
-          "status": "Qualified"
-        },
-        {
-          "rank": 5,
           "player": "TrueigQueen",
           "points": 175,
           "wins": 1,
-          "status": "Qualified"
+          "status": "Qualified",
+          "fast": "28 balls"
         }
-      ]
+      ],
+      "currentRoundIndex": 0,
+      "currentStageName": "Qualifiers",
+      "stageStatus": "waiting",
+      "registeredPlayers": []
     }
   ],
   "promotions": [
@@ -2552,7 +3403,9 @@
       "badge": "FREE",
       "rewardType": "free_cards",
       "rewardValue": 1,
-      "claimedBy": [],
+      "claimedBy": [
+        "USR-11804"
+      ],
       "code": "FREE75",
       "image": "/promotions/free-bingo-reward.png",
       "accent": "cyan",
@@ -2776,6 +3629,14 @@
   "chatMessages": {
     "diamond-75": [
       {
+        "id": "msg-1789802234913-zzdv",
+        "roomId": "diamond-75",
+        "user": "Operator",
+        "text": "Official Announcement: Weekend tournament is now open!",
+        "time": "12:47",
+        "role": "admin"
+      },
+      {
         "id": "msg-1789664461611-rsdx",
         "roomId": "diamond-75",
         "user": "Hello",
@@ -2823,6 +3684,16 @@
         "user": "SpeedySam",
         "text": "ready for another one",
         "time": "14:31",
+        "role": "player"
+      }
+    ],
+    "trueig-90": [
+      {
+        "id": "msg-1789802202651-x4rb",
+        "roomId": "trueig-90",
+        "user": "Ari.R",
+        "text": "Winning energy in this room! 🔥",
+        "time": "12:46",
         "role": "player"
       }
     ]
@@ -2986,6 +3857,83 @@
     "updatedBy": "Super Admin"
   },
   "auditFeed": [
+    {
+      "id": "feed-1789805178742",
+      "type": "alert",
+      "title": "Tournament reset",
+      "detail": "Trueigtech Weekend Cup reset to initial registration phase",
+      "time": "13:36"
+    },
+    {
+      "id": "feed-1789805003393",
+      "type": "player",
+      "title": "Tournament registration",
+      "detail": "Ari.R joined Trueigtech Weekend Cup",
+      "time": "13:33"
+    },
+    {
+      "id": "feed-1789804993483",
+      "type": "alert",
+      "title": "Tournament reset",
+      "detail": "Trueigtech Weekend Cup reset to initial registration phase",
+      "time": "13:33"
+    },
+    {
+      "id": "feed-1789802396312",
+      "type": "player",
+      "title": "Promotion claimed",
+      "detail": "Ari.R claimed Free Bingo Party",
+      "time": "12:49"
+    },
+    {
+      "id": "feed-1789802230675",
+      "type": "jackpot",
+      "title": "Jackpot contribution",
+      "detail": "+$1000.00 · Mega Trueig Jackpot",
+      "time": "12:47"
+    },
+    {
+      "id": "feed-1789802228392",
+      "type": "alert",
+      "title": "Manual ball call",
+      "detail": "O-65 called manually in trueig-90",
+      "time": "12:47"
+    },
+    {
+      "id": "feed-1789802226222",
+      "type": "player",
+      "title": "New room created",
+      "detail": "Galaxy 75 Speed (90-Ball Classic) - Ticket: $0.5, Prize: $274",
+      "time": "12:47"
+    },
+    {
+      "id": "feed-1789802212163",
+      "type": "player",
+      "title": "Tournament registration",
+      "detail": "Ari.R joined Trueigtech Weekend Cup",
+      "time": "12:46"
+    },
+    {
+      "id": "feed-1789802201394",
+      "type": "player",
+      "title": "Tickets purchased",
+      "detail": "3 cards bought for Trueig 910Classic ($4.50)",
+      "time": "12:46"
+    },
+    {
+      "id": "feed-1789801532633",
+      "type": "player",
+      "title": "Tournament registration",
+      "detail": "Ari.R joined Trueigtech Weekend Cup",
+      "time": "12:35"
+    },
+    {
+      "id": "feed-1789801527421",
+      "type": "player",
+      "title": "Tickets purchased",
+      "detail": "3 cards bought for Trueig 910Classic ($4.50)",
+      "time": "12:35"
+    },
     {
       "id": "feed-1789664962357",
       "type": "alert",
@@ -3258,83 +4206,6 @@
       "title": "Bingo claim validated",
       "detail": "Trueig 910Classic · Ari.R won $12 on Full House",
       "time": "22:16"
-    },
-    {
-      "id": "feed-1789663601477",
-      "type": "player",
-      "title": "Tickets purchased",
-      "detail": "1 card bought for Trueig 910Classic ($0.50)",
-      "time": "22:16"
-    },
-    {
-      "id": "feed-1789663529696",
-      "type": "alert",
-      "title": "Room updated",
-      "detail": "Trueig 910Classic settings modified",
-      "time": "22:15"
-    },
-    {
-      "id": "feed-1789663524292",
-      "type": "alert",
-      "title": "Room updated",
-      "detail": "Trueig 910Classic settings modified",
-      "time": "22:15"
-    },
-    {
-      "id": "feed-1789663390700",
-      "type": "alert",
-      "title": "Room updated",
-      "detail": "Trueig 910Classic settings modified",
-      "time": "22:13"
-    },
-    {
-      "id": "feed-1789663352337",
-      "type": "alert",
-      "title": "Room updated",
-      "detail": "Trueig 910Classic settings modified",
-      "time": "22:12"
-    },
-    {
-      "id": "feed-1789663259148",
-      "type": "alert",
-      "title": "Room deleted",
-      "detail": "trueig-solar-90",
-      "time": "22:10"
-    },
-    {
-      "id": "feed-1789663240892",
-      "type": "alert",
-      "title": "Room updated",
-      "detail": "Trueig Solar 90 settings modified",
-      "time": "22:10"
-    },
-    {
-      "id": "feed-1789663232364",
-      "type": "player",
-      "title": "New room created",
-      "detail": "Trueig Solar 90 (90-Ball Classic)",
-      "time": "22:10"
-    },
-    {
-      "id": "feed-1789662873555",
-      "type": "alert",
-      "title": "Room updated",
-      "detail": "Turbo 30 settings modified",
-      "time": "22:04"
-    },
-    {
-      "id": "feed-1789662855306",
-      "type": "alert",
-      "title": "Room updated",
-      "detail": "Turbo 30 settings modified",
-      "time": "22:04"
-    },
-    {
-      "id": "feed-1789662840405",
-      "type": "alert",
-      "title": "Room updated",
-      "detail": "Turbo 30 settings modified",
-      "time": "22:04"
     }
   ]
 }

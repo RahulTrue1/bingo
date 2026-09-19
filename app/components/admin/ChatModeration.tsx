@@ -21,12 +21,30 @@ export function ChatModeration({
   const [chatEnabled, setChatEnabled] = useState(true);
   const [adminMessage, setAdminMessage] = useState("");
 
-  useEffect(() => {
+  const [targetAudience, setTargetAudience] = useState("Diamond 75");
+
+  const refreshChat = () => {
     apiClient.chat.get("diamond-75").then((res) => {
       if (res && res.messages && res.messages.length > 0) {
-        setMessages(res.messages.map((m) => [m.time || "14:32", "Diamond 75", m.sender, m.text]));
+        setMessages(res.messages.map((m) => [m.time || "14:32", "Diamond 75", m.user || m.sender, m.text, m.id]));
+        if (Array.isArray(res.mutedUsers)) setMuted(res.mutedUsers);
       }
     }).catch(() => {});
+  };
+
+  useEffect(() => {
+    refreshChat();
+    const unsub = apiClient.sync.subscribe((event) => {
+      if (event.entity === "chat") {
+        if (event.action === "message" && event.data) {
+          const m = event.data as { user: string; text: string; time: string; id?: string };
+          setMessages((prev) => [[m.time || "now", event.roomId || "Diamond 75", m.user, m.text, m.id], ...prev.slice(0, 40)]);
+        } else {
+          refreshChat();
+        }
+      }
+    });
+    return unsub;
   }, []);
 
   return (
@@ -35,7 +53,7 @@ export function ChatModeration({
         <div className="card-title">
           <div>
             <h2>Live room chat</h2>
-            <p>{messages.length} messages visible · 12 flagged today</p>
+            <p>{messages.length} messages visible · {muted.length} muted users</p>
           </div>
           <div className="inline-toggle">
             <span>Room chat</span>
@@ -65,6 +83,8 @@ export function ChatModeration({
             <div>
               <button
                 onClick={() => {
+                  const msgId = message[4];
+                  if (msgId) apiClient.chat.delete("diamond-75", msgId).catch(() => {});
                   setMessages((items) => items.filter((_, itemIndex) => itemIndex !== index));
                   notify("Message deleted and audit log updated.");
                 }}
@@ -94,7 +114,10 @@ export function ChatModeration({
           onChange={(event) => setAdminMessage(event.target.value)}
           placeholder="Type an admin message…"
         />
-        <select>
+        <select
+          value={targetAudience}
+          onChange={(e) => setTargetAudience(e.target.value)}
+        >
           <option>Diamond 75</option>
           <option>All active rooms</option>
         </select>
@@ -102,11 +125,16 @@ export function ChatModeration({
           className="admin-primary"
           onClick={async () => {
             if (!adminMessage.trim()) return;
-            const text = adminMessage;
-            setMessages((items) => [["now", "Diamond 75", "Trueigtech Admin", text], ...items]);
+            const text = adminMessage.trim();
+            setMessages((items) => [["now", targetAudience === "All active rooms" ? "Global" : "Diamond 75", "Operator", text], ...items]);
             setAdminMessage("");
-            await apiClient.chat.send("diamond-75", "Trueigtech Admin", text);
-            notify("Admin message sent.");
+            if (targetAudience === "All active rooms") {
+              await apiClient.chat.broadcast(text, "all");
+              notify("Operator broadcast sent to all rooms.");
+            } else {
+              await apiClient.chat.send("diamond-75", text, "Operator", "admin");
+              notify("Admin message sent to Diamond 75.");
+            }
           }}
         >
           Send admin message
@@ -116,7 +144,7 @@ export function ChatModeration({
         </button>
         <div className="moderation-summary">
           <span><small>MUTED USERS</small><b>{muted.length}</b></span>
-          <span><small>BLOCKED TODAY</small><b>3</b></span>
+          <span><small>ACTIVE ROOMS</small><b>6</b></span>
           <span><small>DELETED</small><b>{initial.length - messages.length}</b></span>
         </div>
       </aside>

@@ -88,11 +88,19 @@ export interface JackpotModel {
 export interface TournamentModel {
   id: string;
   name: string;
+  description?: string;
   prizePool: number;
   entryFee: number;
   maxPlayers: number;
+  playersCount?: number;
   registeredPlayers: string[];
-  rounds: number;
+  rounds: any;
+  currentRoundIndex?: number;
+  currentStageName?: string;
+  stageStatus?: "waiting" | "in_progress" | "scored" | "completed";
+  winner?: string;
+  prizeDistribution?: Record<string, number>;
+  startsAt?: string;
   status: string;
   standings?: Array<{ rank: number; player: string; points: number; wins: number; fast: string; status: string }>;
 }
@@ -455,6 +463,57 @@ export const apiClient = {
           body: JSON.stringify({ playerName }),
         }
       );
+    },
+    async create(data: Partial<TournamentModel>) {
+      return request<{ success: boolean; tournament: TournamentModel }>("/tournaments", {
+        method: "POST",
+        body: JSON.stringify(data),
+      });
+    },
+    async update(id: string, data: Partial<TournamentModel>) {
+      return request<{ success: boolean; tournament: TournamentModel }>(`/tournaments/${id}`, {
+        method: "PUT",
+        body: JSON.stringify(data),
+      });
+    },
+    async get(id: string) {
+      const res = await request<{ success: boolean; tournament: TournamentModel }>(`/tournaments/${id}`);
+      return res?.tournament;
+    },
+    async start(id: string) {
+      return request<{ success: boolean; tournament: TournamentModel }>(`/tournaments/${id}/start`, {
+        method: "POST",
+      });
+    },
+    async scoreStage(id: string, playerScores?: Array<{ player: string; points: number; wins?: number; fast?: string }>) {
+      return request<{ success: boolean; tournament: TournamentModel }>(`/tournaments/${id}/score-stage`, {
+        method: "POST",
+        body: JSON.stringify({ playerScores }),
+      });
+    },
+    async advance(id: string) {
+      return request<{ success: boolean; tournament: TournamentModel }>(`/tournaments/${id}/advance`, {
+        method: "POST",
+      });
+    },
+    async complete(id: string, winnerName?: string) {
+      return request<{ success: boolean; tournament: TournamentModel; champion: string; payout: number; wallet: number }>(
+        `/tournaments/${id}/complete`,
+        {
+          method: "POST",
+          body: JSON.stringify({ winnerName }),
+        }
+      );
+    },
+    async reset(id: string) {
+      return request<{ success: boolean; tournament: TournamentModel }>(`/tournaments/${id}/reset`, {
+        method: "POST",
+      });
+    },
+    async delete(id: string) {
+      return request<{ success: boolean; message: string }>(`/tournaments/${id}`, {
+        method: "DELETE",
+      });
     },
   },
 

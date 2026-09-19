@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { apiClient } from "../../api-client";
+import { useCallback, useEffect, useState } from "react";
+import { apiClient, type JackpotModel } from "../../api-client";
 import { money, type AdminAction } from "../shared/types";
 
 export function JackpotManagement({
@@ -9,30 +9,68 @@ export function JackpotManagement({
   notify: (message: string) => void;
   openAction: (action: AdminAction) => void;
 }) {
-  const [jackpot, setJackpot] = useState(125480.6);
+  const [jackpots, setJackpots] = useState<JackpotModel[]>([]);
+  const [selectedId, setSelectedId] = useState<string>("mega-trueig");
   const [enabled, setEnabled] = useState(true);
 
-  useEffect(() => {
+  const refreshJackpots = useCallback(() => {
     apiClient.jackpots.list().then((list) => {
       if (list && list.length > 0) {
-        const found = list.find((j) => j.id === "mega-trueig");
-        if (found) setJackpot(found.currentAmount);
+        setJackpots(list);
       }
     }).catch(() => {});
   }, []);
 
+  useEffect(() => {
+    refreshJackpots();
+    const unsub = apiClient.sync.subscribe((event) => {
+      if (event.entity === "jackpots") {
+        refreshJackpots();
+      }
+    });
+    return unsub;
+  }, [refreshJackpots]);
+
+  const active = jackpots.find((j) => j.id === selectedId) || jackpots[0] || {
+    id: "mega-trueig",
+    name: "Mega Trueig Jackpot",
+    variant: "75-Ball Progressive",
+    currentAmount: 125480.6,
+    startingAmount: 50000,
+    contributionPercent: 2.5,
+    maximumAmount: 250000,
+    resetAmount: 50000,
+    qualifyingPattern: "Full House in 42 balls",
+    qualifyingBallLimit: 42,
+  };
+
+  const liabilityPct = Math.min(100, Math.round(((active.currentAmount) / (active.maximumAmount || 250000)) * 1000) / 10);
+
   return (
     <>
       <div className="jackpot-admin-hero">
-        <div>
-          <span className="section-kicker">PRIMARY PROGRESSIVE</span>
-          <h2>Mega Trueig Jackpot</h2>
-          <p>JP-MEGA-001 · 75-Ball Progressive</p>
+        <div style={{ flex: 1 }}>
+          <div style={{ display: "flex", gap: "12px", alignItems: "center", marginBottom: "8px" }}>
+            <span className="section-kicker">PROGRESSIVE JACKPOT</span>
+            {jackpots.length > 1 && (
+              <select
+                value={selectedId}
+                onChange={(e) => setSelectedId(e.target.value)}
+                style={{ background: "rgba(255,255,255,0.08)", color: "#fff", border: "1px solid rgba(255,255,255,0.15)", borderRadius: "6px", padding: "4px 8px" }}
+              >
+                {jackpots.map((j) => (
+                  <option key={j.id} value={j.id}>{j.name}</option>
+                ))}
+              </select>
+            )}
+          </div>
+          <h2>{active.name}</h2>
+          <p>{active.id.toUpperCase()} · {active.variant || "75-Ball Progressive"}</p>
         </div>
         <div>
           <small>CURRENT JACKPOT</small>
-          <strong>{money(jackpot)}</strong>
-          <span>+$842.30 today</span>
+          <strong>{money(active.currentAmount)}</strong>
+          <span>+${((active.contributionPercent || 2.5) * 34).toFixed(2)} today</span>
         </div>
         <div className="jackpot-hero-actions">
           <button
@@ -43,10 +81,10 @@ export function JackpotManagement({
           </button>
           <span>{enabled ? "Enabled" : "Disabled"}</span>
           <button
-            onClick={() => {
-              apiClient.jackpots.contribute("mega-trueig", 1000);
-              setJackpot(jackpot + 1000);
-              notify("Manual $1,000 contribution recorded.");
+            onClick={async () => {
+              await apiClient.jackpots.contribute(active.id, 1000);
+              refreshJackpots();
+              notify(`✓ Manual $1,000 contribution added to ${active.name}!`);
             }}
           >
             + Add contribution

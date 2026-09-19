@@ -134,6 +134,12 @@ export interface Tournament {
   startsAt: string;
   status: "Registration open" | "Live" | "Completed";
   rounds: string[];
+  registeredPlayers?: string[];
+  currentRoundIndex?: number;
+  currentStageName?: string;
+  stageStatus?: "waiting" | "in_progress" | "scored" | "completed";
+  winner?: string;
+  prizeDistribution?: Record<string, number>;
   scoringRules: Record<string, string>;
   standings: Array<{
     rank: number;
@@ -141,6 +147,7 @@ export interface Tournament {
     points: number;
     wins: number;
     status: string;
+    fast?: string;
   }>;
 }
 

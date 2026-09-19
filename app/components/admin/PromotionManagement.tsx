@@ -1,6 +1,16 @@
-import { useState } from "react";
-import { apiClient } from "../../api-client";
+import { useCallback, useEffect, useState } from "react";
+import { apiClient, type PromotionModel } from "../../api-client";
 import type { AdminAction } from "../shared/types";
+
+const defaultPromos = [
+  { id: "free-bingo", title: "Free Bingo", description: "Hourly free 75-ball card", status: "Active", code: "FREE75" },
+  { id: "buy-3-get-1", title: "Buy 3 Get 1", description: "Fourth eligible card free", status: "Active", code: "BUY3" },
+  { id: "happy-hour", title: "Happy Hour", description: "50% ticket discount · 18:00–19:00", status: "Scheduled", code: "HAPPY" },
+  { id: "cashback", title: "Cashback", description: "10% Bingo cashback", status: "Active", code: "CASH" },
+  { id: "tournament-entry", title: "Tournament Entry", description: "Weekend Cup ticket reward", status: "Draft", code: "CUP" },
+  { id: "vip-access", title: "VIP Access", description: "Unlock VIP Gold Room", status: "Active", code: "VIP" },
+  { id: "daily-reward", title: "Daily Reward", description: "One card after first login", status: "Paused", code: "DAILY" },
+];
 
 export function PromotionManagement({
   notify,
@@ -9,40 +19,61 @@ export function PromotionManagement({
   notify: (message: string) => void;
   openAction: (action: AdminAction) => void;
 }) {
-  const promotions = [
-    ["Free Bingo", "Hourly free 75-ball card", "Active", "FREE75"],
-    ["Buy 3 Get 1", "Fourth eligible card free", "Active", "BUY3"],
-    ["Happy Hour", "50% ticket discount · 18:00–19:00", "Scheduled", "HAPPY"],
-    ["Cashback", "10% Bingo cashback", "Active", "CASH"],
-    ["Tournament Entry", "Weekend Cup ticket reward", "Draft", "CUP"],
-    ["VIP Access", "Unlock VIP Gold Room", "Active", "VIP"],
-    ["Daily Reward", "One card after first login", "Paused", "DAILY"],
-  ];
-  const [states, setStates] = useState<Record<string, string>>(
-    Object.fromEntries(promotions.map((item) => [item[0], item[2]])),
-  );
+  const [promotions, setPromotions] = useState<Array<{ id: string; title: string; description: string; status: string; code: string }>>(defaultPromos);
+
+  const refreshPromos = useCallback(() => {
+    apiClient.promotions.list().then((list) => {
+      if (list && list.length > 0) {
+        setPromotions(
+          list.map((p) => ({
+            id: p.id,
+            title: p.title,
+            description: p.description || "Promotional reward",
+            status: p.status || "Active",
+            code: p.code || p.id,
+          }))
+        );
+      }
+    }).catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    refreshPromos();
+    const unsub = apiClient.sync.subscribe((event) => {
+      if (event.entity === "promotions") {
+        refreshPromos();
+      }
+    });
+    return unsub;
+  }, [refreshPromos]);
+
+  const toggleStatus = async (promo: { id: string; title: string; status: string; code: string }) => {
+    const next = promo.status === "Active" ? "Paused" : "Active";
+    setPromotions((prev) =>
+      prev.map((item) => (item.id === promo.id ? { ...item, status: next } : item))
+    );
+    try {
+      await apiClient.promotions.update(promo.id, { status: next });
+      notify(`✓ Promotion "${promo.title}" is now ${next.toLowerCase()}.`);
+    } catch {
+      notify(`Failed to update ${promo.title}.`);
+    }
+  };
 
   return (
     <div className="promotion-admin-grid">
       {promotions.map((promo, index) => (
-        <article className="admin-card promotion-admin-card" key={promo[0]}>
-          <span className={`promotion-icon promo-${index}`}>{index % 2 ? "%" : "★"}</span>
-          <span className={`table-status ${states[promo[0]] === "Active" ? "success" : "warning"}`}>
-            {states[promo[0]]}
+        <article className="admin-card promotion-admin-card" key={promo.id}>
+          <span className={`promotion-icon promo-${index % 6}`}>{index % 2 ? "%" : "★"}</span>
+          <span className={`table-status ${promo.status === "Active" ? "success" : "warning"}`}>
+            {promo.status}
           </span>
-          <h2>{promo[0]}</h2>
-          <p>{promo[1]}</p>
+          <h2>{promo.title}</h2>
+          <p>{promo.description}</p>
           <div>
-            <button onClick={() => openAction({ kind: "promotion", label: promo[0] })}>Edit</button>
-            <button
-              onClick={() => {
-                const next = states[promo[0]] === "Active" ? "Paused" : "Active";
-                setStates((items) => ({ ...items, [promo[0]]: next }));
-                apiClient.promotions.update(promo[3] || promo[0], { status: next }).catch(() => {});
-                notify(`${promo[0]} ${next.toLowerCase()}.`);
-              }}
-            >
-              {states[promo[0]] === "Active" ? "Pause" : "Activate"}
+            <button onClick={() => openAction({ kind: "promotion", label: promo.title })}>Edit</button>
+            <button onClick={() => toggleStatus(promo)}>
+              {promo.status === "Active" ? "Pause" : "Activate"}
             </button>
           </div>
         </article>
@@ -50,3 +81,4 @@ export function PromotionManagement({
     </div>
   );
 }
+

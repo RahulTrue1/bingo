@@ -397,7 +397,7 @@ export function GameRoom({
           <span className={`mini-orb accent-${room.accent}`}>{ballCount}</span>
           <div>
             <h1>{room.name}</h1>
-            <p>{room.variant} · Game TRUEIG-{2842 + patternRound}</p>
+            <p>{room.id === "tournament" ? `🏆 Tournament Stage: ${room.round || "Qualifiers"}` : `${room.variant} · Game TRUEIG-${2842 + patternRound}`}</p>
           </div>
           <StatusPill status={phase === "live" ? "Live" : phase === "selling" ? "Selling Tickets" : "Starting Soon"} />
         </div>

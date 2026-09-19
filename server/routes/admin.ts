@@ -64,6 +64,8 @@ adminRouter.get("/players", (req: Request, res: Response) => {
 
   const mapped = result.map((p) => ({
     ...p,
+    balance: p.username === "Ari.R" ? store.wallet : p.balance,
+    cardsPurchased: p.username === "Ari.R" ? Math.max(p.cardsPurchased || 0, store.tickets.length) : p.cardsPurchased,
     totalEntry: (p as unknown as { totalEntry?: number }).totalEntry ?? Math.round((p.cardsPurchased || 0) * 1.5),
     winnings: (p as unknown as { winnings?: number }).winnings ?? p.totalPrizes ?? 0,
   }));
@@ -104,14 +106,31 @@ adminRouter.post("/players/:id/action", (req: Request, res: Response) => {
 
 // GET /api/admin/live-control - Live games for live control deck
 adminRouter.get("/live-control", (_req: Request, res: Response) => {
-  const liveGames = [
-    { id: "TRUEIG-2842", name: "Diamond 75", controller: "Nora Tran", state: "live", ball: 28, players: 300, cardsSold: 934, revenue: "$1,868", prize: "$2,000", stage: "One Line" },
-    { id: "TRUEIG-3011", name: "Turbo 30", controller: "Evan Wu", state: "paused", ball: 11, players: 184, cardsSold: 412, revenue: "$680", prize: "$300", stage: "Final Line" },
-    { id: "TRUEIG-3197", name: "Quick 80", controller: "Mika K", state: "live", ball: 52, players: 136, cardsSold: 310, revenue: "$750", prize: "$750", stage: "Four Corners" },
-  ];
+  const controllers = ["Nora Tran", "Evan Wu", "Mika K", "Alex Rivera", "Sam Chen"];
+  const liveGames = store.rooms.map((room, idx) => {
+    const session = store.gameSessions[room.id];
+    const ball = session?.current ?? (session?.called && session.called.length > 0 ? session.called[session.called.length - 1] : (idx === 0 ? 28 : idx === 1 ? 11 : 52));
+    const isPaused = session?.paused ?? (idx === 1);
+    const state = isPaused ? "paused" : (room.status.toLowerCase() === "live" ? "live" : "live");
+    const stage = room.winningStages?.[session?.stageIndex ?? 0]?.name || room.pattern;
+    return {
+      id: `TRUEIG-${2842 + idx * 169}`,
+      roomId: room.id,
+      name: room.name,
+      controller: controllers[idx % controllers.length],
+      state,
+      ball: ball ?? 1,
+      players: room.players || 100,
+      cardsSold: room.cardsSold || 250,
+      revenue: `$${Math.round((room.cardsSold || 250) * room.ticketPrice).toLocaleString()}`,
+      prize: `$${room.prize.toLocaleString()}`,
+      stage,
+    };
+  });
 
   res.json({
     success: true,
     liveGames,
   });
 });
+

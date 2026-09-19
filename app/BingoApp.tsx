@@ -55,6 +55,10 @@ export default function Home({ initialMode = "player" }: { initialMode?: AppMode
         if (event.message && mode === "player") notify(event.message);
       } else if (event.entity === "wallet") {
         refreshWallet();
+      } else if (event.entity === "tournaments" || event.entity === "tournament") {
+        refreshWallet();
+        refreshRooms();
+        if (event.message && mode === "player") notify(event.message);
       } else if (event.entity === "announcement" || (event.entity === "chat" && event.action === "broadcast")) {
         const msg = event.message || (event.data as { text?: string })?.text;
         if (msg) notify(`📢 ${msg}`);

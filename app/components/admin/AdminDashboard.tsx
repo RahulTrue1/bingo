@@ -7,10 +7,24 @@ import { DashboardInfo } from "./DashboardInfo";
 export function AdminDashboard({ openAction }: { openAction: (action: AdminAction) => void }) {
   const [dashboardData, setDashboardData] = useState<DashboardResponse | null>(null);
 
-  useEffect(() => {
+  const refreshDashboard = () => {
     apiClient.admin.dashboard().then((res) => {
       if (res?.success) setDashboardData(res);
     }).catch(() => {});
+  };
+
+  useEffect(() => {
+    refreshDashboard();
+    const unsub = apiClient.sync.subscribe((event) => {
+      if (event.entity === "rooms" || event.entity === "wallet" || event.entity === "game" || event.entity === "jackpots" || event.entity === "all") {
+        refreshDashboard();
+      }
+    });
+    const interval = setInterval(refreshDashboard, 5000);
+    return () => {
+      unsub();
+      clearInterval(interval);
+    };
   }, []);
 
   const metrics = dashboardData?.metrics

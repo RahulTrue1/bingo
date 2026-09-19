@@ -1,7 +1,27 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { apiClient } from "../../api-client";
 import { BingoEngine } from "../../bingo-core";
 import type { AdminAction } from "../shared/types";
+
+interface LiveGameEntry {
+  id: string;
+  roomId?: string;
+  name: string;
+  controller: string;
+  state: string;
+  ball: number;
+  players: number;
+  cardsSold: number;
+  revenue: string;
+  prize: string;
+  stage: string;
+}
+
+const defaultLiveGames: LiveGameEntry[] = [
+  { id: "TRUEIG-2842", roomId: "diamond-75", name: "Diamond 75", controller: "Nora Tran", state: "live", ball: 28, players: 300, cardsSold: 934, revenue: "$1,868", prize: "$2,000", stage: "One Line" },
+  { id: "TRUEIG-3011", roomId: "turbo-30", name: "Turbo 30", controller: "Evan Wu", state: "paused", ball: 11, players: 184, cardsSold: 412, revenue: "$680", prize: "$300", stage: "Final Line" },
+  { id: "TRUEIG-3197", roomId: "quick-80", name: "Quick 80", controller: "Mika K", state: "live", ball: 52, players: 136, cardsSold: 310, revenue: "$750", prize: "$750", stage: "Four Corners" },
+];
 
 export function LiveControl({
   notify,
@@ -11,23 +31,40 @@ export function LiveControl({
   openAction: (action: AdminAction) => void;
 }) {
   // Backoffice Live game control liveGames state
-  const liveGames = [
-    { id: "TRUEIG-2842", name: "Diamond 75", controller: "Nora Tran", state: "live", ball: 28, players: 300, cardsSold: 934, revenue: "$1,868", prize: "$2,000", stage: "One Line" },
-    { id: "TRUEIG-3011", name: "Turbo 30", controller: "Evan Wu", state: "paused", ball: 11, players: 184, cardsSold: 412, revenue: "$680", prize: "$300", stage: "Final Line" },
-    { id: "TRUEIG-3197", name: "Quick 80", controller: "Mika K", state: "live", ball: 52, players: 136, cardsSold: 310, revenue: "$750", prize: "$750", stage: "Four Corners" },
-  ];
-  const [selectedGameId, setSelectedGameId] = useState(liveGames[0].id);
-  const selectedGame = liveGames.find((game) => game.id === selectedGameId) ?? liveGames[0];
+  const [liveGames, setLiveGames] = useState<LiveGameEntry[]>(defaultLiveGames);
+  const [selectedGameId, setSelectedGameId] = useState(defaultLiveGames[0].id);
+
+  const refreshLiveGames = () => {
+    apiClient.admin.liveControl().then((res) => {
+      if (res?.success && Array.isArray(res.liveGames) && res.liveGames.length > 0) {
+        setLiveGames(res.liveGames as unknown as LiveGameEntry[]);
+      }
+    }).catch(() => {});
+  };
+
+  useEffect(() => {
+    refreshLiveGames();
+    const unsub = apiClient.sync.subscribe((event) => {
+      if (event.entity === "game" || event.entity === "rooms") {
+        refreshLiveGames();
+      }
+    });
+    return unsub;
+  }, []);
+
+  const selectedGame = liveGames.find((game) => game.id === selectedGameId) ?? liveGames[0] ?? defaultLiveGames[0];
   const [state, setState] = useState<"live" | "paused" | "stopped" | "cancelled">(selectedGame.state as "live" | "paused" | "stopped" | "cancelled");
   const [ball, setBall] = useState(selectedGame.ball);
   const [speed, setSpeed] = useState("Fast · 1.2 sec");
   const [claim, setClaim] = useState<"pending" | "approved" | "rejected">("pending");
 
-  const targetRoomId = selectedGame.name.toLowerCase().includes("turbo")
-    ? "turbo-30"
-    : selectedGame.name.toLowerCase().includes("quick")
-    ? "quick-80"
-    : "diamond-75";
+  const targetRoomId = selectedGame.roomId || (
+    selectedGame.name.toLowerCase().includes("turbo")
+      ? "turbo-30"
+      : selectedGame.name.toLowerCase().includes("quick")
+      ? "quick-80"
+      : "diamond-75"
+  );
 
   const nextBall = () => {
     const next = BingoEngine.nextNumber(Array.from({ length: ball }, (_, index) => index + 1)) ?? ball;

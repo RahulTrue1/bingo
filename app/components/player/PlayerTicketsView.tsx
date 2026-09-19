@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { apiClient, type BingoCardModel } from "../../api-client";
 import type { BingoRoomData } from "../../bingo-core";
 
@@ -11,7 +11,7 @@ export function PlayerTicketsView({
 }) {
   const [tickets, setTickets] = useState<BingoCardModel[]>([]);
 
-  useEffect(() => {
+  const refreshTickets = useCallback(() => {
     apiClient.tickets
       .list()
       .then((list) => {
@@ -19,6 +19,16 @@ export function PlayerTicketsView({
       })
       .catch(() => {});
   }, []);
+
+  useEffect(() => {
+    refreshTickets();
+    const unsub = apiClient.sync.subscribe((event) => {
+      if (event.entity === "tickets" || event.entity === "wallet") {
+        refreshTickets();
+      }
+    });
+    return unsub;
+  }, [refreshTickets]);
 
   return (
     <div className="simple-player-page">

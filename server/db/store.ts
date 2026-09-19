@@ -413,12 +413,12 @@ const defaultTournaments: Tournament[] = [
       "Fast Bingo bonus": "+15 pts",
       "Round winner": "+40 pts",
     },
+    registeredPlayers: [],
     standings: [
       { rank: 1, player: "LuckyStar", points: 285, wins: 4, status: "Qualified" },
       { rank: 2, player: "BingoMaster", points: 240, wins: 3, status: "Qualified" },
       { rank: 3, player: "SpeedySam", points: 215, wins: 2, status: "Qualified" },
-      { rank: 4, player: "Ari.R", points: 190, wins: 2, status: "Qualified" },
-      { rank: 5, player: "TrueigQueen", points: 175, wins: 1, status: "Qualified" },
+      { rank: 4, player: "TrueigQueen", points: 175, wins: 1, status: "Qualified" },
     ],
   },
 ];
