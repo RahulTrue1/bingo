@@ -859,6 +859,128 @@ curl -s -X POST http://localhost:4000/api/tournaments/weekend-cup/register \
 
 ---
 
+### `POST /api/tournaments/:id/schedule`
+Schedule tournament countdown to start automatically without human intervention.
+
+- **Method**: `POST`
+- **Request Body**:
+```json
+{
+  "delaySeconds": 30,
+  "cancel": false
+}
+```
+
+**cURL**:
+```bash
+curl -s -X POST http://localhost:4000/api/tournaments/weekend-cup/schedule \
+  -H "Content-Type: application/json" \
+  -d '{"delaySeconds": 30}'
+```
+
+---
+
+### `POST /api/tournaments/:id/auto-config`
+Configure hands-free automated stage progression engine and round speed.
+
+- **Method**: `POST`
+- **Request Body**:
+```json
+{
+  "autoMode": true,
+  "roundDuration": 15
+}
+```
+
+**cURL**:
+```bash
+curl -s -X POST http://localhost:4000/api/tournaments/weekend-cup/auto-config \
+  -H "Content-Type: application/json" \
+  -d '{"autoMode": true, "roundDuration": 15}'
+```
+
+---
+
+### `POST /api/tournaments/:id/start`
+Launch tournament into Stage 1 (Qualifiers).
+
+- **Method**: `POST`
+
+**cURL**:
+```bash
+curl -s -X POST http://localhost:4000/api/tournaments/weekend-cup/start
+```
+
+---
+
+### `POST /api/tournaments/:id/score-stage`
+Score active round and evaluate cut line (`Qualified` vs `Eliminated`).
+
+- **Method**: `POST`
+
+**cURL**:
+```bash
+curl -s -X POST http://localhost:4000/api/tournaments/weekend-cup/score-stage
+```
+
+---
+
+### `POST /api/tournaments/:id/advance`
+Advance tournament to the next stage round.
+
+- **Method**: `POST`
+
+**cURL**:
+```bash
+curl -s -X POST http://localhost:4000/api/tournaments/weekend-cup/advance
+```
+
+---
+
+### `POST /api/tournaments/:id/complete`
+Finalize tournament, crown champion, and award $15,000 prize directly to winner's wallet.
+
+- **Method**: `POST`
+- **Request Body**:
+```json
+{
+  "winnerName": "Ari.R"
+}
+```
+
+**cURL**:
+```bash
+curl -s -X POST http://localhost:4000/api/tournaments/weekend-cup/complete \
+  -H "Content-Type: application/json" \
+  -d '{"winnerName": "Ari.R"}'
+```
+
+---
+
+### `POST /api/tournaments/:id/reset`
+Reset tournament back to registration phase for replayability.
+
+- **Method**: `POST`
+
+**cURL**:
+```bash
+curl -s -X POST http://localhost:4000/api/tournaments/weekend-cup/reset
+```
+
+---
+
+### `GET /api/tournaments/:id/engine`
+Get current auto-progression engine state and remaining round seconds.
+
+- **Method**: `GET`
+
+**cURL**:
+```bash
+curl -s http://localhost:4000/api/tournaments/weekend-cup/engine
+```
+
+---
+
 ## 8. Promotions & Rewards (`/api/promotions`)
 
 ### `GET /api/promotions`

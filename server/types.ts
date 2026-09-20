@@ -49,6 +49,7 @@ export interface PlayerTicket {
   ticketIndex: number;
   roomId: string;
   userId: string;
+  player?: string;
   variant: string;
   cells: BingoCardCell[];
   daubed: number[];
@@ -123,6 +124,15 @@ export interface Jackpot {
   }>;
 }
 
+export interface TournamentEngineConfig {
+  autoMode: boolean;
+  roundDuration: number;
+  stageSecondsRemaining: number;
+  scheduledStartSeconds: number | null;
+  startsAtText?: string;
+  isPaused?: boolean;
+}
+
 export interface Tournament {
   id: string;
   name: string;
@@ -141,6 +151,7 @@ export interface Tournament {
   winner?: string;
   prizeDistribution?: Record<string, number>;
   scoringRules: Record<string, string>;
+  engine?: TournamentEngineConfig;
   standings: Array<{
     rank: number;
     player: string;
@@ -209,6 +220,10 @@ export interface SavedPattern {
 export interface PlayerProfile {
   id: string;
   username: string;
+  password?: string;
+  email?: string;
+  displayName?: string;
+  joinedDate?: string;
   tier: "Standard" | "VIP" | "Restricted";
   balance: number;
   gamesPlayed: number;
@@ -237,5 +252,13 @@ export interface PlatformSettings {
   currencySymbol: string;
   updatedAt: string;
   updatedBy: string;
+}
+
+export interface UserSession {
+  token: string;
+  username: string;
+  userId: string;
+  createdAt: string;
+  lastSeen: string;
 }
 

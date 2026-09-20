@@ -1,3 +1,4 @@
+import type { PlayerModel } from "../../api-client";
 import { Logo } from "../shared/Logo";
 import { money, type PlayerView } from "../shared/types";
 
@@ -5,13 +6,20 @@ export function PlayerHeader({
   view,
   setView,
   wallet,
+  currentUser,
   onAddFunds,
+  onOpenAuth,
+  openAuthModal,
 }: {
   view: PlayerView;
   setView: (view: PlayerView) => void;
   wallet: number;
+  currentUser?: PlayerModel | null;
   onAddFunds?: () => void;
+  onOpenAuth?: (tab?: "login" | "signup") => void;
+  openAuthModal?: (tab?: "login" | "signup") => void;
 }) {
+  const handleOpenAuth = onOpenAuth || openAuthModal;
   const links: Array<[PlayerView, string]> = [
     ["lobby", "Lobby"],
     ["tickets", "Tickets"],
@@ -44,11 +52,20 @@ export function PlayerHeader({
           <button aria-label="Add funds" onClick={onAddFunds}>+</button>
         </div>
         <button
+          className="user-auth-button"
+          onClick={() => handleOpenAuth ? handleOpenAuth("login") : setView("profile")}
+          title="Switch User or Log In"
+        >
+          <span>👤</span>
+          <b>{currentUser?.username || "Sign In"}</b>
+        </button>
+        <button
           className="avatar-button"
           aria-label="Open profile"
           onClick={() => setView("profile")}
+          title={currentUser ? `${currentUser.username} (${currentUser.tier})` : "Profile"}
         >
-          <span>AR</span>
+          <span>{(currentUser?.username || "AR").slice(0, 2).toUpperCase()}</span>
           <i />
         </button>
       </div>

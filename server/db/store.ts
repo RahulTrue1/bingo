@@ -14,6 +14,7 @@ import type {
   SavedPattern,
   Tournament,
   Transaction,
+  UserSession,
 } from "../types.ts";
 
 const DATA_DIR = resolve(process.cwd(), "data");
@@ -42,6 +43,7 @@ export interface DatabaseSchema {
     detail: string;
     time: string;
   }>;
+  sessions?: Record<string, UserSession>;
 }
 
 const defaultRooms: BingoRoomData[] = [
@@ -398,7 +400,7 @@ const defaultTournaments: Tournament[] = [
   {
     id: "weekend-cup",
     name: "Trueigtech Weekend Cup",
-    description: "Five-round progressive elimination tournament.",
+    description: "Five-round progressive elimination tournament with $25,000 guaranteed prize.",
     entryFee: 8.0,
     prizePool: 25000,
     playersCount: 384,
@@ -406,6 +408,9 @@ const defaultTournaments: Tournament[] = [
     startsAt: "22 Aug · 20:00",
     status: "Registration open",
     rounds: ["Qualifiers", "Round of 256", "Round of 128", "Semi Final", "Grand Final"],
+    currentRoundIndex: 0,
+    currentStageName: "Qualifiers",
+    stageStatus: "waiting",
     scoringRules: {
       "Line win": "10 pts",
       "Pattern win": "25 pts",
@@ -415,10 +420,66 @@ const defaultTournaments: Tournament[] = [
     },
     registeredPlayers: [],
     standings: [
-      { rank: 1, player: "LuckyStar", points: 285, wins: 4, status: "Qualified" },
-      { rank: 2, player: "BingoMaster", points: 240, wins: 3, status: "Qualified" },
-      { rank: 3, player: "SpeedySam", points: 215, wins: 2, status: "Qualified" },
-      { rank: 4, player: "TrueigQueen", points: 175, wins: 1, status: "Qualified" },
+      { rank: 1, player: "LuckyStar", points: 0, wins: 0, status: "In play" },
+      { rank: 2, player: "BingoMaster", points: 0, wins: 0, status: "In play" },
+      { rank: 3, player: "SpeedySam", points: 0, wins: 0, status: "In play" },
+      { rank: 4, player: "TrueigQueen", points: 0, wins: 0, status: "In play" },
+    ],
+  },
+  {
+    id: "daily-masters",
+    name: "Daily High Roller Masters",
+    description: "Elite 4-round high stakes showdown with $50,000 prize pool.",
+    entryFee: 25.0,
+    prizePool: 50000,
+    playersCount: 192,
+    maxPlayers: 256,
+    startsAt: "Daily · 21:00",
+    status: "Registration open",
+    rounds: ["Open Heat", "Quarterfinal", "Semifinal", "Grand Final"],
+    currentRoundIndex: 0,
+    currentStageName: "Open Heat",
+    stageStatus: "waiting",
+    scoringRules: {
+      "Line win": "15 pts",
+      "Pattern win": "35 pts",
+      "Full house": "75 pts",
+      "Fast Bingo bonus": "+25 pts",
+      "Round winner": "+50 pts",
+    },
+    registeredPlayers: [],
+    standings: [
+      { rank: 1, player: "TrueigQueen", points: 0, wins: 0, status: "In play" },
+      { rank: 2, player: "BallisticB", points: 0, wins: 0, status: "In play" },
+      { rank: 3, player: "MikaK", points: 0, wins: 0, status: "In play" },
+      { rank: 4, player: "LuckyStar", points: 0, wins: 0, status: "In play" },
+    ],
+  },
+  {
+    id: "speed-sprint",
+    name: "Turbo 30 Speed Sprint",
+    description: "Fast-paced 3-round blitz tournament with instant progression.",
+    entryFee: 5.0,
+    prizePool: 10000,
+    playersCount: 96,
+    maxPlayers: 128,
+    startsAt: "Every 2 Hours",
+    status: "Registration open",
+    rounds: ["Sprint Qualifiers", "Semi-Sprint", "Speed Final"],
+    currentRoundIndex: 0,
+    currentStageName: "Sprint Qualifiers",
+    stageStatus: "waiting",
+    scoringRules: {
+      "Single Line": "10 pts",
+      "Two Lines": "25 pts",
+      "Full House": "50 pts",
+      "Fastest Bingo": "+20 pts",
+    },
+    registeredPlayers: [],
+    standings: [
+      { rank: 1, player: "SpeedySam", points: 0, wins: 0, status: "In play" },
+      { rank: 2, player: "SkyJump", points: 0, wins: 0, status: "In play" },
+      { rank: 3, player: "BingoMaster", points: 0, wins: 0, status: "In play" },
     ],
   },
 ];
@@ -872,6 +933,15 @@ class Store {
           }
         }
 
+        // Ensure tournaments have all default entries
+        const loadedTournaments: Tournament[] = parsed.tournaments?.length ? parsed.tournaments : [...defaultTournaments];
+        for (const defT of defaultTournaments) {
+          const existing = loadedTournaments.find((t) => t.id === defT.id);
+          if (!existing) {
+            loadedTournaments.push(defT);
+          }
+        }
+
         // Merge with defaults to ensure all keys exist
         return {
           rooms: parsed.rooms?.length ? parsed.rooms : defaultRooms,
@@ -881,7 +951,7 @@ class Store {
           tickets: parsed.tickets || [],
           claims: parsed.claims || [],
           jackpots: loadedJackpots,
-          tournaments: parsed.tournaments || defaultTournaments,
+          tournaments: loadedTournaments,
           promotions: loadedPromotions,
           banners: parsed.banners?.length ? parsed.banners : [...defaultBanners],
           chatMessages: parsed.chatMessages || defaultChat,
@@ -890,6 +960,7 @@ class Store {
           players: parsed.players || defaultPlayers,
           settings: parsed.settings ? { ...defaultSettings, ...parsed.settings } : { ...defaultSettings },
           auditFeed: parsed.auditFeed || defaultAuditFeed,
+          sessions: parsed.sessions || {},
         };
       }
     } catch (err) {
@@ -913,6 +984,7 @@ class Store {
       players: [...defaultPlayers],
       settings: { ...defaultSettings },
       auditFeed: [...defaultAuditFeed],
+      sessions: {},
     };
   }
 
@@ -1036,6 +1108,87 @@ class Store {
       this.data.auditFeed.pop();
     }
     this.save();
+  }
+
+  // Multi-user session management
+  public activeUsername: string = "Ari.R";
+
+  get sessions(): Record<string, UserSession> {
+    if (!this.data.sessions) {
+      this.data.sessions = {};
+    }
+    return this.data.sessions;
+  }
+
+  public createSession(username: string, userId: string): UserSession {
+    if (!this.data.sessions) {
+      this.data.sessions = {};
+    }
+    const token = `tig_sess_${Math.random().toString(36).substring(2, 10)}_${Date.now()}`;
+    const now = new Date().toISOString();
+    const session: UserSession = {
+      token,
+      username,
+      userId,
+      createdAt: now,
+      lastSeen: now,
+    };
+    this.data.sessions[token] = session;
+    this.save();
+    return session;
+  }
+
+  public getSession(token?: string): UserSession | undefined {
+    if (!token || !this.data.sessions) return undefined;
+    return this.data.sessions[token];
+  }
+
+  public deleteSession(token?: string): void {
+    if (token && this.data.sessions && this.data.sessions[token]) {
+      delete this.data.sessions[token];
+      this.save();
+    }
+  }
+
+  public resolveUser(req: any): PlayerProfile | undefined {
+    if (!req) return undefined;
+
+    // 1. Session token from x-session-token header, Authorization Bearer, or query
+    const authHeader = typeof req.headers?.authorization === "string" ? req.headers.authorization : "";
+    const bearerToken = authHeader.startsWith("Bearer ") ? authHeader.substring(7).trim() : null;
+    const sessionToken = (
+      req.headers?.["x-session-token"] ||
+      bearerToken ||
+      req.query?.sessionToken
+    ) as string | undefined;
+
+    if (sessionToken && this.data.sessions?.[sessionToken]) {
+      const session = this.data.sessions[sessionToken];
+      session.lastSeen = new Date().toISOString();
+      const matched = this.players.find(
+        (p) =>
+          p.username.toLowerCase() === session.username.toLowerCase() ||
+          p.id.toLowerCase() === session.userId.toLowerCase()
+      );
+      if (matched) return matched;
+    }
+
+    // 2. Explicit username from x-player-username header or query
+    const explicitUser = (
+      req.headers?.["x-player-username"] ||
+      req.query?.username ||
+      req.query?.player
+    ) as string | undefined;
+
+    if (explicitUser && typeof explicitUser === "string" && explicitUser.trim()) {
+      const clean = explicitUser.trim().toLowerCase();
+      const matched = this.players.find(
+        (p) => p.username.toLowerCase() === clean || p.id.toLowerCase() === clean
+      );
+      if (matched) return matched;
+    }
+
+    return undefined;
   }
 }
 

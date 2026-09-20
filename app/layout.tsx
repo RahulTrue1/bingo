@@ -37,5 +37,41 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  return <html lang="en"><body>{children}</body></html>;
+  return (
+    <html lang="en">
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+(function() {
+  function suppressExtensionErrors(e) {
+    try {
+      var reason = e && (e.reason || e.error || e.message || "");
+      var msg = String(reason && reason.message ? reason.message : reason);
+      var stack = String((reason && reason.stack) || (e && e.error && e.error.stack) || (e && e.filename) || "");
+      if (
+        msg.indexOf("M_ID") !== -1 ||
+        stack.indexOf("chrome-extension://") !== -1 ||
+        stack.indexOf("eppiocemhmnlbhjplcgkofciiegomcon") !== -1 ||
+        stack.indexOf("executors/200.js") !== -1 ||
+        stack.indexOf("moz-extension://") !== -1 ||
+        stack.indexOf("safari-extension://") !== -1
+      ) {
+        if (typeof e.preventDefault === "function") e.preventDefault();
+        if (typeof e.stopImmediatePropagation === "function") e.stopImmediatePropagation();
+        return true;
+      }
+    } catch (_) {}
+  }
+  window.addEventListener("unhandledrejection", suppressExtensionErrors, true);
+  window.addEventListener("error", suppressExtensionErrors, true);
+})();
+`,
+          }}
+        />
+      </head>
+      <body>{children}</body>
+    </html>
+  );
 }
+

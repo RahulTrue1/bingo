@@ -12,6 +12,14 @@ export function TournamentAdmin({
   const [tournaments, setTournaments] = useState<TournamentModel[]>([]);
   const [selectedId, setSelectedId] = useState<string>("weekend-cup");
   const [loadingAction, setLoadingAction] = useState(false);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [newTourneyName, setNewTourneyName] = useState("");
+  const [newTourneyFee, setNewTourneyFee] = useState(10);
+  const [newTourneyPrize, setNewTourneyPrize] = useState(15000);
+  const [newTourneyMaxPlayers, setNewTourneyMaxPlayers] = useState(256);
+  const [newTourneyStages, setNewTourneyStages] = useState(4);
+  const [newTourneyStartsAt, setNewTourneyStartsAt] = useState("Tonight · 20:00");
+  const [newTourneyDesc, setNewTourneyDesc] = useState("Multi-round progressive elimination tournament.");
 
   const refreshTournaments = useCallback(() => {
     apiClient.tournaments.list().then((list) => {
@@ -127,8 +135,142 @@ export function TournamentAdmin({
     }
   };
 
+  const handleToggleAutoMode = async () => {
+    setLoadingAction(true);
+    try {
+      const newMode = active.engine ? !active.engine.autoMode : false;
+      await apiClient.tournaments.setAutoConfig(active.id, { autoMode: newMode });
+      refreshTournaments();
+      notify(`⚡ Auto-Progression Engine is now ${newMode ? "ACTIVE (Hands-Free)" : "PAUSED (Manual Controls)"}`);
+    } catch {
+      notify("Failed to update auto-engine setting.");
+    } finally {
+      setLoadingAction(false);
+    }
+  };
+
+  const handleSetRoundDuration = async (seconds: number) => {
+    try {
+      await apiClient.tournaments.setAutoConfig(active.id, { roundDuration: seconds });
+      refreshTournaments();
+      notify(`⏱ Round duration set to ${seconds}s per stage.`);
+    } catch {
+      notify("Failed to update round duration.");
+    }
+  };
+
+  const handleScheduleStart = async (seconds: number) => {
+    setLoadingAction(true);
+    try {
+      await apiClient.tournaments.schedule(active.id, seconds);
+      refreshTournaments();
+      notify(`⏳ Tournament scheduled! Countdown active: starting in ${seconds}s.`);
+    } catch {
+      notify("Failed to schedule tournament.");
+    } finally {
+      setLoadingAction(false);
+    }
+  };
+
+  const handleCancelSchedule = async () => {
+    setLoadingAction(true);
+    try {
+      await apiClient.tournaments.schedule(active.id, 0, true);
+      refreshTournaments();
+      notify("Tournament start countdown cancelled.");
+    } catch {
+      notify("Failed to cancel schedule.");
+    } finally {
+      setLoadingAction(false);
+    }
+  };
+
+  const handleCreateTournament = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newTourneyName.trim()) {
+      notify("Please provide a tournament name.");
+      return;
+    }
+    setLoadingAction(true);
+    try {
+      let stagesList = ["Qualifiers", "Round of 128", "Semi Final", "Grand Final"];
+      if (newTourneyStages === 3) {
+        stagesList = ["Sprint Qualifiers", "Eliminator", "Grand Championship"];
+      } else if (newTourneyStages === 5) {
+        stagesList = ["Open Qualifiers", "Round of 256", "Round of 128", "Semi Final", "Grand Final"];
+      }
+
+      const id = newTourneyName.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+      const res = await apiClient.tournaments.create({
+        id,
+        name: newTourneyName.trim(),
+        description: newTourneyDesc.trim(),
+        entryFee: Number(newTourneyFee),
+        prizePool: Number(newTourneyPrize),
+        maxPlayers: Number(newTourneyMaxPlayers),
+        startsAt: newTourneyStartsAt,
+        status: "Registration open",
+        rounds: stagesList,
+      });
+
+      if (res && res.success) {
+        setShowCreateModal(false);
+        setNewTourneyName("");
+        refreshTournaments();
+        setSelectedId(res.tournament.id);
+        notify(`✓ Tournament "${res.tournament.name}" created successfully!`);
+      } else {
+        notify("Failed to create tournament.");
+      }
+    } catch {
+      notify("Failed to create tournament.");
+    } finally {
+      setLoadingAction(false);
+    }
+  };
+
+  const handleDeleteTournament = async (id: string, name: string) => {
+    if (!window.confirm(`Are you sure you want to delete tournament "${name}"?`)) return;
+    setLoadingAction(true);
+    try {
+      await apiClient.tournaments.delete(id);
+      refreshTournaments();
+      notify(`✓ Tournament "${name}" deleted.`);
+    } catch {
+      notify("Failed to delete tournament.");
+    } finally {
+      setLoadingAction(false);
+    }
+  };
+
   return (
     <div className="tournament-admin-grid">
+      {/* Multi-Tournament Switcher Tabs */}
+      <div style={{ gridColumn: "1 / -1", marginBottom: "8px" }}>
+        <div className="admin-tourney-tabs">
+          {tournaments.map((t) => (
+            <button
+              key={t.id}
+              type="button"
+              className={`admin-tourney-tab ${t.id === active.id ? "active" : ""}`}
+              onClick={() => setSelectedId(t.id)}
+            >
+              <span>{t.name}</span>
+              <span className="tab-badge">
+                ${Number(t.prizePool).toLocaleString()} · {t.status}
+              </span>
+            </button>
+          ))}
+          <button
+            type="button"
+            className="admin-create-tourney-btn"
+            onClick={() => setShowCreateModal(true)}
+          >
+            + Create New Tournament
+          </button>
+        </div>
+      </div>
+
       <section className="admin-card tournament-admin-feature">
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: "10px" }}>
           <div>
@@ -138,17 +280,31 @@ export function TournamentAdmin({
             <h2>{active.name}</h2>
             <p>ID: {active.id} · {roundsList.length}-round progressive elimination · {currentStageName}</p>
           </div>
-          {tournaments.length > 1 && (
-            <select
-              value={selectedId}
-              onChange={(e) => setSelectedId(e.target.value)}
-              style={{ background: "rgba(255,255,255,0.08)", color: "#fff", border: "1px solid rgba(255,255,255,0.15)", borderRadius: "8px", padding: "6px 12px" }}
-            >
-              {tournaments.map((t) => (
-                <option key={t.id} value={t.id}>{t.name}</option>
-              ))}
-            </select>
-          )}
+          <div style={{ display: "flex", gap: "8px", alignItems: "center", flexWrap: "wrap" }}>
+            {tournaments.length > 1 && (
+              <>
+                <select
+                  value={selectedId}
+                  onChange={(e) => setSelectedId(e.target.value)}
+                  style={{ background: "rgba(255,255,255,0.08)", color: "#fff", border: "1px solid rgba(255,255,255,0.15)", borderRadius: "8px", padding: "6px 12px" }}
+                >
+                  {tournaments.map((t) => (
+                    <option key={t.id} value={t.id}>{t.name}</option>
+                  ))}
+                </select>
+                <button
+                  type="button"
+                  className="outline-button"
+                  onClick={() => handleDeleteTournament(active.id, active.name)}
+                  disabled={loadingAction}
+                  style={{ fontSize: "11px", color: "#d13b33", borderColor: "#fca5a5" }}
+                  title="Delete this tournament"
+                >
+                  🗑 Delete
+                </button>
+              </>
+            )}
+          </div>
         </div>
 
         <div className="tournament-admin-stats">
@@ -188,19 +344,115 @@ export function TournamentAdmin({
                   <b>{item}</b>
                   <small>
                     {isCurrent
-                      ? "LIVE NOW"
+                      ? (active.stageStatus === "scored" ? "🏁 Scored" : "LIVE NOW")
                       : isPassed
                         ? "Completed"
                         : index === 0
-                          ? `${active.maxPlayers || 512} players`
-                          : index === roundsList.length - 1
-                            ? "Champion"
-                            : "Top 50% advance"}
+                          ? "512 → 256"
+                          : index === 1
+                            ? "256 → 128"
+                            : index === 2
+                              ? "128 → 16"
+                              : index === 3
+                                ? "16 → 8"
+                                : "1 Champion"}
                   </small>
                 </span>
               </div>
             );
           })}
+        </div>
+
+        {/* Automated Progression Engine Toolbar */}
+        <div className="tournament-engine-toolbar">
+          <div style={{ display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap" }}>
+            <span className={`engine-badge ${
+              active.status === "Live" && active.engine?.autoMode ? "active" :
+              active.engine?.scheduledStartSeconds ? "countdown" : "idle"
+            }`}>
+              {active.status === "Live" && active.engine?.autoMode
+                ? `⚡ Auto-Engine Active · Stage cut in ${active.engine.stageSecondsRemaining ?? 15}s`
+                : active.engine?.scheduledStartSeconds
+                  ? `⏳ Auto-Start Countdown: ${active.engine.scheduledStartSeconds}s`
+                  : "⚡ Auto-Engine Ready"}
+            </span>
+
+            <button
+              type="button"
+              className={active.engine?.autoMode ? "admin-primary" : "outline-button"}
+              onClick={handleToggleAutoMode}
+              disabled={loadingAction}
+              style={{ fontSize: "12px", padding: "6px 12px" }}
+            >
+              {active.engine?.autoMode ? "⚡ Auto-Run: ON" : "⏸ Auto-Run: OFF"}
+            </button>
+
+            <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+              <label style={{ fontSize: "11px", fontWeight: 700, color: "var(--muted)", textTransform: "uppercase" }}>
+                Round Speed:
+              </label>
+              <select
+                value={active.engine?.roundDuration || 15}
+                onChange={(e) => handleSetRoundDuration(Number(e.target.value))}
+                style={{
+                  background: "#fff",
+                  border: "1px solid #dcdfe6",
+                  borderRadius: "6px",
+                  padding: "5px 10px",
+                  fontSize: "12px",
+                  fontWeight: 600,
+                  color: "#1e202c",
+                  cursor: "pointer",
+                }}
+              >
+                <option value={10}>10s (Fast Demo)</option>
+                <option value={15}>15s (Default)</option>
+                <option value={30}>30s (Medium)</option>
+                <option value={60}>60s (Standard)</option>
+              </select>
+            </div>
+          </div>
+
+          {/* Schedule Launch Buttons */}
+          {active.status === "Registration open" && (
+            <div style={{ display: "flex", alignItems: "center", gap: "6px", flexWrap: "wrap" }}>
+              <span style={{ fontSize: "11px", fontWeight: 700, color: "var(--muted)", textTransform: "uppercase" }}>
+                Schedule Auto-Start:
+              </span>
+              {active.engine?.scheduledStartSeconds ? (
+                <button
+                  type="button"
+                  className="outline-button"
+                  onClick={handleCancelSchedule}
+                  disabled={loadingAction}
+                  style={{ fontSize: "11px", padding: "5px 10px", color: "#d13b33", borderColor: "#fca5a5" }}
+                >
+                  ✕ Cancel Timer ({active.engine.scheduledStartSeconds}s)
+                </button>
+              ) : (
+                <>
+                  <button
+                    type="button"
+                    className="outline-button"
+                    onClick={() => handleScheduleStart(30)}
+                    disabled={loadingAction}
+                    style={{ fontSize: "11px", padding: "5px 10px" }}
+                  >
+                    ⏱ In 30s
+                  </button>
+                  <button
+                    type="button"
+                    className="outline-button"
+                    onClick={() => handleScheduleStart(60)}
+                    disabled={loadingAction}
+                    style={{ fontSize: "11px", padding: "5px 10px" }}
+                  >
+                    ⏱ In 1m
+                  </button>
+                </>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Stage Control Operator Actions */}
@@ -326,6 +578,9 @@ export function TournamentAdmin({
                       <span className={`table-status ${
                         s.status === "Champion" ? "success" : s.status === "Qualified" ? "success" : s.status === "Eliminated" ? "danger" : "warning"
                       }`}>
+                        {s.status === "Champion" && "🏆 "}
+                        {s.status === "Qualified" && "✓ "}
+                        {s.status === "Eliminated" && "✗ "}
                         {s.status}
                       </span>
                     </td>
@@ -371,10 +626,134 @@ export function TournamentAdmin({
             </div>
           ))}
         </div>
-        <button className="full-outline" onClick={() => openAction({ kind: "create-tournament" })}>
+        <button className="full-outline" onClick={() => setShowCreateModal(true)}>
           + Create tournament
         </button>
       </aside>
+
+      {showCreateModal && (
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.7)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000, padding: "20px" }}>
+          <div style={{ background: "#fff", color: "#1e202c", borderRadius: "14px", maxWidth: "540px", width: "100%", padding: "28px", boxShadow: "0 20px 40px rgba(0,0,0,0.3)", position: "relative" }}>
+            <button
+              type="button"
+              onClick={() => setShowCreateModal(false)}
+              style={{ position: "absolute", top: "18px", right: "18px", background: "none", border: "none", fontSize: "20px", cursor: "pointer", color: "#666" }}
+            >
+              ✕
+            </button>
+            <h2 style={{ margin: "0 0 6px 0", fontSize: "20px", fontWeight: 800 }}>Create New Tournament</h2>
+            <p style={{ margin: "0 0 20px 0", fontSize: "13px", color: "#6b7280" }}>
+              Configure tournament parameters, prize pool, stage tiers, and start schedule.
+            </p>
+            <form onSubmit={handleCreateTournament} style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
+              <div>
+                <label style={{ display: "block", fontSize: "12px", fontWeight: 700, marginBottom: "4px", color: "#374151" }}>Tournament Name</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. Sunday High Roller Championship"
+                  value={newTourneyName}
+                  onChange={(e) => setNewTourneyName(e.target.value)}
+                  style={{ width: "100%", padding: "8px 12px", borderRadius: "6px", border: "1px solid #d1d5db", fontSize: "13px" }}
+                />
+              </div>
+
+              <div>
+                <label style={{ display: "block", fontSize: "12px", fontWeight: 700, marginBottom: "4px", color: "#374151" }}>Description</label>
+                <input
+                  type="text"
+                  value={newTourneyDesc}
+                  onChange={(e) => setNewTourneyDesc(e.target.value)}
+                  style={{ width: "100%", padding: "8px 12px", borderRadius: "6px", border: "1px solid #d1d5db", fontSize: "13px" }}
+                />
+              </div>
+
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+                <div>
+                  <label style={{ display: "block", fontSize: "12px", fontWeight: 700, marginBottom: "4px", color: "#374151" }}>Entry Fee ($)</label>
+                  <input
+                    type="number"
+                    min="0"
+                    step="1"
+                    required
+                    value={newTourneyFee}
+                    onChange={(e) => setNewTourneyFee(Number(e.target.value))}
+                    style={{ width: "100%", padding: "8px 12px", borderRadius: "6px", border: "1px solid #d1d5db", fontSize: "13px" }}
+                  />
+                </div>
+                <div>
+                  <label style={{ display: "block", fontSize: "12px", fontWeight: 700, marginBottom: "4px", color: "#374151" }}>Prize Pool ($)</label>
+                  <input
+                    type="number"
+                    min="1"
+                    step="100"
+                    required
+                    value={newTourneyPrize}
+                    onChange={(e) => setNewTourneyPrize(Number(e.target.value))}
+                    style={{ width: "100%", padding: "8px 12px", borderRadius: "6px", border: "1px solid #d1d5db", fontSize: "13px" }}
+                  />
+                </div>
+              </div>
+
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+                <div>
+                  <label style={{ display: "block", fontSize: "12px", fontWeight: 700, marginBottom: "4px", color: "#374151" }}>Max Contenders</label>
+                  <input
+                    type="number"
+                    min="10"
+                    step="10"
+                    required
+                    value={newTourneyMaxPlayers}
+                    onChange={(e) => setNewTourneyMaxPlayers(Number(e.target.value))}
+                    style={{ width: "100%", padding: "8px 12px", borderRadius: "6px", border: "1px solid #d1d5db", fontSize: "13px" }}
+                  />
+                </div>
+                <div>
+                  <label style={{ display: "block", fontSize: "12px", fontWeight: 700, marginBottom: "4px", color: "#374151" }}>Number of Stages</label>
+                  <select
+                    value={newTourneyStages}
+                    onChange={(e) => setNewTourneyStages(Number(e.target.value))}
+                    style={{ width: "100%", padding: "8px 12px", borderRadius: "6px", border: "1px solid #d1d5db", fontSize: "13px" }}
+                  >
+                    <option value={3}>3 Stages (Sprint / Blitz)</option>
+                    <option value={4}>4 Stages (Masters / Standard)</option>
+                    <option value={5}>5 Stages (Grand Championship)</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label style={{ display: "block", fontSize: "12px", fontWeight: 700, marginBottom: "4px", color: "#374151" }}>Start Schedule Text</label>
+                <input
+                  type="text"
+                  value={newTourneyStartsAt}
+                  onChange={(e) => setNewTourneyStartsAt(e.target.value)}
+                  style={{ width: "100%", padding: "8px 12px", borderRadius: "6px", border: "1px solid #d1d5db", fontSize: "13px" }}
+                />
+              </div>
+
+              <div style={{ display: "flex", justifyContent: "flex-end", gap: "10px", marginTop: "10px" }}>
+                <button
+                  type="button"
+                  className="outline-button"
+                  onClick={() => setShowCreateModal(false)}
+                  style={{ padding: "8px 16px" }}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="admin-primary"
+                  disabled={loadingAction}
+                  style={{ padding: "8px 18px", fontWeight: 800 }}
+                >
+                  {loadingAction ? "Creating..." : "Create Tournament"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

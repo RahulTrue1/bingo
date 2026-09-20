@@ -1,5 +1,5 @@
-import { FormEvent, useState } from "react";
-import { apiClient } from "../../api-client";
+import { FormEvent, useEffect, useState } from "react";
+import { apiClient, type PlayerModel } from "../../api-client";
 import { BingoRoomData, BingoStatus, RTPEngine, RtpMode } from "../../bingo-core";
 import type { AdminAction } from "../shared/types";
 import { DrawerSpecialForm } from "./DrawerSpecialForm";
@@ -13,6 +13,240 @@ export function DrawerHeader({ title, close }: { title: string; close: () => voi
         <p>Changes update the connected demo state immediately.</p>
       </div>
       <button onClick={close}>×</button>
+    </div>
+  );
+}
+
+function AdminPlayerDrawer({
+  action,
+  title,
+  close,
+  notify,
+}: {
+  action: AdminAction;
+  title: string;
+  close: () => void;
+  notify: (message: string) => void;
+}) {
+  const [player, setPlayer] = useState<PlayerModel | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [addAmount, setAddAmount] = useState<string>("50");
+  const [reason, setReason] = useState<string>("Operator deposit to play game");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [statusMessage, setStatusMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    apiClient.admin
+      .players()
+      .then((list) => {
+        if (cancelled) return;
+        const target = action.label ?? "";
+        const found = list.find(
+          (p) =>
+            p.id?.toLowerCase() === target.toLowerCase() ||
+            p.username?.toLowerCase() === target.toLowerCase()
+        );
+        if (found) {
+          setPlayer(found);
+        } else {
+          setPlayer({
+            id: "USR-" + Math.floor(10000 + Math.random() * 90000),
+            username: target || "Ari.R",
+            tier: "Standard",
+            balance: 248.5,
+            status: "Active",
+            gamesPlayed: 128,
+            totalEntry: 2180,
+            winnings: 2840,
+          });
+        }
+        setLoading(false);
+      })
+      .catch(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [action.label]);
+
+  const handleAddFunds = async (customAmount?: number) => {
+    const val = customAmount ?? parseFloat(addAmount);
+    if (isNaN(val) || val <= 0) {
+      notify("Please enter a valid amount greater than 0.");
+      return;
+    }
+    const playerId = player?.id || player?.username || action.label || "Ari.R";
+    setIsSubmitting(true);
+    setStatusMessage(null);
+    try {
+      const res = await apiClient.admin.addPlayerFunds(playerId, val, reason);
+      if (res && res.success) {
+        setPlayer(res.player);
+        setStatusMessage(`+$${val.toFixed(2)} added! New balance: $${Number(res.wallet ?? res.player.balance).toFixed(2)}`);
+        notify(`+$${val.toFixed(2)} credited to ${res.player.username}'s wallet.`);
+      }
+    } catch (err: any) {
+      notify(err?.message || "Failed to add funds.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleAction = async (item: string) => {
+    const target = player?.id || action.label || "Ari.R";
+    try {
+      const res = await apiClient.admin.playerAction(target, item);
+      if (res?.player) {
+        setPlayer(res.player);
+      }
+      notify(`${item} action applied to ${player?.username ?? action.label}.`);
+    } catch {
+      notify(`${item} action applied to ${action.label}.`);
+    }
+  };
+
+  const username = player?.username ?? action.label ?? "Ari.R";
+  const initials = username.slice(0, 2).toUpperCase();
+  const balance = Number(player?.balance ?? 248.5).toFixed(2);
+  const tier = player?.tier ?? "Standard";
+  const status = player?.status ?? "Active";
+  const id = player?.id ?? "USR-11804";
+  const gamesPlayed = player?.gamesPlayed ?? 128;
+  const winnings = Number(player?.winnings ?? 2840).toLocaleString();
+  const totalEntry = Number(player?.totalEntry ?? 2180).toLocaleString();
+
+  return (
+    <div className="admin-drawer-backdrop">
+      <aside className="admin-drawer wide">
+        <DrawerHeader title={title} close={close} />
+        <div className="drawer-body">
+          <div className="player-profile-head">
+            <span>{initials}</span>
+            <div>
+              <h2>{username}</h2>
+              <p>
+                {id} · {status} · {tier} tier {player?.email ? `· ${player.email}` : ""}
+              </p>
+            </div>
+            <b>
+              ${balance}
+              <small>BALANCE</small>
+            </b>
+          </div>
+
+          <div className="operator-wallet-box">
+            <h3>💰 Operator Wallet Management</h3>
+            <p>Directly credit playing funds or bonus amounts to player's wallet in real-time.</p>
+            <div className="operator-preset-grid">
+              {[25, 50, 100, 200, 500].map((amt) => (
+                <button
+                  key={amt}
+                  type="button"
+                  className="operator-preset-btn"
+                  onClick={() => {
+                    setAddAmount(String(amt));
+                    handleAddFunds(amt);
+                  }}
+                  disabled={isSubmitting}
+                >
+                  +${amt}
+                </button>
+              ))}
+            </div>
+            <div className="operator-wallet-row">
+              <input
+                type="number"
+                min="1"
+                step="1"
+                placeholder="Amount"
+                value={addAmount}
+                onChange={(e) => setAddAmount(e.target.value)}
+                disabled={isSubmitting}
+              />
+              <select
+                value={reason}
+                onChange={(e) => setReason(e.target.value)}
+                disabled={isSubmitting}
+              >
+                <option value="Operator deposit to play game">Operator deposit to play game</option>
+                <option value="Welcome / Onboarding bonus">Welcome / Onboarding bonus</option>
+                <option value="Tournament entry credit">Tournament entry credit</option>
+                <option value="Customer support goodwill">Customer support goodwill</option>
+                <option value="VIP High Roller boost">VIP High Roller boost</option>
+              </select>
+              <button
+                type="button"
+                onClick={() => handleAddFunds()}
+                disabled={isSubmitting || !addAmount || Number(addAmount) <= 0}
+              >
+                {isSubmitting ? "Crediting..." : "+ Add to Player Wallet"}
+              </button>
+            </div>
+            {statusMessage && (
+              <div className="operator-wallet-success">
+                ✓ {statusMessage}
+              </div>
+            )}
+          </div>
+
+          <div className="player-profile-stats">
+            {[
+              ["Games played", String(gamesPlayed)],
+              ["Cards purchased", String(gamesPlayed * 3)],
+              ["Total entry", `$${totalEntry}`],
+              ["Total prizes / Winnings", `$${winnings}`],
+              ["Account status", status],
+              ["Tier", tier],
+            ].map((item) => (
+              <span key={item[0]}>
+                <small>{item[0]}</small>
+                <b>{item[1]}</b>
+              </span>
+            ))}
+          </div>
+
+          <div className="player-action-grid">
+            {[
+              status === "Active" ? "Block" : "Activate / Unblock",
+              status === "Suspended" ? "Activate / Unblock" : "Suspend",
+              "Restrict Bingo",
+              "Add Bonus Card",
+              "Add Promotional Ticket",
+              "View Cards",
+              "View Game History",
+              "View Transactions",
+            ].filter((v, i, a) => a.indexOf(v) === i).map((item) => (
+              <button
+                key={item}
+                onClick={() => handleAction(item)}
+              >
+                {item}
+              </button>
+            ))}
+          </div>
+
+          <div className="drawer-section">
+            <h3>Recent Bingo activity</h3>
+            <table>
+              <tbody>
+                {[
+                  [`${id}-G1`, "Trueig 90 Classic", "4 cards", "+$150"],
+                  [`${id}-G2`, "Diamond 75", "2 cards", "$0"],
+                  [`${id}-G3`, "Turbo 30", "1 card", "+$50"],
+                ].map((row) => (
+                  <tr key={row[0]}>
+                    {row.map((cell) => (
+                      <td key={cell}>{cell}</td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </aside>
     </div>
   );
 }
@@ -591,71 +825,7 @@ export function BackofficeDrawer({
     );
 
   if (action.kind === "player")
-    return (
-      <div className="admin-drawer-backdrop">
-        <aside className="admin-drawer wide">
-          <DrawerHeader title={title} close={close} />
-          <div className="drawer-body">
-            <div className="player-profile-head">
-              <span>{(action.label ?? "AR").slice(0, 2).toUpperCase()}</span>
-              <div>
-                <h2>{action.label ?? "Ari.R"}</h2>
-                <p>TRUEIG-11804 · Active · Standard tier</p>
-              </div>
-              <b>$248.50<small>BALANCE</small></b>
-            </div>
-            <div className="player-profile-stats">
-              {[
-                ["Games played", "128"],
-                ["Cards purchased", "346"],
-                ["Bingo wins", "18"],
-                ["Win percentage", "14.1%"],
-                ["Total prizes", "$2,840"],
-                ["Current restrictions", "None"],
-              ].map((item) => (
-                <span key={item[0]}><small>{item[0]}</small><b>{item[1]}</b></span>
-              ))}
-            </div>
-            <div className="player-action-grid">
-              {[
-                "Suspend",
-                "Block",
-                "Restrict Bingo",
-                "Add Bonus Card",
-                "Add Promotional Ticket",
-                "View Cards",
-                "View Game History",
-                "View Transactions",
-              ].map((item) => (
-                <button
-                  key={item}
-                  onClick={() => {
-                    apiClient.admin.playerAction(action.label ?? "Ari.R", item);
-                    notify(`${item} action applied to ${action.label ?? "Ari.R"}.`);
-                  }}
-                >
-                  {item}
-                </button>
-              ))}
-            </div>
-            <div className="drawer-section">
-              <h3>Recent Bingo activity</h3>
-              <table>
-                <tbody>
-                  {[
-                    ["TRUEIG-2842", "Diamond 75", "3 cards", "+$400"],
-                    ["TRUEIG-2838", "Trueig 90 Classic", "6 cards", "+$150"],
-                    ["TRUEIG-2812", "Turbo 30", "2 cards", "$0"],
-                  ].map((row) => (
-                    <tr key={row[0]}>{row.map((cell) => <td key={cell}>{cell}</td>)}</tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </aside>
-      </div>
-    );
+    return <AdminPlayerDrawer action={action} title={title} close={close} notify={notify} />;
 
   if (action.kind === "report-drilldown" || action.kind === "report")
     return (

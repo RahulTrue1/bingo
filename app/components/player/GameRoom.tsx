@@ -19,13 +19,16 @@ export function GameRoom({
   setWallet,
   goBack,
   notify,
+  currentUser,
 }: {
   room: BingoRoomData;
   wallet: number;
   setWallet: (value: number) => void;
   goBack: () => void;
   notify: (message: string) => void;
+  currentUser?: any;
 }) {
+  const currentUsername = currentUser?.username || "Ari.R";
   const [phase, setPhase] = useState<GamePhase>("selling");
   const [countdown, setCountdown] = useState(5);
   const [called, setCalled] = useState<number[]>([]);
@@ -267,7 +270,7 @@ export function GameRoom({
   useEffect(() => {
     if (phase !== "live" || claimLocked) return;
     const thresholds = ballCount === 90 ? [7, 13, 19] : ballCount === 30 ? [8] : ballCount === 80 ? [7, 12, 18] : stages.length > 1 ? [7, 13, 20, 26] : [12];
-    if (called.length >= (thresholds[stageIndex] ?? 14)) triggerWinner(stageIndex === 1 ? ["LuckyStar", "MikaK"] : [stageIndex === 0 ? "LuckyStar" : "Ari.R"]);
+    if (called.length >= (thresholds[stageIndex] ?? 14)) triggerWinner(stageIndex === 1 ? ["LuckyStar", "MikaK"] : [stageIndex === 0 ? "LuckyStar" : currentUsername]);
     // triggerWinner intentionally reads the current render state.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [called.length, phase, stageIndex, claimLocked, ballCount, stages.length]);
@@ -278,7 +281,7 @@ export function GameRoom({
     setCalled((previous) => Array.from(new Set([...previous, ...winning])));
   }
 
-  function triggerWinner(names = ["Ari.R"]) {
+  function triggerWinner(names = [currentUsername]) {
     if (phase !== "live" || claimLocked) return;
     setClaimLocked(true);
     injectWinningNumbers();
@@ -294,9 +297,9 @@ export function GameRoom({
     if (isIntermediate) {
       // Intermediate stage win: do NOT block screen with modal! Keep user in live game!
       setLastWinner(`${names.join(" & ")} · ${money(total)}`);
-      if (names.includes("Ari.R")) {
+      if (names.includes(currentUsername)) {
         setWallet(Math.round((wallet + splitPrize) * 100) / 100);
-        apiClient.game.claim(room.id, { ticketId: `CARD-${activeCard}`, playerName: "Ari.R", manualPattern: activeStage.name }).then((res) => {
+        apiClient.game.claim(room.id, { ticketId: `CARD-${activeCard}`, playerName: currentUsername, manualPattern: activeStage.name }).then((res) => {
           if (res?.wallet !== undefined) setWallet(res.wallet);
         });
         notify(`🎉 BINGO! You won ${activeStage.name} (${money(splitPrize)})! Game continuing to ${stages[stageIndex + 1]?.name ?? "next stage"}...`);
@@ -314,9 +317,9 @@ export function GameRoom({
     } else {
       // Final stage win: Game Ends! Show modal once!
       setLastWinner(`${names.join(" & ")} · ${money(total)}`);
-      if (names.includes("Ari.R")) {
+      if (names.includes(currentUsername)) {
         setWallet(Math.round((wallet + splitPrize) * 100) / 100);
-        apiClient.game.claim(room.id, { ticketId: `CARD-${activeCard}`, playerName: "Ari.R", manualPattern: activeStage.name }).then((res) => {
+        apiClient.game.claim(room.id, { ticketId: `CARD-${activeCard}`, playerName: currentUsername, manualPattern: activeStage.name }).then((res) => {
           if (res?.wallet !== undefined) setWallet(res.wallet);
         });
         notify(`🏆 Full House BINGO! You won ${money(splitPrize)}! Round complete.`);
@@ -349,7 +352,7 @@ export function GameRoom({
     if (!selectedCards.length) return notify("Select at least one card before starting the round.");
     if (wallet < price) return notify("Not enough wallet balance for these cards.");
     setWallet(Math.round((wallet - price) * 100) / 100); setPhase("countdown"); setCountdown(5);
-    apiClient.tickets.buy(room.id, selectedCards.length).then((res) => {
+    apiClient.tickets.buy(room.id, selectedCards.length, currentUsername, currentUser?.id).then((res) => {
       if (res?.wallet !== undefined) setWallet(res.wallet);
     });
     notify(`${selectedCards.length} card${selectedCards.length > 1 ? "s" : ""} secured · ${TransactionManager.reference("TRUEIG")}`);
@@ -376,9 +379,9 @@ export function GameRoom({
     event.preventDefault();
     if (!chat.trim()) return;
     const text = chat.trim();
-    setMessages((items) => [...items, ["Ari.R", text, "now"]]);
+    setMessages((items) => [...items, [currentUsername, text, "now"]]);
     setChat("");
-    apiClient.chat.send(room.id, text, "Ari.R").catch(() => {});
+    apiClient.chat.send(room.id, text, currentUsername).catch(() => {});
   };
 
   const toggleCard = (index: number) => {
@@ -582,7 +585,7 @@ export function GameRoom({
             </button>
           ) : (
             <>
-              <button className="bingo-button" onClick={() => triggerWinner(["Ari.R"])} disabled={phase !== "live"}>
+              <button className="bingo-button" onClick={() => triggerWinner([currentUsername])} disabled={phase !== "live"}>
                 <span>BINGO!</span>
                 <small>Demonstrate {activeStage.name}</small>
               </button>
@@ -710,7 +713,7 @@ export function GameRoom({
             {[
               ["1", "TrueigQueen", "3 wins"],
               ["2", "MikaK", "2 wins"],
-              ["3", "Ari.R", "1 win"],
+              ["3", currentUsername, "1 win"],
             ].map((row) => (
               <p key={row[0]}><i>{row[0]}</i><span>{row[1]}</span><small>{row[2]}</small></p>
             ))}

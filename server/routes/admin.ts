@@ -89,6 +89,7 @@ adminRouter.post("/players/:id/action", (req: Request, res: Response) => {
 
   if (action === "Suspend") player.status = "Suspended";
   if (action === "Block") player.status = "Restricted";
+  if (action === "Activate" || action === "Unblock" || action === "Activate / Unblock") player.status = "Active";
   if (action === "Add Bonus Card") {
     store.addAudit("player", "Bonus card granted", `Bonus card added to ${player.username}`);
   }
@@ -101,6 +102,59 @@ adminRouter.post("/players/:id/action", (req: Request, res: Response) => {
     success: true,
     player,
     message: `Action '${action}' applied to ${player.username}.`,
+  });
+});
+
+// POST /api/admin/players/:id/add-funds - Admin credits or adjusts player balance
+adminRouter.post("/players/:id/add-funds", (req: Request, res: Response) => {
+  const { amount, reason = "Admin deposit" } = req.body;
+  const num = Number(amount);
+
+  if (isNaN(num) || num <= 0) {
+    res.status(400).json({ success: false, error: "Valid positive amount is required" });
+    return;
+  }
+
+  const player = store.players.find((p) => p.id === req.params.id || p.username.toLowerCase() === req.params.id.toLowerCase());
+  if (!player) {
+    res.status(404).json({ success: false, error: "Player not found" });
+    return;
+  }
+
+  player.balance = Math.round((player.balance + num) * 100) / 100;
+
+  // If this player is the active player, sync global wallet
+  if (player.username.toLowerCase() === (store.activeUsername || "Ari.R").toLowerCase()) {
+    store.wallet = player.balance;
+  }
+
+  const tx = store.addTransaction({
+    player: player.username,
+    room: "Backoffice Admin",
+    type: "Deposit",
+    amount: num,
+    status: "Completed",
+  });
+
+  store.addAudit("player", "Admin wallet credit", `Operator added +$${num.toFixed(2)} to ${player.username} (${reason})`);
+  store.save();
+
+  syncBus.emitChange("wallet", "admin-deposit", {
+    player: player.username,
+    amount: num,
+    balance: player.balance,
+    transaction: tx,
+  }, undefined, `+$${num.toFixed(2)} added to wallet by Admin`);
+
+  syncBus.emitChange("players", "update", player, player.id, `+$${num.toFixed(2)} credited to ${player.username}`);
+
+  res.json({
+    success: true,
+    player,
+    wallet: player.balance,
+    amount: num,
+    transaction: tx,
+    message: `Successfully added $${num.toFixed(2)} to ${player.username}'s wallet. New balance: $${player.balance.toFixed(2)}.`,
   });
 });
 

@@ -460,3 +460,386 @@ test("Game configuration rules: cardLimit, promotion discounts, and ticket purch
   const updatedJson = await updateRes.json();
   assert.equal(updatedJson.room.cardLimit, 6);
 });
+
+test("POST /api/auth/signup creates a dynamic player with initial bonus", async () => {
+  const username = `TestPlayer_${Date.now()}`;
+  const res = await fetch(`${BASE_URL}/auth/signup`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      username,
+      email: `${username.toLowerCase()}@example.com`,
+      bonus: 100,
+    }),
+  });
+  assert.equal(res.status, 201);
+  const json = await res.json();
+  assert.equal(json.success, true);
+  assert.equal(json.user.username, username);
+  assert.equal(json.user.balance, 100);
+  assert.equal(json.wallet, 100);
+  assert.ok(json.user.id.startsWith("USR-"));
+
+  // Verify /api/auth/me returns this new active user
+  const meRes = await fetch(`${BASE_URL}/auth/me`);
+  assert.equal(meRes.status, 200);
+  const meJson = await meRes.json();
+  assert.equal(meJson.success, true);
+  assert.equal(meJson.user.username, username);
+  assert.equal(meJson.wallet, 100);
+});
+
+test("POST /api/auth/login switches active player and syncs wallet", async () => {
+  const res = await fetch(`${BASE_URL}/auth/login`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ username: "TrueigQueen" }),
+  });
+  assert.equal(res.status, 200);
+  const json = await res.json();
+  assert.equal(json.success, true);
+  assert.equal(json.user.username, "TrueigQueen");
+  assert.equal(json.user.tier, "VIP");
+
+  // Verify me reflects TrueigQueen
+  const meRes = await fetch(`${BASE_URL}/auth/me`);
+  const meJson = await meRes.json();
+  assert.equal(meJson.user.username, "TrueigQueen");
+});
+
+test("POST /api/admin/players/:id/add-funds adds funds to player and records transaction", async () => {
+  // Add funds to MikaK
+  const addRes = await fetch(`${BASE_URL}/admin/players/MikaK/add-funds`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      amount: 75.5,
+      reason: "VIP promotional gift",
+    }),
+  });
+  assert.equal(addRes.status, 200);
+  const addJson = await addRes.json();
+  assert.equal(addJson.success, true);
+  assert.equal(addJson.player.username, "MikaK");
+  assert.ok(addJson.player.balance >= 75.5);
+  assert.equal(addJson.amount, 75.5);
+  assert.ok(addJson.transaction);
+  assert.equal(addJson.transaction.amount, 75.5);
+});
+
+test("POST /api/auth/signup with password and POST /api/auth/login validates password", async () => {
+  const user = `PassTest_${Date.now()}`;
+  const password = "mySecretBingoPass99";
+
+  // 1. Sign up with custom password
+  const signupRes = await fetch(`${BASE_URL}/auth/signup`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      username: user,
+      password: password,
+      bonus: 100,
+    }),
+  });
+  assert.equal(signupRes.status, 201);
+  const signupJson = await signupRes.json();
+  assert.equal(signupJson.success, true);
+  assert.equal(signupJson.user.username, user);
+  // Password should NOT be leaked in the response object
+  assert.equal(signupJson.user.password, undefined);
+
+  // 2. Attempt login with WRONG password -> expect 401
+  const failRes = await fetch(`${BASE_URL}/auth/login`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      username: user,
+      password: "wrongPasswordXYZ",
+    }),
+  });
+  assert.equal(failRes.status, 401);
+  const failJson = await failRes.json();
+  assert.equal(failJson.success, false);
+  assert.match(failJson.error, /incorrect password/i);
+
+  // 3. Attempt login with CORRECT password -> expect 200
+  const passRes = await fetch(`${BASE_URL}/auth/login`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      username: user,
+      password: password,
+    }),
+  });
+  assert.equal(passRes.status, 200);
+  const passJson = await passRes.json();
+  assert.equal(passJson.success, true);
+  assert.equal(passJson.user.username, user);
+  assert.equal(passJson.user.password, undefined);
+});
+
+test("Ticket isolation: each user only sees their own purchased tickets", async () => {
+  // 1. MikaK has not bought any tickets -> should return 0 tickets
+  const nonBuyerRes = await fetch(`${BASE_URL}/tickets?username=MikaK`);
+  assert.equal(nonBuyerRes.status, 200);
+  const nonBuyerJson = await nonBuyerRes.json();
+  assert.equal(nonBuyerJson.success, true);
+  assert.equal(nonBuyerJson.tickets.length, 0, "MikaK must have 0 tickets");
+
+  // 2. Ari.R has seeded tickets -> should return tickets owned by Ari.R
+  const ariRes = await fetch(`${BASE_URL}/tickets?username=Ari.R`);
+  assert.equal(ariRes.status, 200);
+  const ariJson = await ariRes.json();
+  assert.equal(ariJson.success, true);
+  assert.ok(ariJson.tickets.length > 0, "Ari.R should have active tickets");
+  for (const t of ariJson.tickets) {
+    assert.ok(t.player === "Ari.R" || t.userId === "USR-11804");
+  }
+
+  // 3. Register a fresh player
+  const newPlayer = `TicketOwner_${Date.now()}`;
+  const regRes = await fetch(`${BASE_URL}/auth/signup`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      username: newPlayer,
+      password: "pass12345Owner",
+      bonus: 50,
+    }),
+  });
+  assert.equal(regRes.status, 201);
+  const regJson = await regRes.json();
+
+  // Fresh user initially has 0 tickets
+  const emptyRes = await fetch(`${BASE_URL}/tickets?username=${newPlayer}`);
+  const emptyJson = await emptyRes.json();
+  assert.equal(emptyJson.tickets.length, 0, "New player must have 0 tickets before buying");
+
+  // Buy 2 tickets as this new player
+  const buyRes = await fetch(`${BASE_URL}/tickets/buy`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      roomId: "diamond-75",
+      count: 2,
+      username: newPlayer,
+      userId: regJson.user.id,
+    }),
+  });
+  assert.equal(buyRes.status, 201);
+  const buyJson = await buyRes.json();
+  assert.equal(buyJson.tickets.length, 2);
+  assert.equal(buyJson.tickets[0].player, newPlayer);
+
+  // 4. Now verify new player sees exactly their 2 tickets
+  const ownerRes = await fetch(`${BASE_URL}/tickets?username=${newPlayer}`);
+  const ownerJson = await ownerRes.json();
+  assert.equal(ownerJson.tickets.length, 2);
+  assert.equal(ownerJson.tickets[0].player, newPlayer);
+
+  // 5. Verify non-buyer MikaK still has 0 tickets and does NOT see new player's tickets
+  const nonBuyerAfterRes = await fetch(`${BASE_URL}/tickets?username=MikaK`);
+  const nonBuyerAfterJson = await nonBuyerAfterRes.json();
+  assert.equal(nonBuyerAfterJson.tickets.length, 0, "MikaK must still have 0 tickets");
+});
+
+test("Multi-User Session Isolation: Token A vs Token B operate concurrently without clobbering each other", async () => {
+  // 1. User A logs in as Ari.R
+  const loginARes = await fetch(`${BASE_URL}/auth/login`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ username: "Ari.R", password: "demo123" }),
+  });
+  assert.equal(loginARes.status, 200);
+  const loginAJson = await loginARes.json();
+  assert.equal(loginAJson.success, true);
+  assert.ok(loginAJson.token, "Login A must return a session token");
+  const tokenA = loginAJson.token;
+  const initialBalanceA = loginAJson.wallet;
+
+  // 2. User B signs up as a new user
+  const userBName = `ConcurrentPlayer_${Date.now()}`;
+  const signupBRes = await fetch(`${BASE_URL}/auth/signup`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      username: userBName,
+      password: "secretPassword123",
+      bonus: 150,
+    }),
+  });
+  assert.equal(signupBRes.status, 201);
+  const signupBJson = await signupBRes.json();
+  assert.equal(signupBJson.success, true);
+  assert.ok(signupBJson.token, "Signup B must return a session token");
+  const tokenB = signupBJson.token;
+  assert.notEqual(tokenA, tokenB, "Session tokens must be distinct");
+
+  // 3. Verify concurrent GET /me calls return respective users
+  const meARes = await fetch(`${BASE_URL}/auth/me`, {
+    headers: { "x-session-token": tokenA },
+  });
+  const meAJson = await meARes.json();
+  assert.equal(meAJson.user.username, "Ari.R");
+
+  const meBRes = await fetch(`${BASE_URL}/auth/me`, {
+    headers: { "x-session-token": tokenB },
+  });
+  const meBJson = await meBRes.json();
+  assert.equal(meBJson.user.username, userBName);
+
+  // 4. User B deposits $75 -> verify User A's wallet is completely untouched
+  const depositBRes = await fetch(`${BASE_URL}/wallet/deposit`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "x-session-token": tokenB,
+    },
+    body: JSON.stringify({ amount: 75 }),
+  });
+  assert.equal(depositBRes.status, 200);
+  const depositBJson = await depositBRes.json();
+  assert.equal(depositBJson.balance, 225);
+
+  const walletARes = await fetch(`${BASE_URL}/wallet`, {
+    headers: { "x-session-token": tokenA },
+  });
+  const walletAJson = await walletARes.json();
+  assert.equal(walletAJson.balance, initialBalanceA, "User A's balance must not change when User B deposits");
+
+  // 5. User B buys 1 ticket -> verify ticket scoping
+  const buyBRes = await fetch(`${BASE_URL}/tickets/buy`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "x-session-token": tokenB,
+    },
+    body: JSON.stringify({
+      roomId: "turbo-30",
+      count: 1,
+    }),
+  });
+  assert.equal(buyBRes.status, 201);
+  const buyBJson = await buyBRes.json();
+  assert.equal(buyBJson.purchasedCount, 1);
+  assert.equal(buyBJson.tickets[0].player, userBName);
+
+  // User B's tickets view returns only User B's 1 ticket
+  const ticketsBRes = await fetch(`${BASE_URL}/tickets`, {
+    headers: { "x-session-token": tokenB },
+  });
+  const ticketsBJson = await ticketsBRes.json();
+  assert.equal(ticketsBJson.tickets.length, 1);
+  assert.equal(ticketsBJson.tickets[0].player, userBName);
+
+  // User A's tickets view returns Ari.R's tickets, not User B's
+  const ticketsARes = await fetch(`${BASE_URL}/tickets`, {
+    headers: { "x-session-token": tokenA },
+  });
+  const ticketsAJson = await ticketsARes.json();
+  assert.ok(ticketsAJson.tickets.length > 0);
+  assert.ok(ticketsAJson.tickets.every((t) => t.player === "Ari.R" || t.userId === "USR-11804"));
+
+  // 6. User B logs out -> Token A remains active
+  const logoutBRes = await fetch(`${BASE_URL}/auth/logout`, {
+    method: "POST",
+    headers: { "x-session-token": tokenB },
+  });
+  assert.equal(logoutBRes.status, 200);
+
+  const meAStillActive = await fetch(`${BASE_URL}/auth/me`, {
+    headers: { "x-session-token": tokenA },
+  });
+  const meAStillActiveJson = await meAStillActive.json();
+  assert.equal(meAStillActiveJson.user.username, "Ari.R");
+});
+
+test("Tournament full lifecycle: registration, 5-stage progressive elimination, dynamic scoring, champion payout, and reset", async () => {
+  const tourneyId = "weekend-cup";
+
+  // 1. Reset tournament to known clean state
+  const resetRes = await fetch(`${BASE_URL}/tournaments/${tourneyId}/reset`, { method: "POST" });
+  assert.equal(resetRes.status, 200);
+  const resetJson = await resetRes.json();
+  assert.equal(resetJson.tournament.status, "Registration open");
+  assert.equal(resetJson.tournament.currentRoundIndex, 0);
+
+  // 2. Register a player
+  const regPlayer = "TourneyChamp";
+  const regRes = await fetch(`${BASE_URL}/tournaments/${tourneyId}/register`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ playerName: regPlayer }),
+  });
+  assert.equal(regRes.status, 200);
+  const regJson = await regRes.json();
+  assert.ok(regJson.tournament.registeredPlayers.includes(regPlayer));
+
+  // 3. Start Tournament -> Stage 1 (Qualifiers) Live
+  const startRes = await fetch(`${BASE_URL}/tournaments/${tourneyId}/start`, { method: "POST" });
+  assert.equal(startRes.status, 200);
+  const startJson = await startRes.json();
+  assert.equal(startJson.tournament.status, "Live");
+  assert.equal(startJson.tournament.currentRoundIndex, 0);
+  assert.equal(startJson.tournament.currentStageName, "Qualifiers");
+  assert.equal(startJson.tournament.stageStatus, "in_progress");
+
+  // 4. Score Stage 1 (Qualifiers)
+  const score1Res = await fetch(`${BASE_URL}/tournaments/${tourneyId}/score-stage`, { method: "POST" });
+  assert.equal(score1Res.status, 200);
+  const score1Json = await score1Res.json();
+  assert.equal(score1Json.tournament.stageStatus, "scored");
+  assert.ok(score1Json.tournament.standings.some((s) => s.status === "Qualified"));
+
+  // 5. Advance to Stage 2 (Round of 256)
+  const adv1Res = await fetch(`${BASE_URL}/tournaments/${tourneyId}/advance`, { method: "POST" });
+  assert.equal(adv1Res.status, 200);
+  const adv1Json = await adv1Res.json();
+  assert.equal(adv1Json.tournament.currentRoundIndex, 1);
+  assert.equal(adv1Json.tournament.currentStageName, "Round of 256");
+  assert.equal(adv1Json.tournament.stageStatus, "in_progress");
+
+  // 6. Score Stage 2 and Advance to Stage 3 (Round of 128)
+  await fetch(`${BASE_URL}/tournaments/${tourneyId}/score-stage`, { method: "POST" });
+  const adv2Res = await fetch(`${BASE_URL}/tournaments/${tourneyId}/advance`, { method: "POST" });
+  const adv2Json = await adv2Res.json();
+  assert.equal(adv2Json.tournament.currentRoundIndex, 2);
+  assert.equal(adv2Json.tournament.currentStageName, "Round of 128");
+
+  // 7. Score Stage 3 and Advance to Stage 4 (Semi Final)
+  await fetch(`${BASE_URL}/tournaments/${tourneyId}/score-stage`, { method: "POST" });
+  const adv3Res = await fetch(`${BASE_URL}/tournaments/${tourneyId}/advance`, { method: "POST" });
+  const adv3Json = await adv3Res.json();
+  assert.equal(adv3Json.tournament.currentRoundIndex, 3);
+  assert.equal(adv3Json.tournament.currentStageName, "Semi Final");
+
+  // 8. Score Stage 4 and Advance to Stage 5 (Grand Final)
+  await fetch(`${BASE_URL}/tournaments/${tourneyId}/score-stage`, { method: "POST" });
+  const adv4Res = await fetch(`${BASE_URL}/tournaments/${tourneyId}/advance`, { method: "POST" });
+  const adv4Json = await adv4Res.json();
+  assert.equal(adv4Json.tournament.currentRoundIndex, 4);
+  assert.equal(adv4Json.tournament.currentStageName, "Grand Final");
+
+  // 9. Score Grand Final and Complete Tournament
+  await fetch(`${BASE_URL}/tournaments/${tourneyId}/score-stage`, { method: "POST" });
+  const completeRes = await fetch(`${BASE_URL}/tournaments/${tourneyId}/complete`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ winnerName: regPlayer }),
+  });
+  assert.equal(completeRes.status, 200);
+  const completeJson = await completeRes.json();
+  assert.equal(completeJson.tournament.status, "Completed");
+  assert.equal(completeJson.tournament.winner, regPlayer);
+  assert.equal(completeJson.payout, 15000); // 60% of $25,000
+
+  // 10. Reset back for future play
+  const cleanReset = await fetch(`${BASE_URL}/tournaments/${tourneyId}/reset`, { method: "POST" });
+  assert.equal(cleanReset.status, 200);
+  const cleanResetJson = await cleanReset.json();
+  assert.equal(cleanResetJson.tournament.status, "Registration open");
+  assert.equal(cleanResetJson.tournament.currentRoundIndex, 0);
+});
+
+
+

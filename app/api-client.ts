@@ -85,6 +85,15 @@ export interface JackpotModel {
   history?: Array<{ type: string; amount: number; time: string; player?: string; user?: string }>;
 }
 
+export interface TournamentEngineConfig {
+  autoMode: boolean;
+  roundDuration: number;
+  stageSecondsRemaining: number;
+  scheduledStartSeconds: number | null;
+  startsAtText?: string;
+  isPaused?: boolean;
+}
+
 export interface TournamentModel {
   id: string;
   name: string;
@@ -102,6 +111,7 @@ export interface TournamentModel {
   prizeDistribution?: Record<string, number>;
   startsAt?: string;
   status: string;
+  engine?: TournamentEngineConfig;
   standings?: Array<{ rank: number; player: string; points: number; wins: number; fast: string; status: string }>;
 }
 
@@ -165,13 +175,19 @@ export interface PatternModel {
 export interface PlayerModel {
   id: string;
   username: string;
+  displayName?: string;
+  email?: string;
+  joinedDate?: string;
   tier: string;
   lastLogin: string;
   gamesPlayed: number;
-  totalEntry: number;
-  winnings: number;
+  cardsPurchased?: number;
+  totalEntry?: number;
+  totalPrizes?: number;
+  winnings?: number;
   balance: number;
   status: string;
+  restrictions?: string[];
 }
 
 export interface DashboardMetricModel {
@@ -244,20 +260,72 @@ export interface DashboardResponse {
   activityFeed: ActivityFeedModel[];
 }
 
+const SESSION_TOKEN_KEY = "tig_session_token";
+const SESSION_USER_KEY = "tig_session_user";
+
+export function getStoredSessionToken(): string | null {
+  if (typeof window === "undefined") return null;
+  try {
+    return localStorage.getItem(SESSION_TOKEN_KEY);
+  } catch {
+    return null;
+  }
+}
+
+export function setStoredSessionToken(token: string | null): void {
+  if (typeof window === "undefined") return;
+  try {
+    if (token) {
+      localStorage.setItem(SESSION_TOKEN_KEY, token);
+    } else {
+      localStorage.removeItem(SESSION_TOKEN_KEY);
+    }
+  } catch {}
+}
+
+export function getStoredSessionUser(): string | null {
+  if (typeof window === "undefined") return null;
+  try {
+    return localStorage.getItem(SESSION_USER_KEY);
+  } catch {
+    return null;
+  }
+}
+
+export function setStoredSessionUser(username: string | null): void {
+  if (typeof window === "undefined") return;
+  try {
+    if (username) {
+      localStorage.setItem(SESSION_USER_KEY, username);
+    } else {
+      localStorage.removeItem(SESSION_USER_KEY);
+    }
+  } catch {}
+}
+
 async function request<T>(endpoint: string, options?: RequestInit): Promise<T | null> {
   try {
+    const token = getStoredSessionToken();
+    const storedUser = getStoredSessionUser();
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+      ...(token ? { "x-session-token": token, Authorization: `Bearer ${token}` } : {}),
+      ...(storedUser ? { "x-player-username": storedUser } : {}),
+      ...(options?.headers as Record<string, string>),
+    };
+
     const res = await fetch(`${API_BASE}${endpoint}`, {
-      headers: {
-        "Content-Type": "application/json",
-        ...options?.headers,
-      },
       ...options,
+      headers,
     });
+    const data = await res.json().catch(() => null);
     if (!res.ok) {
-      const errJson = (await res.json().catch(() => ({}))) as { error?: string };
-      throw new Error(errJson.error || `Request failed with status ${res.status}`);
+      if (data && typeof data === "object") {
+        return data as T;
+      }
+      throw new Error(`Request failed with status ${res.status}`);
     }
-    return (await res.json()) as T;
+    return data as T;
   } catch (error) {
     console.warn(`[API] Error on ${endpoint}:`, error);
     return null;
@@ -375,12 +443,16 @@ export const apiClient = {
   },
 
   tickets: {
-    async list(roomId?: string) {
-      const q = roomId ? `?roomId=${encodeURIComponent(roomId)}` : "";
+    async list(roomId?: string, username?: string) {
+      const params = new URLSearchParams();
+      if (roomId) params.set("roomId", roomId);
+      const effectiveUser = username || getStoredSessionUser();
+      if (effectiveUser) params.set("username", effectiveUser);
+      const q = params.toString() ? `?${params.toString()}` : "";
       const res = await request<{ success: boolean; count: number; tickets: BingoCardModel[] }>(`/tickets${q}`);
       return res?.tickets ?? [];
     },
-    async buy(roomId: string, count = 1) {
+    async buy(roomId: string, count = 1, username?: string, userId?: string) {
       return request<{
         success: boolean;
         purchasedCount: number;
@@ -390,13 +462,20 @@ export const apiClient = {
         message: string;
       }>("/tickets/buy", {
         method: "POST",
-        body: JSON.stringify({ roomId, count }),
+        body: JSON.stringify({
+          roomId,
+          count,
+          username: username || getStoredSessionUser() || undefined,
+          userId,
+        }),
       });
     },
   },
 
   wallet: {
-    async get() {
+    async get(username?: string) {
+      const effectiveUser = username || getStoredSessionUser();
+      const q = effectiveUser ? `?username=${encodeURIComponent(effectiveUser)}` : "";
       return request<{
         success: boolean;
         balance: number;
@@ -404,18 +483,24 @@ export const apiClient = {
         totalSpent: number;
         totalWon: number;
         transactionCount: number;
-      }>("/wallet");
+      }>(`/wallet${q}`);
     },
-    async deposit(amount: number) {
+    async deposit(amount: number, username?: string) {
       return request<{ success: boolean; balance: number; message: string }>("/wallet/deposit", {
         method: "POST",
-        body: JSON.stringify({ amount }),
+        body: JSON.stringify({
+          amount,
+          username: username || getStoredSessionUser() || undefined,
+        }),
       });
     },
-    async withdraw(amount: number) {
+    async withdraw(amount: number, username?: string) {
       return request<{ success: boolean; balance: number; message: string }>("/wallet/withdraw", {
         method: "POST",
-        body: JSON.stringify({ amount }),
+        body: JSON.stringify({
+          amount,
+          username: username || getStoredSessionUser() || undefined,
+        }),
       });
     },
     async transactions(type?: string) {
@@ -509,6 +594,28 @@ export const apiClient = {
       return request<{ success: boolean; tournament: TournamentModel }>(`/tournaments/${id}/reset`, {
         method: "POST",
       });
+    },
+    async schedule(id: string, delaySeconds: number, cancel = false) {
+      return request<{ success: boolean; tournament: TournamentModel; message: string }>(
+        `/tournaments/${id}/schedule`,
+        {
+          method: "POST",
+          body: JSON.stringify({ delaySeconds, cancel }),
+        }
+      );
+    },
+    async setAutoConfig(id: string, config: { autoMode?: boolean; roundDuration?: number; isPaused?: boolean }) {
+      return request<{ success: boolean; tournament: TournamentModel; engine: TournamentEngineConfig; message: string }>(
+        `/tournaments/${id}/auto-config`,
+        {
+          method: "POST",
+          body: JSON.stringify(config),
+        }
+      );
+    },
+    async getEngine(id: string) {
+      const res = await request<{ success: boolean; engine: TournamentEngineConfig }>(`/tournaments/${id}/engine`);
+      return res?.engine;
     },
     async delete(id: string) {
       return request<{ success: boolean; message: string }>(`/tournaments/${id}`, {
@@ -629,8 +736,62 @@ export const apiClient = {
         body: JSON.stringify({ action }),
       });
     },
+    async addPlayerFunds(id: string, amount: number, reason?: string) {
+      return request<{ success: boolean; player: PlayerModel; wallet: number; amount: number; message: string }>(
+        `/admin/players/${id}/add-funds`,
+        {
+          method: "POST",
+          body: JSON.stringify({ amount, reason }),
+        }
+      );
+    },
     async liveControl() {
       return request<{ success: boolean; liveGames: GameStateModel[] }>("/admin/live-control");
+    },
+  },
+
+  auth: {
+    getStoredToken: getStoredSessionToken,
+    getStoredUsername: getStoredSessionUser,
+    setStoredUsername: setStoredSessionUser,
+    async me(username?: string) {
+      const q = username ? `?username=${encodeURIComponent(username)}` : "";
+      const res = await request<{ success: boolean; user: PlayerModel; wallet: number }>(`/auth/me${q}`);
+      if (res?.user?.username) {
+        setStoredSessionUser(res.user.username);
+      }
+      return res ?? null;
+    },
+    async login(username: string, password?: string) {
+      const res = await request<{ success: boolean; token?: string; user?: PlayerModel; wallet?: number; message?: string; error?: string }>("/auth/login", {
+        method: "POST",
+        body: JSON.stringify({ username, password }),
+      });
+      if (res?.success) {
+        if (res.token) setStoredSessionToken(res.token);
+        if (res.user?.username) setStoredSessionUser(res.user.username);
+      }
+      return res;
+    },
+    async signup(data: { username: string; password?: string; email?: string; displayName?: string; bonus?: number }) {
+      const res = await request<{ success: boolean; token?: string; user?: PlayerModel; wallet?: number; message?: string; error?: string }>("/auth/signup", {
+        method: "POST",
+        body: JSON.stringify(data),
+      });
+      if (res?.success) {
+        if (res.token) setStoredSessionToken(res.token);
+        if (res.user?.username) setStoredSessionUser(res.user.username);
+      }
+      return res;
+    },
+    async logout() {
+      await request<{ success: boolean }>("/auth/logout", { method: "POST" });
+      setStoredSessionToken(null);
+      setStoredSessionUser(null);
+    },
+    async users() {
+      const res = await request<{ success: boolean; users: PlayerModel[]; activeUsername: string }>("/auth/users");
+      return res?.users ?? [];
     },
   },
 

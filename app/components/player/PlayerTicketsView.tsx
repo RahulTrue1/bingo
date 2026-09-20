@@ -1,34 +1,49 @@
 import { useCallback, useEffect, useState } from "react";
-import { apiClient, type BingoCardModel } from "../../api-client";
+import { apiClient, type BingoCardModel, type PlayerModel } from "../../api-client";
 import type { BingoRoomData } from "../../bingo-core";
 
 export function PlayerTicketsView({
   rooms,
   enterRoom,
+  currentUser,
 }: {
   rooms: BingoRoomData[];
   enterRoom: (room: BingoRoomData) => void;
+  currentUser?: PlayerModel | null;
 }) {
   const [tickets, setTickets] = useState<BingoCardModel[]>([]);
+  const [loading, setLoading] = useState(true);
 
   const refreshTickets = useCallback(() => {
+    setLoading(true);
+    setTickets([]);
+    const username = currentUser?.username;
     apiClient.tickets
-      .list()
+      .list(undefined, username)
       .then((list) => {
-        if (list && list.length > 0) setTickets(list);
+        setTickets(Array.isArray(list) ? list : []);
       })
-      .catch(() => {});
-  }, []);
+      .catch(() => {
+        setTickets([]);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+  }, [currentUser?.username]);
 
   useEffect(() => {
     refreshTickets();
     const unsub = apiClient.sync.subscribe((event) => {
-      if (event.entity === "tickets" || event.entity === "wallet") {
-        refreshTickets();
+      if (event.entity === "tickets" || event.entity === "wallet" || event.entity === "auth") {
+        const myUser = (currentUser?.username || "").toLowerCase();
+        const targetPlayer = ((event.data as any)?.player || "").toLowerCase();
+        if (!targetPlayer || !myUser || targetPlayer === myUser) {
+          refreshTickets();
+        }
       }
     });
     return unsub;
-  }, [refreshTickets]);
+  }, [refreshTickets, currentUser?.username]);
 
   return (
     <div className="simple-player-page">
@@ -117,27 +132,33 @@ export function PlayerTicketsView({
               </article>
             );
           })
+        ) : !loading ? (
+          <div className="ticket-wallet-empty">
+            <span className="empty-ticket-icon">🎟️</span>
+            <h3>No Tickets Purchased Yet</h3>
+            <p className="empty-ticket-sub">
+              {currentUser?.username
+                ? `Hey ${currentUser.username}, you don't have any active cards right now.`
+                : "You don't have any active cards right now."}
+              <br />
+              Secure your tickets from any available bingo room below!
+            </p>
+            {rooms && rooms.length > 0 && (
+              <div className="empty-ticket-cta-group">
+                <button
+                  type="button"
+                  className="primary-button"
+                  onClick={() => enterRoom(rooms[0])}
+                >
+                  Browse {rooms[0].name} (${rooms[0].ticketPrice.toFixed(2)}) →
+                </button>
+              </div>
+            )}
+          </div>
         ) : (
-          rooms.slice(0, 4).map((room, index) => (
-            <article className="standings-card wallet-ticket" key={room.id}>
-              <div>
-                <span className={`mini-orb accent-${room.accent}`}>{room.variant.match(/\d+/)?.[0]}</span>
-                <span>
-                  <b>{room.name}</b>
-                  <small>{room.variant} · Card #0{index + 1}</small>
-                </span>
-                <span className="table-status warning">Starts {room.startsIn}</span>
-              </div>
-              <div className="wallet-card-preview">
-                {Array.from({ length: room.cardRows && room.cardColumns ? Math.min(25, room.cardRows * room.cardColumns) : 25 }, (_, cell) => (
-                  <i className={cell % 6 === 0 ? "marked" : ""} key={cell}>
-                    {(cell * 7 + index * 3) % 75 + 1}
-                  </i>
-                ))}
-              </div>
-              <button className="primary-button" onClick={() => enterRoom(room)}>Rejoin room →</button>
-            </article>
-          ))
+          <div className="ticket-wallet-empty">
+            <p className="empty-ticket-sub">Loading your tickets...</p>
+          </div>
         )}
       </div>
     </div>

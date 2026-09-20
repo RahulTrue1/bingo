@@ -1,6 +1,7 @@
 import cors from "cors";
 import express, { type NextFunction, type Request, type Response } from "express";
 import { adminRouter } from "./routes/admin.ts";
+import { authRouter } from "./routes/auth.ts";
 import { bannersRouter } from "./routes/banners.ts";
 import { chatRouter } from "./routes/chat.ts";
 import { gameRouter } from "./routes/game.ts";
@@ -41,6 +42,7 @@ app.get("/api/health", (_req: Request, res: Response) => {
 });
 
 // Mount domain API routes
+app.use("/api/auth", authRouter);
 app.use("/api/rooms", roomsRouter);
 app.use("/api/game", gameRouter);
 app.use("/api/tickets", ticketsRouter);
@@ -73,8 +75,11 @@ app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
   });
 });
 
+import { TournamentEngine } from "./services/tournament-engine.ts";
+
 // Start listening if not running in test mode
 if (process.env.NODE_ENV !== "test") {
+  TournamentEngine.init();
   app.listen(PORT, () => {
     console.log(`🚀 Trueigtech Bingo Express API running on http://localhost:${PORT}`);
   });

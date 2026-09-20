@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { BingoRoomData, demoRooms } from "./bingo-core";
-import { apiClient } from "./api-client";
+import { apiClient, type PlayerModel } from "./api-client";
 import { AppMode, PlayerView } from "./components/shared/types";
 import { Toast } from "./components/shared/Toast";
 import { PlayerHeader } from "./components/player/PlayerHeader";
@@ -11,6 +11,7 @@ import { GameRoom } from "./components/player/GameRoom";
 import { TournamentLobby } from "./components/player/TournamentLobby";
 import { PlayerHistory } from "./components/player/PlayerHistory";
 import { PlayerHubPage } from "./components/player/PlayerHubPage";
+import { AuthModal } from "./components/player/AuthModal";
 import { AdminExperience } from "./components/admin/AdminExperience";
 import { LiveControl } from "./components/admin/LiveControl";
 
@@ -19,12 +20,56 @@ import { LiveControl } from "./components/admin/LiveControl";
 // liveGames
 export { LiveControl };
 
+if (typeof window !== "undefined") {
+  const isExtensionError = (e: any) => {
+    try {
+      const reason = e?.reason || e?.error || e?.message || "";
+      const msg = String(reason?.message || reason || "");
+      const stack = String(reason?.stack || e?.error?.stack || e?.filename || "");
+      return (
+        msg.includes("M_ID") ||
+        stack.includes("chrome-extension://") ||
+        stack.includes("eppiocemhmnlbhjplcgkofciiegomcon") ||
+        stack.includes("executors/200.js") ||
+        stack.includes("moz-extension://") ||
+        stack.includes("safari-extension://")
+      );
+    } catch {
+      return false;
+    }
+  };
+
+  window.addEventListener(
+    "unhandledrejection",
+    (event) => {
+      if (isExtensionError(event)) {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+      }
+    },
+    true
+  );
+
+  window.addEventListener(
+    "error",
+    (event) => {
+      if (isExtensionError(event)) {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+      }
+    },
+    true
+  );
+}
+
 export default function Home({ initialMode = "player" }: { initialMode?: AppMode }) {
   const [mode] = useState<AppMode>(initialMode);
   const [rooms, setRooms] = useState<BingoRoomData[]>(demoRooms);
   const [playerView, setPlayerView] = useState<PlayerView>("lobby");
   const [activeRoomId, setActiveRoomId] = useState("diamond-75");
   const [wallet, setWallet] = useState(248.5);
+  const [currentUser, setCurrentUser] = useState<PlayerModel | null>(null);
+  const [authModalOpen, setAuthModalOpen] = useState(false);
   const [toast, setToast] = useState("");
 
   const notify = useCallback((message: string) => {
@@ -38,25 +83,50 @@ export default function Home({ initialMode = "player" }: { initialMode?: AppMode
     }).catch(() => {});
   }, []);
 
-  const refreshWallet = useCallback(() => {
-    apiClient.wallet.get().then((w) => {
+  const refreshWallet = useCallback((targetUsername?: string) => {
+    const user = targetUsername || currentUser?.username || apiClient.auth.getStoredUsername();
+    apiClient.wallet.get(user || undefined).then((w) => {
       if (w && typeof w.balance === "number") setWallet(w.balance);
     }).catch(() => {});
-  }, []);
+  }, [currentUser?.username]);
+
+  const refreshUser = useCallback((targetUsername?: string) => {
+    const user = targetUsername || currentUser?.username || apiClient.auth.getStoredUsername();
+    apiClient.auth.me(user || undefined).then((res) => {
+      if (res?.user) {
+        setCurrentUser(res.user);
+        if (typeof res.wallet === "number") setWallet(res.wallet);
+      }
+    }).catch(() => {});
+  }, [currentUser?.username]);
 
   useEffect(() => {
     refreshRooms();
     refreshWallet();
+    refreshUser();
 
     // 1. Real-time Server-Sent Events (SSE) listener
     const unsubscribe = apiClient.sync.subscribe((event) => {
+      const myUsername = (currentUser?.username || apiClient.auth.getStoredUsername() || "").toLowerCase();
+
       if (event.entity === "rooms") {
         refreshRooms();
         if (event.message && mode === "player") notify(event.message);
       } else if (event.entity === "wallet") {
-        refreshWallet();
+        const targetPlayer = ((event.data as any)?.player || "").toLowerCase();
+        if (!targetPlayer || targetPlayer === myUsername) {
+          refreshWallet(myUsername);
+          refreshUser(myUsername);
+        }
+      } else if (event.entity === "auth" || event.entity === "players") {
+        const targetPlayer = ((event.data as any)?.player || (event.data as any)?.user?.username || "").toLowerCase();
+        if (targetPlayer && targetPlayer === myUsername) {
+          refreshUser(myUsername);
+          refreshWallet(myUsername);
+        }
+        if (event.message && mode === "player") notify(event.message);
       } else if (event.entity === "tournaments" || event.entity === "tournament") {
-        refreshWallet();
+        refreshWallet(myUsername);
         refreshRooms();
         if (event.message && mode === "player") notify(event.message);
       } else if (event.entity === "announcement" || (event.entity === "chat" && event.action === "broadcast")) {
@@ -64,7 +134,8 @@ export default function Home({ initialMode = "player" }: { initialMode?: AppMode
         if (msg) notify(`📢 ${msg}`);
       } else if (event.entity === "all") {
         refreshRooms();
-        refreshWallet();
+        refreshWallet(myUsername);
+        refreshUser(myUsername);
       }
     });
 
@@ -76,7 +147,10 @@ export default function Home({ initialMode = "player" }: { initialMode?: AppMode
         if (status && status.revision > lastRev) {
           lastRev = status.revision;
           refreshRooms();
-          refreshWallet();
+          const myUsername = currentUser?.username || apiClient.auth.getStoredUsername();
+          if (myUsername) {
+            refreshWallet(myUsername);
+          }
         }
       } catch {
         // quiet fallback
@@ -87,7 +161,15 @@ export default function Home({ initialMode = "player" }: { initialMode?: AppMode
       unsubscribe();
       window.clearInterval(pollTimer);
     };
-  }, [mode, notify, refreshRooms, refreshWallet]);
+  }, [mode, notify, refreshRooms, refreshWallet, refreshUser, currentUser?.username]);
+
+  const handleAuthSuccess = (user: PlayerModel, newWallet: number) => {
+    apiClient.auth.setStoredUsername(user.username);
+    setCurrentUser(user);
+    setWallet(newWallet);
+    setAuthModalOpen(false);
+    notify(`Welcome ${user.displayName || user.username}!`);
+  };
 
   const activeRoom = rooms.find((room) => room.id === activeRoomId) ?? rooms[0];
 
@@ -104,10 +186,14 @@ export default function Home({ initialMode = "player" }: { initialMode?: AppMode
             view={playerView}
             setView={setPlayerView}
             wallet={wallet}
+            currentUser={currentUser}
+            onOpenAuth={() => setAuthModalOpen(true)}
+            openAuthModal={() => setAuthModalOpen(true)}
             onAddFunds={async () => {
-              const res = await apiClient.wallet.deposit(50);
+              const res = await apiClient.wallet.deposit(50, currentUser?.username);
               if (res && typeof res.balance === "number") {
                 setWallet(res.balance);
+                refreshUser(currentUser?.username);
                 notify(`Added $50.00 to wallet! Balance: $${res.balance.toFixed(2)}`);
               }
             }}
@@ -121,19 +207,27 @@ export default function Home({ initialMode = "player" }: { initialMode?: AppMode
               setWallet={setWallet}
               goBack={() => setPlayerView("lobby")}
               notify={notify}
+              currentUser={currentUser}
             />
           )}
           {playerView === "tournaments" && (
             <TournamentLobby
               enterRoom={() => enterRoom(rooms.find((room) => room.id === "tournament") ?? rooms[0])}
               notify={notify}
+              currentUser={currentUser}
             />
           )}
           {playerView === "history" && <PlayerHistory />}
-          {playerView === "tickets" && <PlayerHubPage type="tickets" rooms={rooms} enterRoom={enterRoom} notify={notify} />}
-          {playerView === "jackpots" && <PlayerHubPage type="jackpots" rooms={rooms} enterRoom={enterRoom} notify={notify} />}
-          {playerView === "promotions" && <PlayerHubPage type="promotions" rooms={rooms} enterRoom={enterRoom} notify={notify} />}
-          {playerView === "profile" && <PlayerHubPage type="profile" rooms={rooms} enterRoom={enterRoom} notify={notify} />}
+          {playerView === "tickets" && <PlayerHubPage key={currentUser?.username || "anon"} type="tickets" rooms={rooms} enterRoom={enterRoom} notify={notify} currentUser={currentUser} />}
+          {playerView === "jackpots" && <PlayerHubPage type="jackpots" rooms={rooms} enterRoom={enterRoom} notify={notify} currentUser={currentUser} />}
+          {playerView === "promotions" && <PlayerHubPage type="promotions" rooms={rooms} enterRoom={enterRoom} notify={notify} currentUser={currentUser} />}
+          {playerView === "profile" && <PlayerHubPage type="profile" rooms={rooms} enterRoom={enterRoom} notify={notify} currentUser={currentUser} />}
+          <AuthModal
+            isOpen={authModalOpen}
+            onClose={() => setAuthModalOpen(false)}
+            currentUser={currentUser}
+            onAuthSuccess={handleAuthSuccess}
+          />
         </>
       ) : (
         <AdminExperience rooms={rooms} setRooms={setRooms} notify={notify} />

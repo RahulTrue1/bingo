@@ -8,11 +8,33 @@ export const ticketsRouter = express.Router();
 
 // GET /api/tickets - List active purchased tickets for user
 ticketsRouter.get("/", (req: Request, res: Response) => {
-  const { roomId } = req.query;
+  const { roomId, userId, username, player, all } = req.query;
   let result = store.tickets;
   if (roomId && typeof roomId === "string") {
     result = result.filter((t) => t.roomId === roomId);
   }
+
+  // Filter by user: explicit query param or session user or fallback to store.activeUsername (unless all=true requested)
+  const resolved = store.resolveUser(req);
+  const requestedUser = (username || player || userId || (all === "true" ? null : resolved?.username)) as string | undefined;
+  const filterUser = requestedUser || (all === "true" ? null : store.activeUsername);
+
+  if (filterUser && typeof filterUser === "string" && filterUser.trim() !== "") {
+    const q = filterUser.trim().toLowerCase();
+    result = result.filter((t) => {
+      const p = (t.player || "").toLowerCase();
+      const u = (t.userId || "").toLowerCase();
+      if (p === q || u === q) return true;
+      const matchedPlayer = store.players.find(
+        (pl) => pl.username.toLowerCase() === q || pl.id.toLowerCase() === q
+      );
+      if (matchedPlayer) {
+        if (p === matchedPlayer.username.toLowerCase() || u === matchedPlayer.id.toLowerCase()) return true;
+      }
+      return false;
+    });
+  }
+
   res.json({
     success: true,
     count: result.length,
@@ -22,7 +44,7 @@ ticketsRouter.get("/", (req: Request, res: Response) => {
 
 // POST /api/tickets/buy - Purchase bingo tickets for a room
 ticketsRouter.post("/buy", (req: Request, res: Response) => {
-  const { roomId, count = 1, userId = "USR-11804" } = req.body;
+  const { roomId, count = 1, userId, username, player } = req.body;
 
   const room = store.rooms.find((r) => r.id === roomId);
   if (!room) {
@@ -39,16 +61,35 @@ ticketsRouter.post("/buy", (req: Request, res: Response) => {
   const baseCost = room.ticketPrice * payableCards;
   const totalCost = room.promotion === "Happy Hour" ? Math.round(baseCost * 0.75 * 100) / 100 : baseCost;
 
-  if (store.wallet < totalCost) {
+  // Resolve buyer identity from session token or body
+  const resolved = store.resolveUser(req);
+  const activeUser = ((username || player || resolved?.username || store.activeUsername || "Ari.R") as string).trim();
+  const playerObj = resolved || store.players.find(
+    (p) => p.username.toLowerCase() === activeUser.toLowerCase() || (userId && p.id.toLowerCase() === String(userId).toLowerCase())
+  );
+  const effectiveUserId = (userId || playerObj?.id || (activeUser === "Ari.R" ? "USR-11804" : `USR-${Math.floor(10000 + Math.random() * 90000)}`)).trim();
+  const effectiveUsername = playerObj?.username || activeUser;
+
+  const currentBalance = playerObj !== undefined ? playerObj.balance : store.wallet;
+  if (currentBalance < totalCost) {
     res.status(400).json({
       success: false,
-      error: `Insufficient funds. Cost is $${totalCost.toFixed(2)}, but current balance is $${store.wallet.toFixed(2)}.`,
+      error: `Insufficient funds. Cost is $${totalCost.toFixed(2)}, but current balance is $${currentBalance.toFixed(2)}.`,
     });
     return;
   }
 
-  // Deduct wallet
-  store.wallet -= totalCost;
+  // Deduct wallet for the specific player
+  if (playerObj) {
+    playerObj.balance = Math.max(0, Math.round((playerObj.balance - totalCost) * 100) / 100);
+    playerObj.cardsPurchased = (playerObj.cardsPurchased ?? 0) + numCount;
+    playerObj.totalEntry = (playerObj.totalEntry ?? 0) + totalCost;
+    if (playerObj.username.toLowerCase() === (store.activeUsername || "Ari.R").toLowerCase()) {
+      store.wallet = playerObj.balance;
+    }
+  } else {
+    store.wallet = Math.max(0, Math.round((store.wallet - totalCost) * 100) / 100);
+  }
 
   // Generate cards
   const newTickets: PlayerTicket[] = [];
@@ -61,7 +102,8 @@ ticketsRouter.post("/buy", (req: Request, res: Response) => {
       id: ticketId,
       ticketIndex: i,
       roomId: room.id,
-      userId,
+      userId: effectiveUserId,
+      player: effectiveUsername,
       variant: room.variant,
       cells,
       daubed: [],
@@ -86,14 +128,14 @@ ticketsRouter.post("/buy", (req: Request, res: Response) => {
         type: "Ticket contribution",
         amount: contribution,
         time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-        user: "Auto Contribution",
+        user: effectiveUsername,
       });
     }
   }
 
   // Add transaction
   const tx = store.addTransaction({
-    player: "Ari.R",
+    player: effectiveUsername,
     room: room.name,
     type: "Ticket purchase",
     amount: -totalCost,
@@ -103,19 +145,25 @@ ticketsRouter.post("/buy", (req: Request, res: Response) => {
   store.addAudit(
     "player",
     "Tickets purchased",
-    `${numCount} card${numCount > 1 ? "s" : ""} bought for ${room.name} ($${totalCost.toFixed(2)})`
+    `${numCount} card${numCount > 1 ? "s" : ""} bought for ${room.name} ($${totalCost.toFixed(2)}) by ${effectiveUsername}`
   );
 
   store.save();
 
-  syncBus.emitChange("wallet", "ticket-purchase", { wallet: store.wallet, totalCost, count: numCount }, room.id);
+  const effectiveWallet = playerObj ? playerObj.balance : store.wallet;
+
+  syncBus.emitChange("wallet", "ticket-purchase", { wallet: effectiveWallet, totalCost, count: numCount, player: effectiveUsername }, room.id);
+  syncBus.emitChange("tickets", "purchase", { tickets: newTickets, count: numCount, player: effectiveUsername, userId: effectiveUserId }, room.id);
+  if (playerObj) {
+    syncBus.emitChange("players", "update", playerObj, playerObj.id, "Ticket purchase");
+  }
   syncBus.emitChange("rooms", "update", room, room.id);
 
   res.status(201).json({
     success: true,
     purchasedCount: numCount,
     totalCost,
-    wallet: store.wallet,
+    wallet: effectiveWallet,
     tickets: newTickets,
     transaction: tx,
     message: `Purchased ${numCount} card${numCount > 1 ? "s" : ""} for ${room.name}.`,

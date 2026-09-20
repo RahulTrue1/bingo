@@ -13,7 +13,10 @@ A modern, high-performance, dynamic multiplayer Bingo platform built with **Next
 - **RTP & Margin Controls**: Platform-wide and per-room dynamic return-to-player target margins (70% - 95%).
 - **Card Wallet & Progressive Jackpots**: Real-time wallet deductions, 2.5% progressive jackpot auto-contributions, and card daubing tracking.
 - **Backoffice Administration**: Real-time KPI telemetry, room configuration drawer, live game control deck, player restrictions, and chat moderation queue.
-- **Comprehensive API Documentation**: Complete REST API specification with copy-paste `curl` commands in [`API_DOCUMENTATION.md`](./API_DOCUMENTATION.md).
+- **Comprehensive Documentation**:
+  - [`API_DOCUMENTATION.md`](./API_DOCUMENTATION.md): Complete REST API specification with copy-paste `curl` commands.
+  - [`AUTH_WALLET_PLAYER_SYSTEM.md`](./AUTH_WALLET_PLAYER_SYSTEM.md): User authentication modal, dynamic player profile, Backoffice player directory, and real-time operator wallet management.
+  - [`TOURNAMENT_SYSTEM.md`](./TOURNAMENT_SYSTEM.md): 5-stage tournament elimination engine and operator bracket controls.
 
 ---
 
