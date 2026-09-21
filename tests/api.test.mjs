@@ -715,7 +715,7 @@ test("Multi-User Session Isolation: Token A vs Token B operate concurrently with
       "x-session-token": tokenB,
     },
     body: JSON.stringify({
-      roomId: "turbo-30",
+      roomId: "trueig-90",
       count: 1,
     }),
   });
@@ -839,6 +839,43 @@ test("Tournament full lifecycle: registration, 5-stage progressive elimination, 
   const cleanResetJson = await cleanReset.json();
   assert.equal(cleanResetJson.tournament.status, "Registration open");
   assert.equal(cleanResetJson.tournament.currentRoundIndex, 0);
+});
+
+test("Tournament creation with custom variant, cardsPerPlayer, and maxOpenBalls persists and returns properly", async () => {
+  const customTourneyId = `test-custom-tourney-${Date.now()}`;
+  const createRes = await fetch(`${BASE_URL}/tournaments`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      id: customTourneyId,
+      name: "30-Ball Lightning Clash",
+      variant: "30-Ball Speed Bingo",
+      cardsPerPlayer: 2,
+      maxOpenBalls: 18,
+      entryFee: 15,
+      prizePool: 30000,
+      maxPlayers: 128,
+      rounds: ["Heat 1", "Semifinal", "Grand Final"],
+      stagePatterns: ["One Line", "Two Lines", "Speed Full House"],
+      startsAt: "Live",
+    }),
+  });
+  assert.equal(createRes.status, 201);
+  const json = await createRes.json();
+  assert.equal(json.success, true);
+  assert.equal(json.tournament.variant, "30-Ball Speed Bingo");
+  assert.equal(json.tournament.cardsPerPlayer, 2);
+  assert.equal(json.tournament.maxOpenBalls, 18);
+  assert.equal(json.tournament.stagePatterns.length, 3);
+  assert.equal(json.tournament.stagePatterns[2], "Speed Full House");
+
+  // Fetch it back
+  const getRes = await fetch(`${BASE_URL}/tournaments/${customTourneyId}`);
+  assert.equal(getRes.status, 200);
+  const getJson = await getRes.json();
+  assert.equal(getJson.tournament.variant, "30-Ball Speed Bingo");
+  assert.equal(getJson.tournament.cardsPerPlayer, 2);
+  assert.equal(getJson.tournament.maxOpenBalls, 18);
 });
 
 test("Dynamic Jackpots lifecycle: create, configure, ticket contribution, manual boost, win trigger with wallet payout, and delete", async () => {

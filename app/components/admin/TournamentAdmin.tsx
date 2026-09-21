@@ -20,6 +20,10 @@ export function TournamentAdmin({
   const [newTourneyStages, setNewTourneyStages] = useState(4);
   const [newTourneyStartsAt, setNewTourneyStartsAt] = useState("Tonight · 20:00");
   const [newTourneyDesc, setNewTourneyDesc] = useState("Multi-round progressive elimination tournament.");
+  const [newTourneyVariant, setNewTourneyVariant] = useState<"75-Ball Pattern" | "90-Ball Classic" | "30-Ball Speed" | "80-Ball Shutter">("75-Ball Pattern");
+  const [newTourneyCardsPerPlayer, setNewTourneyCardsPerPlayer] = useState<number>(1);
+  const [newTourneyOpenBalls, setNewTourneyOpenBalls] = useState<number>(30);
+  const [customScheduleSeconds, setCustomScheduleSeconds] = useState<number>(30);
 
   const refreshTournaments = useCallback(() => {
     apiClient.tournaments.list().then((list) => {
@@ -195,10 +199,18 @@ export function TournamentAdmin({
     try {
       let stagesList = ["Qualifiers", "Round of 128", "Semi Final", "Grand Final"];
       if (newTourneyStages === 3) {
-        stagesList = ["Sprint Qualifiers", "Eliminator", "Grand Championship"];
+        stagesList = newTourneyVariant === "30-Ball Speed"
+          ? ["Sprint Qualifiers", "Semi-Sprint", "Speed Final"]
+          : ["Sprint Qualifiers", "Eliminator", "Grand Championship"];
       } else if (newTourneyStages === 5) {
         stagesList = ["Open Qualifiers", "Round of 256", "Round of 128", "Semi Final", "Grand Final"];
       }
+
+      const stagePatterns = newTourneyVariant === "90-Ball Classic"
+        ? (newTourneyStages === 3 ? ["One Line", "Two Lines", "Full House"] : ["One Line", "One Line", "Two Lines", "Full House"])
+        : newTourneyVariant === "30-Ball Speed"
+        ? (newTourneyStages === 3 ? ["One Line", "Two Lines", "Speed Full House"] : ["One Line", "One Line", "Two Lines", "Speed Full House"])
+        : (newTourneyStages === 3 ? ["One Line", "Diamond", "Full House"] : newTourneyStages === 5 ? ["One Line", "Four Corners", "X Pattern", "Diamond", "Full House"] : ["One Line", "Four Corners", "Diamond", "Full House"]);
 
       const id = newTourneyName.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
       const res = await apiClient.tournaments.create({
@@ -211,6 +223,10 @@ export function TournamentAdmin({
         startsAt: newTourneyStartsAt,
         status: "Registration open",
         rounds: stagesList,
+        variant: newTourneyVariant,
+        cardsPerPlayer: Number(newTourneyCardsPerPlayer),
+        maxOpenBalls: Number(newTourneyOpenBalls),
+        stagePatterns,
       });
 
       if (res && res.success) {
@@ -326,6 +342,18 @@ export function TournamentAdmin({
               {active.status === "Completed" ? "Completed 🏆" : `${currentRoundIndex + 1}/${roundsList.length} · ${currentStageName}`}
             </b>
           </span>
+          <span>
+            <small>VARIANT</small>
+            <b style={{ color: "#feca57" }}>{active.variant || "75-Ball Pattern"}</b>
+          </span>
+          <span>
+            <small>CARDS / PLAYER</small>
+            <b>{active.cardsPerPlayer || 1} Card{(active.cardsPerPlayer || 1) > 1 ? "s" : ""}</b>
+          </span>
+          <span>
+            <small>BALL LIMIT</small>
+            <b>{active.maxOpenBalls || 30} Balls</b>
+          </span>
         </div>
 
         {/* Stage Timeline Rail */}
@@ -413,24 +441,77 @@ export function TournamentAdmin({
             </div>
           </div>
 
-          {/* Schedule Launch Buttons */}
+          {/* Schedule Launch / Timer Controls */}
           {active.status === "Registration open" && (
-            <div style={{ display: "flex", alignItems: "center", gap: "6px", flexWrap: "wrap" }}>
-              <span style={{ fontSize: "11px", fontWeight: 700, color: "var(--muted)", textTransform: "uppercase" }}>
-                Schedule Auto-Start:
-              </span>
+            <div style={{
+              marginTop: "12px",
+              paddingTop: "12px",
+              borderTop: "1px solid rgba(255,255,255,0.08)",
+              display: "flex",
+              flexDirection: "column",
+              gap: "10px",
+            }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "8px" }}>
+                <span style={{ fontSize: "11px", fontWeight: 700, color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.06em" }}>
+                  ⏱ Tournament Start Scheduler (Backoffice Only)
+                </span>
+                {active.engine?.scheduledStartSeconds ? (
+                  <span style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: "6px",
+                    background: "rgba(254, 202, 87, 0.15)",
+                    border: "1px solid rgba(254, 202, 87, 0.4)",
+                    borderRadius: "6px",
+                    padding: "4px 10px",
+                    fontSize: "12px",
+                    fontWeight: 800,
+                    color: "#feca57",
+                  }}>
+                    ⏳ Auto-Start in {active.engine.scheduledStartSeconds}s
+                  </span>
+                ) : (
+                  <span style={{ fontSize: "11px", color: "var(--muted)" }}>
+                    Players in room see "Awaiting Tournament Start" until scheduled or launched
+                  </span>
+                )}
+              </div>
+
               {active.engine?.scheduledStartSeconds ? (
-                <button
-                  type="button"
-                  className="outline-button"
-                  onClick={handleCancelSchedule}
-                  disabled={loadingAction}
-                  style={{ fontSize: "11px", padding: "5px 10px", color: "#d13b33", borderColor: "#fca5a5" }}
-                >
-                  ✕ Cancel Timer ({active.engine.scheduledStartSeconds}s)
-                </button>
+                <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
+                  <button
+                    type="button"
+                    className="outline-button"
+                    onClick={handleCancelSchedule}
+                    disabled={loadingAction}
+                    style={{ fontSize: "12px", padding: "6px 14px", color: "#e74c3c", borderColor: "rgba(231, 76, 60, 0.5)", fontWeight: 700 }}
+                  >
+                    ✕ Cancel Countdown Timer
+                  </button>
+                  <button
+                    type="button"
+                    className="admin-primary"
+                    onClick={handleStartTournament}
+                    disabled={loadingAction}
+                    style={{ fontSize: "12px", padding: "6px 14px", background: "linear-gradient(135deg, #2bddaa, #00b894)", color: "#000", fontWeight: 800 }}
+                  >
+                    🚀 Override & Launch Live Now
+                  </button>
+                </div>
               ) : (
-                <>
+                <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
+                  <span style={{ fontSize: "12px", fontWeight: 600, color: "var(--muted)" }}>
+                    Quick Presets:
+                  </span>
+                  <button
+                    type="button"
+                    className="outline-button"
+                    onClick={() => handleScheduleStart(15)}
+                    disabled={loadingAction}
+                    style={{ fontSize: "11px", padding: "5px 10px" }}
+                  >
+                    ⏱ 15s
+                  </button>
                   <button
                     type="button"
                     className="outline-button"
@@ -438,7 +519,7 @@ export function TournamentAdmin({
                     disabled={loadingAction}
                     style={{ fontSize: "11px", padding: "5px 10px" }}
                   >
-                    ⏱ In 30s
+                    ⏱ 30s
                   </button>
                   <button
                     type="button"
@@ -447,9 +528,58 @@ export function TournamentAdmin({
                     disabled={loadingAction}
                     style={{ fontSize: "11px", padding: "5px 10px" }}
                   >
-                    ⏱ In 1m
+                    ⏱ 1m
                   </button>
-                </>
+                  <button
+                    type="button"
+                    className="outline-button"
+                    onClick={() => handleScheduleStart(120)}
+                    disabled={loadingAction}
+                    style={{ fontSize: "11px", padding: "5px 10px" }}
+                  >
+                    ⏱ 2m
+                  </button>
+                  <button
+                    type="button"
+                    className="outline-button"
+                    onClick={() => handleScheduleStart(300)}
+                    disabled={loadingAction}
+                    style={{ fontSize: "11px", padding: "5px 10px" }}
+                  >
+                    ⏱ 5m
+                  </button>
+
+                  <div style={{ display: "flex", alignItems: "center", gap: "6px", marginLeft: "6px" }}>
+                    <input
+                      type="number"
+                      min={5}
+                      max={3600}
+                      step={5}
+                      value={customScheduleSeconds}
+                      onChange={(e) => setCustomScheduleSeconds(Math.max(5, Number(e.target.value)))}
+                      style={{
+                        width: "60px",
+                        padding: "5px 8px",
+                        fontSize: "12px",
+                        borderRadius: "6px",
+                        border: "1px solid rgba(255,255,255,0.2)",
+                        background: "rgba(0,0,0,0.3)",
+                        color: "#fff",
+                        textAlign: "center",
+                      }}
+                    />
+                    <span style={{ fontSize: "11px", color: "var(--muted)" }}>sec</span>
+                    <button
+                      type="button"
+                      className="outline-button"
+                      onClick={() => handleScheduleStart(customScheduleSeconds)}
+                      disabled={loadingAction}
+                      style={{ fontSize: "11px", padding: "5px 10px", borderColor: "#2bddaa", color: "#2bddaa", fontWeight: 700 }}
+                    >
+                      Set Timer
+                    </button>
+                  </div>
+                </div>
               )}
             </div>
           )}
@@ -473,7 +603,11 @@ export function TournamentAdmin({
               Stage Operator Console
             </span>
             <h3 style={{ margin: "3px 0 0", fontSize: "15px" }}>
-              {active.status === "Registration open" && "Tournament awaiting launch"}
+              {active.status === "Registration open" && (
+                active.engine?.scheduledStartSeconds
+                  ? `⏳ Scheduled: Auto-starting in ${active.engine.scheduledStartSeconds}s`
+                  : "⚡ Standby: Tournament awaiting operator launch or schedule"
+              )}
               {active.status === "Live" && `Active Stage: ${currentStageName} (${active.stageStatus === "scored" ? "Scored" : "In Progress"})`}
               {active.status === "Completed" && `Tournament Complete · Champion: ${active.winner || "Ari.R"}`}
             </h3>
@@ -481,14 +615,32 @@ export function TournamentAdmin({
 
           <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
             {active.status === "Registration open" && (
-              <button
-                type="button"
-                className="admin-primary tournament-start-button"
-                disabled={loadingAction}
-                onClick={handleStartTournament}
-              >
-                ▶ Start Tournament ({roundsList[0]})
-              </button>
+              <>
+                <button
+                  type="button"
+                  className="admin-primary tournament-start-button"
+                  disabled={loadingAction}
+                  onClick={handleStartTournament}
+                  style={{
+                    background: "linear-gradient(135deg, #2bddaa, #00b894)",
+                    color: "#000",
+                    fontWeight: 800,
+                  }}
+                >
+                  🚀 Launch Live Now ({roundsList[0]})
+                </button>
+                {active.engine?.scheduledStartSeconds && (
+                  <button
+                    type="button"
+                    className="outline-button"
+                    disabled={loadingAction}
+                    onClick={handleCancelSchedule}
+                    style={{ color: "#e74c3c", borderColor: "rgba(231, 76, 60, 0.5)" }}
+                  >
+                    ✕ Cancel Timer
+                  </button>
+                )}
+              </>
             )}
 
             {active.status === "Live" && (
@@ -719,6 +871,52 @@ export function TournamentAdmin({
                     <option value={4}>4 Stages (Masters / Standard)</option>
                     <option value={5}>5 Stages (Grand Championship)</option>
                   </select>
+                </div>
+              </div>
+
+              <div style={{ display: "grid", gridTemplateColumns: "1.4fr 1fr 1fr", gap: "12px" }}>
+                <div>
+                  <label style={{ display: "block", fontSize: "12px", fontWeight: 700, marginBottom: "4px", color: "#374151" }}>Game Variant (Ball Type)</label>
+                  <select
+                    value={newTourneyVariant}
+                    onChange={(e) => {
+                      const v = e.target.value as any;
+                      setNewTourneyVariant(v);
+                      if (v === "30-Ball Speed") setNewTourneyOpenBalls(20);
+                      else if (v === "90-Ball Classic") setNewTourneyOpenBalls(35);
+                      else if (v === "80-Ball Shutter") setNewTourneyOpenBalls(28);
+                      else setNewTourneyOpenBalls(30);
+                    }}
+                    style={{ width: "100%", padding: "8px 12px", borderRadius: "6px", border: "1px solid #d1d5db", fontSize: "13px" }}
+                  >
+                    <option value="75-Ball Pattern">75-Ball Pattern (5x5)</option>
+                    <option value="90-Ball Classic">90-Ball Classic (3x9)</option>
+                    <option value="30-Ball Speed">30-Ball Speed (3x3)</option>
+                    <option value="80-Ball Shutter">80-Ball Shutter (4x4)</option>
+                  </select>
+                </div>
+                <div>
+                  <label style={{ display: "block", fontSize: "12px", fontWeight: 700, marginBottom: "4px", color: "#374151" }}>Cards / Player</label>
+                  <select
+                    value={newTourneyCardsPerPlayer}
+                    onChange={(e) => setNewTourneyCardsPerPlayer(Number(e.target.value))}
+                    style={{ width: "100%", padding: "8px 12px", borderRadius: "6px", border: "1px solid #d1d5db", fontSize: "13px" }}
+                  >
+                    <option value={1}>1 Card (Standard)</option>
+                    <option value={2}>2 Cards</option>
+                    <option value={4}>4 Cards</option>
+                  </select>
+                </div>
+                <div>
+                  <label style={{ display: "block", fontSize: "12px", fontWeight: 700, marginBottom: "4px", color: "#374151" }}>Open Ball Limit</label>
+                  <input
+                    type="number"
+                    min="10"
+                    max="75"
+                    value={newTourneyOpenBalls}
+                    onChange={(e) => setNewTourneyOpenBalls(Number(e.target.value))}
+                    style={{ width: "100%", padding: "8px 12px", borderRadius: "6px", border: "1px solid #d1d5db", fontSize: "13px" }}
+                  />
                 </div>
               </div>
 

@@ -145,6 +145,10 @@ export interface Tournament {
   status: "Registration open" | "Live" | "Completed";
   rounds: string[];
   registeredPlayers?: string[];
+  variant?: "75-Ball Pattern" | "90-Ball Classic" | "30-Ball Speed" | "80-Ball Shutter";
+  cardsPerPlayer?: number;
+  maxOpenBalls?: number;
+  stagePatterns?: string[];
   currentRoundIndex?: number;
   currentStageName?: string;
   stageStatus?: "waiting" | "in_progress" | "scored" | "completed";

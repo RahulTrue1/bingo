@@ -23,7 +23,7 @@ export function TournamentLobby({
   notify,
   currentUser,
 }: {
-  enterRoom: () => void;
+  enterRoom: (tourney?: any) => void;
   notify: (message: string) => void;
   currentUser?: any;
 }) {
@@ -277,7 +277,7 @@ export function TournamentLobby({
             ) : activeTourney.status === "Registration open" ? (
               <button
                 className="primary-button tourney-enter-button"
-                onClick={enterRoom}
+                onClick={() => enterRoom(activeTourney)}
                 style={{ background: "linear-gradient(135deg, #2bddaa, #00b894)", color: "#000", fontWeight: 800 }}
               >
                 🎮 Open Tournament Room
@@ -286,12 +286,12 @@ export function TournamentLobby({
               <>
                 <button
                   className="primary-button tourney-enter-button"
-                  onClick={enterRoom}
+                  onClick={() => enterRoom(activeTourney)}
                   style={{ background: "linear-gradient(135deg, #ff4757, #ff6b81)", fontWeight: 800 }}
                 >
                   🎮 Play Stage {currentRoundIndex + 1} ({currentStageName}) →
                 </button>
-                <button className="glass-button" onClick={enterRoom}>
+                <button className="glass-button" onClick={() => enterRoom(activeTourney)}>
                   Open Tournament Room
                 </button>
               </>
@@ -841,7 +841,7 @@ export function TournamentLobby({
               className="primary-button"
               onClick={() => {
                 setRulesOpen(false);
-                if (registered) enterRoom();
+                if (registered) enterRoom(activeTourney);
                 else handleEntry();
               }}
             >

@@ -5,9 +5,9 @@ import type { Tournament, TournamentEngineConfig } from "../types.ts";
 export class TournamentEngine {
   private static tickerInterval: NodeJS.Timeout | null = null;
 
-  static getDefaultEngine(roundDuration = 15): TournamentEngineConfig {
+  static getDefaultEngine(roundDuration = 60): TournamentEngineConfig {
     return {
-      autoMode: true,
+      autoMode: false,
       roundDuration,
       stageSecondsRemaining: roundDuration,
       scheduledStartSeconds: null,
@@ -57,7 +57,7 @@ export class TournamentEngine {
         if (engine.scheduledStartSeconds <= 0) {
           engine.scheduledStartSeconds = null;
           this.startTournament(t.id);
-        } else if (engine.scheduledStartSeconds % 5 === 0 || engine.scheduledStartSeconds <= 5) {
+        } else {
           syncBus.emitChange("tournaments", "schedule-tick", t, t.id, `Countdown: ${engine.scheduledStartSeconds}s until start`);
         }
         continue;
@@ -90,6 +90,12 @@ export class TournamentEngine {
     }
   }
 
+  static findTourneyRoom(t: Tournament) {
+    return store.rooms.find(
+      (r) => r.id === "tournament" || r.id === t.id || r.id === `tournament-${t.id}` || r.name.toLowerCase() === t.name.toLowerCase()
+    );
+  }
+
   // --- Core Tournament Operations ---
 
   static startTournament(id: string): { success: boolean; tournament?: Tournament; error?: string } {
@@ -101,7 +107,8 @@ export class TournamentEngine {
     t.currentRoundIndex = 0;
     t.currentStageName = t.rounds?.[0] || "Qualifiers";
     t.stageStatus = "in_progress";
-    engine.stageSecondsRemaining = engine.roundDuration || 15;
+    engine.autoMode = false;
+    engine.stageSecondsRemaining = engine.roundDuration || 60;
     engine.scheduledStartSeconds = null;
     delete t.winner;
 
@@ -135,17 +142,27 @@ export class TournamentEngine {
       }
     }
 
-    const tourneyRoom = store.rooms.find((r) => r.id === "tournament" || r.id === t.id);
+    const tourneyRoom = this.findTourneyRoom(t);
     if (tourneyRoom) {
       tourneyRoom.status = "Live";
       tourneyRoom.startsIn = `LIVE · ${t.currentStageName}`;
+      tourneyRoom.round = t.currentStageName;
+      const sessionIds = [tourneyRoom.id, "tournament", `tournament-${t.id}`];
+      for (const sid of sessionIds) {
+        const s = store.gameSessions[sid];
+        if (s) {
+          s.called = [];
+          s.current = null;
+          s.phase = "live";
+        }
+      }
     }
 
     store.addAudit("alert", "Tournament started", `${t.name} launched with Stage 1: ${t.currentStageName}`);
     store.save();
 
     syncBus.emitChange("tournaments", "start", t, t.id, `Tournament "${t.name}" is now LIVE! Stage 1 (${t.currentStageName}) has started.`);
-    syncBus.emitChange("rooms", "update", tourneyRoom, "tournament", "Tournament room is now live.");
+    syncBus.emitChange("rooms", "update", tourneyRoom, tourneyRoom ? tourneyRoom.id : "tournament", "Tournament room is now live.");
 
     return { success: true, tournament: t };
   }
@@ -230,17 +247,27 @@ export class TournamentEngine {
     t.stageStatus = "in_progress";
     engine.stageSecondsRemaining = engine.roundDuration || 15;
 
-    const tourneyRoom = store.rooms.find((r) => r.id === "tournament" || r.id === t.id);
+    const tourneyRoom = this.findTourneyRoom(t);
     if (tourneyRoom) {
       tourneyRoom.status = "Live";
       tourneyRoom.startsIn = `LIVE · ${t.currentStageName}`;
+      tourneyRoom.round = t.currentStageName;
+      const sessionIds = [tourneyRoom.id, "tournament", `tournament-${t.id}`];
+      for (const sid of sessionIds) {
+        const s = store.gameSessions[sid];
+        if (s) {
+          s.called = [];
+          s.current = null;
+          s.phase = "live";
+        }
+      }
     }
 
     store.addAudit("alert", "Tournament stage advanced", `${t.name} moved to Stage ${t.currentRoundIndex + 1}: ${t.currentStageName}`);
     store.save();
 
     syncBus.emitChange("tournaments", "advance", t, t.id, `${t.name} advanced to Stage ${t.currentRoundIndex + 1}: ${t.currentStageName}!`);
-    syncBus.emitChange("rooms", "update", tourneyRoom, "tournament", `Tournament stage: ${t.currentStageName}`);
+    syncBus.emitChange("rooms", "update", tourneyRoom, tourneyRoom ? tourneyRoom.id : "tournament", `Tournament stage: ${t.currentStageName}`);
 
     return { success: true, tournament: t };
   }
@@ -295,7 +322,7 @@ export class TournamentEngine {
     store.addAudit("player", "Tournament champion prize", `${champion} won $${firstPrize} as Champion of ${t.name}`);
     syncBus.emitChange("wallet", "tournament-champion", { wallet: awardedWallet, payout: firstPrize, player: champion });
 
-    const tourneyRoom = store.rooms.find((r) => r.id === "tournament" || r.id === t.id);
+    const tourneyRoom = this.findTourneyRoom(t);
     if (tourneyRoom) {
       tourneyRoom.status = "Open";
       tourneyRoom.startsIn = "Completed";
@@ -304,7 +331,7 @@ export class TournamentEngine {
     store.save();
 
     syncBus.emitChange("tournaments", "complete", t, t.id, `🏆 ${champion} has won the ${t.name}! $${firstPrize.toLocaleString()} prize awarded.`);
-    syncBus.emitChange("rooms", "update", tourneyRoom, "tournament", "Tournament completed.");
+    syncBus.emitChange("rooms", "update", tourneyRoom, tourneyRoom ? tourneyRoom.id : "tournament", "Tournament completed.");
 
     return {
       success: true,
@@ -337,17 +364,18 @@ export class TournamentEngine {
       { rank: 4, player: "TrueigQueen", points: 0, wins: 0, status: "In play", fast: "28 balls" },
     ];
 
-    const tourneyRoom = store.rooms.find((r) => r.id === "tournament" || r.id === t.id);
+    const tourneyRoom = this.findTourneyRoom(t);
     if (tourneyRoom) {
       tourneyRoom.status = "Open";
-      tourneyRoom.startsIn = "FRI · 20:00";
+      tourneyRoom.startsIn = t.startsAt || "FRI · 20:00";
+      tourneyRoom.round = t.rounds?.[0] || "Qualifiers";
     }
 
     store.addAudit("alert", "Tournament reset", `${t.name} reset to initial registration phase`);
     store.save();
 
     syncBus.emitChange("tournaments", "reset", t, t.id, `Tournament "${t.name}" has been reset.`);
-    syncBus.emitChange("rooms", "update", tourneyRoom, "tournament", "Tournament reset.");
+    syncBus.emitChange("rooms", "update", tourneyRoom, tourneyRoom ? tourneyRoom.id : "tournament", "Tournament reset.");
 
     return { success: true, tournament: t };
   }

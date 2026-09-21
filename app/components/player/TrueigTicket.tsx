@@ -32,19 +32,19 @@ export function TrueigTicket({
   onMark: (value: number) => void;
 }) {
   const isMarked = (value: number | "FREE" | null) =>
-    value === "FREE" || (typeof value === "number" && ((autoDaub && called.includes(value)) || manualMarks.includes(value)));
-  const matched = values.filter((value) => isMarked(value)).length;
+    !selling && (value === "FREE" || (typeof value === "number" && ((autoDaub && called.includes(value)) || manualMarks.includes(value))));
+  const matched = !selling ? values.filter((value) => isMarked(value)).length : 0;
   const needed = targetCells.filter((i) => values[i] !== null).length;
-  const targetMatched = targetCells.filter((i) => isMarked(values[i])).length;
-  const nearWin = targetMatched >= Math.max(1, needed - 1) && targetMatched < needed;
+  const targetMatched = !selling ? targetCells.filter((i) => isMarked(values[i])).length : 0;
+  const nearWin = !selling && targetMatched >= Math.max(1, needed - 1) && targetMatched < needed;
 
   return (
     <div
       className={`bingo-ticket trueig-ticket ticket-${ballCount} ${active ? "active" : ""} ${selected ? "selected" : ""} ${nearWin ? "near-win" : ""}`}
-      onClick={onPreview}
+      onClick={selling ? onSelect : onPreview}
       role="button"
       tabIndex={0}
-      onKeyDown={(event) => event.key === "Enter" && onPreview()}
+      onKeyDown={(event) => event.key === "Enter" && (selling ? onSelect() : onPreview())}
     >
       <div className="ticket-head">
         <b>TRUEIG CARD #{String(index + 1).padStart(2, "0")}</b>
@@ -80,6 +80,10 @@ export function TrueigTicket({
           <button
             className={`${value === null ? "blank" : ""} ${isMarked(value) ? "marked" : ""} ${targetCells.includes(cellIndex) ? "target" : ""}`}
             onClick={(event) => {
+              if (selling) {
+                // In selling phase, let click bubble up to card container to toggle selection
+                return;
+              }
               event.stopPropagation();
               if (typeof value === "number") onMark(value);
             }}

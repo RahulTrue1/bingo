@@ -35,6 +35,11 @@ function getOrCreateSession(roomId: string): GameSession {
 // GET /api/game/:roomId/state - Get live game session state
 gameRouter.get("/:roomId/state", (req: Request, res: Response) => {
   const session = getOrCreateSession(req.params.roomId);
+  if (session.phase === "selling" && session.called.length > 0) {
+    session.called = [];
+    session.current = null;
+    store.save();
+  }
   const room = store.rooms.find((r) => r.id === req.params.roomId);
   res.json({
     success: true,
@@ -159,7 +164,7 @@ gameRouter.post("/:roomId/restart", (req: Request, res: Response) => {
   const session = getOrCreateSession(req.params.roomId);
   session.called = [];
   session.current = null;
-  session.phase = "countdown";
+  session.phase = "selling";
   session.countdown = 5;
   session.paused = false;
   session.winnerNames = [];
@@ -246,7 +251,11 @@ gameRouter.post("/:roomId/claim", (req: Request, res: Response) => {
     : true; // fallback if claimed without specific ticket record
 
   const currentStage = room.winningStages?.[session.stageIndex];
-  const prize = currentStage ? currentStage.prize : room.prize;
+  let prize = currentStage && currentStage.prize > 0 ? currentStage.prize : room.prize;
+  if (!prize || prize <= 0) {
+    const stageCount = room.winningStages?.length || 1;
+    prize = Math.max(25, Math.round((room.prize || 100) / stageCount));
+  }
 
   const claim: BingoClaim = {
     id: `CLM-${Math.floor(100000 + Math.random() * 900000)}`,

@@ -487,8 +487,8 @@ export function BackofficeDrawer({
         firstInvalid = firstInvalid || "field-stages";
         break;
       }
-      if (Number(s.prize) < 0) {
-        errors.stages = "Stage prizes cannot be negative.";
+      if (Number(s.prize) <= 0) {
+        errors.stages = "Each winning stage must have a prize greater than $0.";
         firstInvalid = firstInvalid || "field-stages";
         break;
       }

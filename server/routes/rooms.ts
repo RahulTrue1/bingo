@@ -33,7 +33,41 @@ roomsRouter.get("/", (req: Request, res: Response) => {
 
 // GET /api/rooms/:id - Get single room
 roomsRouter.get("/:id", (req: Request, res: Response) => {
-  const room = store.rooms.find((r) => r.id === req.params.id);
+  let room = store.rooms.find((r) => r.id === req.params.id);
+  if (!room) {
+    const cleanId = req.params.id.replace(/^tournament-/, "");
+    const tourney = store.tournaments.find(
+      (t) => t.id === cleanId || t.id === req.params.id || t.name.toLowerCase().replace(/[^a-z0-9]+/g, "-") === cleanId
+    );
+    if (tourney) {
+      room = {
+        id: req.params.id,
+        name: tourney.name,
+        variant: `Tournament · ${tourney.rounds?.length || 4} Rounds`,
+        status: tourney.status === "Live" ? "Live" : "Open",
+        ticketPrice: tourney.entryFee || 10,
+        prize: tourney.prizePool || 10000,
+        players: tourney.playersCount || 192,
+        maxPlayers: tourney.maxPlayers || 256,
+        cardsSold: (tourney.playersCount || 192) * 2,
+        startsIn: tourney.startsAt || "Scheduled",
+        pattern: tourney.currentStageName || tourney.rounds?.[0] || "Qualifiers",
+        accent: tourney.id === "daily-masters" ? "emerald" : tourney.id === "speed-sprint" ? "coral" : "violet",
+        tag: "TOURNAMENT",
+        frequency: "Scheduled Event",
+        cardRows: 5,
+        cardColumns: 5,
+        callDelay: 900,
+        rtp: 80,
+        rtpMode: "fixed",
+        winningStages: (tourney.rounds || ["Qualifiers"]).map((r: string, idx: number, arr: string[]) => ({
+          name: r,
+          prize: Math.round((tourney.prizePool || 10000) / arr.length),
+          continueAfterWin: idx < arr.length - 1,
+        })),
+      };
+    }
+  }
   if (!room) {
     res.status(404).json({ success: false, error: "Room not found" });
     return;

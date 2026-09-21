@@ -124,6 +124,10 @@ tournamentsRouter.post("/", (req: Request, res: Response) => {
     startsAt: body.startsAt || "Tomorrow · 20:00",
     status: body.status || "Registration open",
     rounds: body.rounds || ["Qualifiers", "Round of 128", "Semi Final", "Grand Final"],
+    variant: body.variant || "75-Ball Pattern",
+    cardsPerPlayer: body.cardsPerPlayer !== undefined ? Math.max(1, Number(body.cardsPerPlayer)) : 1,
+    maxOpenBalls: body.maxOpenBalls !== undefined ? Math.max(10, Number(body.maxOpenBalls)) : (body.variant?.includes("30") ? 20 : body.variant?.includes("90") ? 35 : 30),
+    stagePatterns: body.stagePatterns || (body.variant?.includes("90") ? ["One Line", "Two Lines", "Full House"] : body.variant?.includes("30") ? ["One Line", "Two Lines", "Speed Full House"] : ["One Line", "Four Corners", "Diamond", "Full House"]),
     scoringRules: body.scoringRules || {
       "Line win": "10 pts",
       "Pattern win": "25 pts",

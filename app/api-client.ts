@@ -104,6 +104,10 @@ export interface TournamentModel {
   playersCount?: number;
   registeredPlayers: string[];
   rounds: any;
+  variant?: "75-Ball Pattern" | "90-Ball Classic" | "30-Ball Speed" | "80-Ball Shutter";
+  cardsPerPlayer?: number;
+  maxOpenBalls?: number;
+  stagePatterns?: string[];
   currentRoundIndex?: number;
   currentStageName?: string;
   stageStatus?: "waiting" | "in_progress" | "scored" | "completed";

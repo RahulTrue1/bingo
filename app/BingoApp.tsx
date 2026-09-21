@@ -171,9 +171,11 @@ export default function Home({ initialMode = "player" }: { initialMode?: AppMode
     notify(`Welcome ${user.displayName || user.username}!`);
   };
 
+  const [activeTournament, setActiveTournament] = useState<any>(null);
   const activeRoom = rooms.find((room) => room.id === activeRoomId) ?? rooms[0];
 
-  function enterRoom(room: BingoRoomData) {
+  function enterRoom(room: BingoRoomData, tourney?: any) {
+    setActiveTournament(tourney || null);
     setActiveRoomId(room.id);
     setPlayerView("room");
   }
@@ -201,18 +203,107 @@ export default function Home({ initialMode = "player" }: { initialMode?: AppMode
           {playerView === "lobby" && <PlayerLobby rooms={rooms} enterRoom={enterRoom} setView={setPlayerView} />}
           {playerView === "room" && (
             <GameRoom
-              key={activeRoom.id}
-              room={activeRoom}
+              key={activeTournament ? `tourney-${activeTournament.id}` : activeRoom.id}
+              room={activeTournament ? {
+                id: `tournament-${activeTournament.id}`,
+                name: activeTournament.name,
+                variant: `Tournament · ${activeTournament.rounds?.length || 4} Rounds`,
+                status: activeTournament.status === "Live" ? "Live" : "Open",
+                ticketPrice: activeTournament.entryFee || 10,
+                prize: activeTournament.prizePool || 25000,
+                players: activeTournament.playersCount || 192,
+                maxPlayers: activeTournament.maxPlayers || 256,
+                cardsSold: (activeTournament.playersCount || 192) * 2,
+                startsIn: activeTournament.startsAt || "Scheduled",
+                pattern: activeTournament.currentStageName || activeTournament.rounds?.[0] || "Qualifiers",
+                accent: activeTournament.id === "daily-masters" ? "emerald" : activeTournament.id === "speed-sprint" ? "coral" : "violet",
+                tag: "TOURNAMENT",
+                frequency: "Scheduled Event",
+                cardRows: 5,
+                cardColumns: 5,
+                callDelay: activeTournament.id === "speed-sprint" ? 600 : 900,
+                rtp: 80,
+                rtpMode: "fixed",
+                winningStages: (activeTournament.rounds || ["Qualifiers"]).map((r: string, idx: number, arr: string[]) => ({
+                  name: r,
+                  prize: Math.round((activeTournament.prizePool || 25000) / arr.length),
+                  continueAfterWin: idx < arr.length - 1,
+                })),
+              } : activeRoom}
+              tournament={activeTournament}
               wallet={wallet}
               setWallet={setWallet}
-              goBack={() => setPlayerView("lobby")}
+              goBack={() => {
+                if (activeTournament) {
+                  setActiveTournament(null);
+                  setPlayerView("tournaments");
+                } else {
+                  setPlayerView("lobby");
+                }
+              }}
               notify={notify}
               currentUser={currentUser}
             />
           )}
           {playerView === "tournaments" && (
             <TournamentLobby
-              enterRoom={() => enterRoom(rooms.find((room) => room.id === "tournament") ?? rooms[0])}
+              enterRoom={(tourney) => {
+                const tourneyObj = tourney || {
+                  id: "weekend-cup",
+                  name: "Trueigtech Weekend Cup",
+                  entryFee: 8,
+                  prizePool: 25000,
+                  playersCount: 384,
+                  maxPlayers: 512,
+                  rounds: ["Qualifiers", "Round of 256", "Round of 128", "Semi Final", "Grand Final"],
+                  currentStageName: "Qualifiers",
+                };
+                const is90 = tourneyObj.variant?.includes("90");
+                const is30 = tourneyObj.variant?.includes("30") || tourneyObj.id === "speed-sprint";
+                const is80 = tourneyObj.variant?.includes("80");
+                const cardRows = is90 ? 3 : is30 ? 3 : is80 ? 4 : 5;
+                const cardColumns = is90 ? 9 : is30 ? 3 : is80 ? 4 : 5;
+                const callDelay = is30 ? 1200 : is90 ? 1500 : 1350;
+                const variantName = tourneyObj.variant || (is30 ? "30-Ball Speed" : is90 ? "90-Ball Classic" : is80 ? "80-Ball Shutter" : "75-Ball Pattern");
+                const cardsPerPlayer = tourneyObj.cardsPerPlayer || 1;
+
+                const tourneyRoom: BingoRoomData = {
+                  id: `tournament-${tourneyObj.id}`,
+                  name: tourneyObj.name,
+                  variant: variantName,
+                  status: tourneyObj.status === "Live" ? "Live" : "Open",
+                  ticketPrice: tourneyObj.entryFee || 10,
+                  prize: tourneyObj.prizePool || 25000,
+                  players: tourneyObj.playersCount || 192,
+                  maxPlayers: tourneyObj.maxPlayers || 256,
+                  cardsSold: (tourneyObj.playersCount || 192) * cardsPerPlayer,
+                  startsIn: tourneyObj.startsAt || "Scheduled",
+                  pattern: tourneyObj.currentStageName || tourneyObj.rounds?.[0] || "Qualifiers",
+                  accent: tourneyObj.id === "daily-masters" ? "emerald" : is30 ? "coral" : "violet",
+                  tag: "TOURNAMENT",
+                  frequency: "Scheduled Event",
+                  cardRows,
+                  cardColumns,
+                  callDelay,
+                  rtp: 80,
+                  rtpMode: "fixed",
+                  cardLimit: cardsPerPlayer,
+                  winningStages: (tourneyObj.rounds || ["Qualifiers"]).map((r: string, idx: number, arr: string[]) => {
+                    const defaultPattern = is90
+                      ? (idx === arr.length - 1 ? "Full House" : idx === 1 ? "Two Lines" : "One Line")
+                      : is30
+                      ? (idx === arr.length - 1 ? "Speed Full House" : idx === 1 ? "Two Lines" : "One Line")
+                      : (idx === arr.length - 1 ? "Full House" : idx === 2 ? "Diamond" : idx === 1 ? "Four Corners" : "One Line");
+                    return {
+                      name: r,
+                      pattern: tourneyObj.stagePatterns?.[idx] || defaultPattern,
+                      prize: Math.round((tourneyObj.prizePool || 25000) / arr.length),
+                      continueAfterWin: idx < arr.length - 1,
+                    };
+                  }),
+                };
+                enterRoom(tourneyRoom, tourneyObj);
+              }}
               notify={notify}
               currentUser={currentUser}
             />
