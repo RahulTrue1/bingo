@@ -64,6 +64,7 @@ adminRouter.get("/players", (req: Request, res: Response) => {
 
   const mapped = result.map((p) => ({
     ...p,
+    password: p.password || "demo123",
     balance: p.username === "Ari.R" ? store.wallet : p.balance,
     cardsPurchased: p.username === "Ari.R" ? Math.max(p.cardsPurchased || 0, store.tickets.length) : p.cardsPurchased,
     totalEntry: (p as unknown as { totalEntry?: number }).totalEntry ?? Math.round((p.cardsPurchased || 0) * 1.5),
@@ -74,6 +75,27 @@ adminRouter.get("/players", (req: Request, res: Response) => {
     success: true,
     count: mapped.length,
     players: mapped,
+  });
+});
+
+// GET /api/admin/players/:id - Get detailed profile with credentials
+adminRouter.get("/players/:id", (req: Request, res: Response) => {
+  const target = req.params.id.toLowerCase();
+  const p = store.players.find((item) => item.id.toLowerCase() === target || item.username.toLowerCase() === target);
+  if (!p) {
+    res.status(404).json({ success: false, error: "Player not found" });
+    return;
+  }
+  res.json({
+    success: true,
+    player: {
+      ...p,
+      password: p.password || "demo123",
+      balance: p.username === "Ari.R" ? store.wallet : p.balance,
+      cardsPurchased: p.username === "Ari.R" ? Math.max(p.cardsPurchased || 0, store.tickets.length) : p.cardsPurchased,
+      totalEntry: (p as unknown as { totalEntry?: number }).totalEntry ?? Math.round((p.cardsPurchased || 0) * 1.5),
+      winnings: (p as unknown as { winnings?: number }).winnings ?? p.totalPrizes ?? 0,
+    },
   });
 });
 
@@ -100,7 +122,14 @@ adminRouter.post("/players/:id/action", (req: Request, res: Response) => {
 
   res.json({
     success: true,
-    player,
+    player: {
+      ...player,
+      password: player.password || "demo123",
+      balance: player.username === "Ari.R" ? store.wallet : player.balance,
+      cardsPurchased: player.username === "Ari.R" ? Math.max(player.cardsPurchased || 0, store.tickets.length) : player.cardsPurchased,
+      totalEntry: (player as unknown as { totalEntry?: number }).totalEntry ?? Math.round((player.cardsPurchased || 0) * 1.5),
+      winnings: (player as unknown as { winnings?: number }).winnings ?? player.totalPrizes ?? 0,
+    },
     message: `Action '${action}' applied to ${player.username}.`,
   });
 });
@@ -150,7 +179,14 @@ adminRouter.post("/players/:id/add-funds", (req: Request, res: Response) => {
 
   res.json({
     success: true,
-    player,
+    player: {
+      ...player,
+      password: player.password || "demo123",
+      balance: player.username === "Ari.R" ? store.wallet : player.balance,
+      cardsPurchased: player.username === "Ari.R" ? Math.max(player.cardsPurchased || 0, store.tickets.length) : player.cardsPurchased,
+      totalEntry: (player as unknown as { totalEntry?: number }).totalEntry ?? Math.round((player.cardsPurchased || 0) * 1.5),
+      winnings: (player as unknown as { winnings?: number }).winnings ?? player.totalPrizes ?? 0,
+    },
     wallet: player.balance,
     amount: num,
     transaction: tx,

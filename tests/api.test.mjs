@@ -841,5 +841,161 @@ test("Tournament full lifecycle: registration, 5-stage progressive elimination, 
   assert.equal(cleanResetJson.tournament.currentRoundIndex, 0);
 });
 
+test("Dynamic Jackpots lifecycle: create, configure, ticket contribution, manual boost, win trigger with wallet payout, and delete", async () => {
+  // 1. Verify initial list
+  const listRes = await fetch(`${BASE_URL}/jackpots`);
+  assert.equal(listRes.status, 200);
+  const listJson = await listRes.json();
+  assert.ok(Array.isArray(listJson.jackpots));
+  assert.ok(listJson.jackpots.length >= 4);
 
+  // 2. Create a new dynamic jackpot
+  const customId = `test-jp-${Date.now()}`;
+  const createRes = await fetch(`${BASE_URL}/jackpots`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      id: customId,
+      name: "Diamond Stash Jackpot",
+      variant: "75-Ball Progressive",
+      startingAmount: 15000,
+      currentAmount: 15000,
+      resetAmount: 15000,
+      maximumAmount: 150000,
+      contributionPercent: 3.0,
+      qualifyingPattern: "Full House in 40 balls",
+      qualifyingBallLimit: 40,
+      linkedRooms: ["diamond-75"],
+      price: 3,
+      difficulty: "Legendary",
+      reward: "Life-changing",
+    }),
+  });
+  assert.equal(createRes.status, 201);
+  const createJson = await createRes.json();
+  assert.equal(createJson.success, true);
+  assert.equal(createJson.jackpot.name, "Diamond Stash Jackpot");
+  assert.equal(createJson.jackpot.currentAmount, 15000);
 
+  // 3. Update configuration
+  const updateRes = await fetch(`${BASE_URL}/jackpots/${customId}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      maximumAmount: 200000,
+      contributionPercent: 3.5,
+    }),
+  });
+  assert.equal(updateRes.status, 200);
+  const updateJson = await updateRes.json();
+  assert.equal(updateJson.jackpot.maximumAmount, 200000);
+  assert.equal(updateJson.jackpot.contributionPercent, 3.5);
+
+  // 4. Add manual contribution
+  const contribRes = await fetch(`${BASE_URL}/jackpots/${customId}/contribute`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ amount: 2500, user: "Test Operator" }),
+  });
+  assert.equal(contribRes.status, 200);
+  const contribJson = await contribRes.json();
+  assert.equal(contribJson.jackpot.currentAmount, 17500);
+  assert.equal(contribJson.jackpot.history[0].type, "Manual adjustment");
+  assert.equal(contribJson.jackpot.history[0].amount, 2500);
+
+  // 5. Trigger win / payout to player
+  const winnerUser = "Ari.R";
+  const walletBeforeRes = await fetch(`${BASE_URL}/wallet?username=${winnerUser}`);
+  const { balance: walletBefore } = await walletBeforeRes.json();
+
+  const triggerRes = await fetch(`${BASE_URL}/jackpots/${customId}/trigger`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ winnerName: winnerUser }),
+  });
+  assert.equal(triggerRes.status, 200);
+  const triggerJson = await triggerRes.json();
+  assert.equal(triggerJson.success, true);
+  assert.equal(triggerJson.payout, 17500);
+  assert.equal(triggerJson.jackpot.currentAmount, 15000); // reset back to resetAmount
+
+  // Verify player received payout in wallet
+  const walletAfterRes = await fetch(`${BASE_URL}/wallet?username=${winnerUser}`);
+  const { balance: walletAfter } = await walletAfterRes.json();
+  assert.equal(walletAfter, walletBefore + 17500);
+
+  // 6. Clean up: Delete custom jackpot
+  const deleteRes = await fetch(`${BASE_URL}/jackpots/${customId}`, {
+    method: "DELETE",
+  });
+  assert.equal(deleteRes.status, 200);
+  const deleteJson = await deleteRes.json();
+  assert.equal(deleteJson.success, true);
+
+  // Verify it is no longer in jackpots list
+  const listAfterRes = await fetch(`${BASE_URL}/jackpots`);
+  const listAfterJson = await listAfterRes.json();
+  assert.ok(!listAfterJson.jackpots.some((j) => j.id === customId));
+});
+
+test("Maximum players capacity enforcement: blocks additional players from joining when room is full", async () => {
+  // 1. Create a dedicated room with maxPlayers: 1
+  const createRes = await fetch(`${BASE_URL}/rooms`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      id: `cap-test-${Date.now()}`,
+      name: "Capacity Test Room",
+      variant: "75-Ball Pattern",
+      status: "Selling Tickets",
+      ticketPrice: 2,
+      prize: 100,
+      maxPlayers: 1,
+    }),
+  });
+  assert.equal(createRes.status, 201);
+  const createJson = await createRes.json();
+  const testRoomId = createJson.room.id;
+  assert.equal(createJson.room.maxPlayers, 1);
+
+  // 2. First player (PlayerOne) buys a card -> success 201
+  const playerOne = `CapOne_${Date.now()}`;
+  await fetch(`${BASE_URL}/admin/players/${playerOne}/add-funds`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ amount: 100 }),
+  });
+
+  const buyOne = await fetch(`${BASE_URL}/tickets/buy`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ roomId: testRoomId, count: 1, username: playerOne }),
+  });
+  assert.equal(buyOne.status, 201);
+
+  // 3. Second player (PlayerTwo) attempts to buy a card -> rejected with 403
+  const playerTwo = `CapTwo_${Date.now()}`;
+  await fetch(`${BASE_URL}/admin/players/${playerTwo}/add-funds`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ amount: 100 }),
+  });
+
+  const buyTwo = await fetch(`${BASE_URL}/tickets/buy`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ roomId: testRoomId, count: 1, username: playerTwo }),
+  });
+  assert.equal(buyTwo.status, 403);
+  const buyTwoJson = await buyTwo.json();
+  assert.equal(buyTwoJson.success, false);
+  assert.match(buyTwoJson.error, /maximum capacity|full/i);
+
+  // 4. First player buys another card -> allowed because they are already participating
+  const buyOneAgain = await fetch(`${BASE_URL}/tickets/buy`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ roomId: testRoomId, count: 1, username: playerOne }),
+  });
+  assert.equal(buyOneAgain.status, 201);
+});

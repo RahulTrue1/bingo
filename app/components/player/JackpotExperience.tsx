@@ -26,7 +26,7 @@ export function JackpotExperience({
   enterRoom: (room: BingoRoomData) => void;
   notify: (message: string) => void;
 }) {
-  const [tiers, setTiers] = useState(jackpotTiers);
+  const [tiers, setTiers] = useState<Array<any>>(jackpotTiers);
   const [selectedTier, setSelectedTier] = useState(0);
   const [liveBump, setLiveBump] = useState(0);
   const [reminder, setReminder] = useState(true);
@@ -44,17 +44,21 @@ export function JackpotExperience({
                 (j.iconKey && iconMap[j.iconKey as keyof typeof iconMap]) ||
                 (j.key === "major" ? Star : j.key === "mini" ? Club : Diamond);
               return {
+                id: j.id,
                 key: j.key || j.id,
                 name: j.name,
                 amount: j.currentAmount,
                 reset: j.resetAmount || j.startingAmount,
-                contribution: j.contributionPercent,
+                contribution: j.contributionPercent || 2.0,
                 price: j.price || 2,
                 players: j.players || 50,
-                variant: j.variant || "75-Ball",
+                variant: j.variant || "75-Ball Progressive",
                 pattern: j.qualifyingPattern || "Full House in 42 balls",
+                ballLimit: j.qualifyingBallLimit || 42,
                 difficulty: j.difficulty || "Hard",
                 reward: j.reward || "Huge",
+                linkedRooms: j.linkedRooms || [],
+                history: j.history || [],
                 icon,
               };
             });
@@ -73,7 +77,7 @@ export function JackpotExperience({
       }
     });
 
-    const poll = window.setInterval(refreshJackpots, 4000);
+    const poll = window.setInterval(refreshJackpots, 3000);
 
     return () => {
       unsubscribe();
@@ -81,13 +85,46 @@ export function JackpotExperience({
     };
   }, [notify]);
 
-  const active = tiers[selectedTier] ?? tiers[0];
-  const eligibleRooms = rooms.filter((room) => room.variant.includes(active.variant.slice(0, 2)));
-  const visibleRooms = (eligibleRooms.length ? eligibleRooms : rooms).slice(0, showAllRooms ? 8 : 4);
+  const active = tiers[selectedTier] ?? tiers[0] ?? {
+    id: "mega-trueig",
+    key: "mega",
+    name: "Mega Trueig Jackpot",
+    amount: 125480,
+    reset: 50000,
+    contribution: 2.5,
+    price: 5,
+    players: 127,
+    variant: "75-Ball Progressive",
+    pattern: "Full House in 42 balls",
+    ballLimit: 42,
+    difficulty: "Legendary",
+    reward: "Life-changing",
+    linkedRooms: ["mega-jackpot", "diamond-75"],
+    history: [],
+    icon: Diamond,
+  };
+
+  // Find eligible rooms: explicitly linked rooms first, then variant matches, then all rooms
+  const linked = rooms.filter((r) => active.linkedRooms?.includes(r.id));
+  const variantMatch = rooms.filter((r) =>
+    r.variant?.toLowerCase().includes((active.variant || "").slice(0, 2).toLowerCase())
+  );
+  const eligibleRooms = linked.length > 0 ? linked : (variantMatch.length > 0 ? variantMatch : rooms);
+  const visibleRooms = eligibleRooms.slice(0, showAllRooms ? 8 : 4);
   const targetRoom = visibleRooms[0] ?? rooms[0];
 
+  // Find recent winner across history
+  const allWins = tiers.flatMap((t) => (t.history || []).map((h: any) => ({ ...h, jackpotName: t.name })))
+    .filter((h: any) => h.type.includes("Won") || h.type.includes("Payout"));
+  const recentWin = allWins[0] || {
+    user: "Ari.R",
+    amount: 42180,
+    jackpotName: active.name,
+    time: "14:32",
+  };
+
   useEffect(() => {
-    const timer = window.setInterval(() => setLiveBump((value) => value + 2), 4500);
+    const timer = window.setInterval(() => setLiveBump((value) => value + 0.5), 3000);
     return () => window.clearInterval(timer);
   }, []);
 
@@ -112,16 +149,16 @@ export function JackpotExperience({
 
       <section className="jackpot-feature" aria-labelledby="jackpot-feature-title">
         <div className="jackpot-feature-main">
-          <span className="jackpot-growth"><Lightning size={15} weight="fill" />Live +${42 + liveBump}</span>
+          <span className="jackpot-growth"><Lightning size={15} weight="fill" />Live +${(42 + liveBump).toFixed(2)}</span>
           <h2 id="jackpot-feature-title">{active.name}</h2>
           <strong aria-live="polite">
             {money(active.amount + liveBump)}
           </strong>
-          <p>Rising with every ticket. Win with <b>{active.pattern}</b>.</p>
+          <p>Rising with every ticket. Win with <b>{active.pattern}</b> within <b>{active.ballLimit} balls</b>.</p>
           <button className="jackpot-play-button" onClick={() => play()}>
             Play for {money(active.price)} <ArrowRight size={17} weight="bold" />
           </button>
-          <small>Minimum 1 ticket</small>
+          <small>Minimum 1 ticket · {eligibleRooms.length} eligible room{eligibleRooms.length === 1 ? "" : "s"}</small>
         </div>
 
         <div className="jackpot-qualify">
@@ -131,21 +168,21 @@ export function JackpotExperience({
               <span>1</span>
               <div>
                 <House size={18} weight="duotone" />
-                <p><b>Choose an eligible {active.variant} room</b><small>Look for rooms marked “Contributing”.</small></p>
+                <p><b>Choose an eligible {active.variant?.split(" ")[0]} room</b><small>Look for rooms marked “Contributing”.</small></p>
               </div>
             </li>
             <li>
               <span>2</span>
               <div>
                 <Ticket size={18} weight="duotone" />
-                <p><b>Buy a qualifying ticket</b><small>Each purchased ticket boosts this jackpot.</small></p>
+                <p><b>Buy a qualifying ticket ({money(active.price)})</b><small>+{active.contribution}% of each ticket boosts this pot.</small></p>
               </div>
             </li>
             <li>
               <span>3</span>
               <div>
                 <CheckCircle size={18} weight="duotone" />
-                <p><b>Complete the pattern</b><small>Win with {active.pattern.toLowerCase()}.</small></p>
+                <p><b>Complete the pattern</b><small>Win with {active.pattern.toLowerCase()} in {active.ballLimit} calls.</small></p>
               </div>
             </li>
           </ol>
@@ -160,7 +197,7 @@ export function JackpotExperience({
             <div><dt><Clock size={16} />Reset amount</dt><dd>{money(active.reset)}</dd></div>
             <div><dt><Ticket size={16} />Contribution per ticket</dt><dd>+{active.contribution}%<small>of ticket price</small></dd></div>
             <div><dt><UsersThree size={16} />Active contributors</dt><dd>{active.players}<small>players</small></dd></div>
-            <div><dt><Clock size={16} />Next qualifying game</dt><dd>Today<small>11:59 PM</small></dd></div>
+            <div><dt><Clock size={16} />Qualifying limit</dt><dd>{active.ballLimit}<small>calls max</small></dd></div>
           </dl>
           <button className="jackpot-reminder" role="switch" aria-checked={reminder} onClick={toggleReminder}>
             <span><Bell size={16} />Player reminder</span>
@@ -172,25 +209,31 @@ export function JackpotExperience({
         </aside>
       </section>
 
+      {/* Dynamic Jackpot Ladder */}
       <section className="jackpot-ladder" aria-labelledby="jackpot-ladder-title">
         <div className="jackpot-section-title">
           <h2 id="jackpot-ladder-title"><ChartLineUp size={20} />Jackpot ladder</h2>
-          <p>Four jackpots. Four rewards. One thrilling chase.</p>
+          <p>{tiers.length} progressive jackpots live now. Choose your prize chase.</p>
         </div>
-        <div className="jackpot-tier-grid">
+        <div className="jackpot-tier-grid" style={{ gridTemplateColumns: `repeat(auto-fit, minmax(240px, 1fr))` }}>
           {tiers.map((tier, index) => {
-            const TierIcon = tier.icon;
+            const TierIcon = tier.icon || Diamond;
+            const isSelected = selectedTier === index;
             return (
               <button
-                key={tier.key}
-                className={`jackpot-tier-card tier-${tier.key} ${selectedTier === index ? "selected" : ""}`}
+                key={tier.id || tier.key}
+                className={`jackpot-tier-card tier-${tier.key} ${isSelected ? "selected" : ""}`}
                 onClick={() => { setSelectedTier(index); setLiveBump(0); }}
-                aria-pressed={selectedTier === index}
+                aria-pressed={isSelected}
+                style={{
+                  border: isSelected ? "2px solid #ffd32a" : undefined,
+                  boxShadow: isSelected ? "0 0 20px rgba(255,211,42,0.25)" : undefined,
+                }}
               >
                 <span className="jackpot-tier-icon"><TierIcon size={27} weight="duotone" /></span>
                 <span className="jackpot-tier-copy">
                   <b>{tier.name}</b>
-                  <strong>{money(tier.amount)}</strong>
+                  <strong style={{ color: "#ffd32a" }}>{money(tier.amount)}</strong>
                 </span>
                 <span className="jackpot-tier-live"><i />Live</span>
                 <span className="jackpot-tier-meta">
@@ -204,10 +247,11 @@ export function JackpotExperience({
         </div>
       </section>
 
+      {/* Dynamic Contributing Rooms */}
       <section className="jackpot-rooms" aria-labelledby="jackpot-rooms-title">
         <div className="jackpot-section-title">
           <h2 id="jackpot-rooms-title"><Pulse size={20} />Games contributing now</h2>
-          <p>Join these {active.variant} rooms to contribute to the {active.name}.</p>
+          <p>Join these rooms to play for and boost {active.name}.</p>
           <button onClick={() => { setLiveBump((value) => value + 7); notify("Jackpot room data refreshed."); }}>
             Refresh
           </button>
@@ -221,7 +265,7 @@ export function JackpotExperience({
                 <th>Players</th>
                 <th>Jackpot contribution</th>
                 <th>Game type</th>
-                <th>Next game</th>
+                <th>Qualifying rule</th>
                 <th>Join</th>
               </tr>
             </thead>
@@ -230,35 +274,57 @@ export function JackpotExperience({
                 <tr key={`${room.id}-${index}`}>
                   <td>
                     <span className="jackpot-room-ball">{room.variant.match(/\d+/)?.[0] ?? "75"}</span>
-                    <span><b>{room.name}</b><small>Contributing</small></span>
+                    <span>
+                      <b>{room.name}</b>
+                      <small style={{ color: "#2bddaa", fontWeight: 600 }}>● Contributing</small>
+                    </span>
                   </td>
                   <td>{money(room.ticketPrice || active.price)}</td>
                   <td><UsersThree size={15} />{room.players}</td>
                   <td>
-                    <b>+{active.contribution}%</b>
+                    <b style={{ color: "#2bddaa" }}>+{active.contribution}%</b>
                     <small>({money((room.ticketPrice || active.price) * active.contribution / 100)} per ticket)</small>
                   </td>
-                  <td>{active.pattern}</td>
-                  <td>{["11:59 PM", "12:14 AM", "12:29 AM", "12:44 AM"][index % 4]}</td>
-                  <td><button onClick={() => play(room)}>Join room</button></td>
+                  <td>{room.variant}</td>
+                  <td>{active.pattern} ({active.ballLimit} calls)</td>
+                  <td>
+                    <button
+                      onClick={() => play(room)}
+                      style={{
+                        background: "linear-gradient(135deg, #6c5ce7, #a29bfe)",
+                        color: "#fff",
+                        fontWeight: 600,
+                        padding: "6px 14px",
+                        borderRadius: "6px",
+                        border: "none",
+                        cursor: "pointer",
+                      }}
+                    >
+                      Join room
+                    </button>
+                  </td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
-        <button className="jackpot-show-rooms" onClick={() => setShowAllRooms((value) => !value)}>
-          {showAllRooms ? "Show fewer rooms" : "View all contributing rooms"} <ArrowRight size={14} />
-        </button>
+        {eligibleRooms.length > 4 && (
+          <button className="jackpot-show-rooms" onClick={() => setShowAllRooms((value) => !value)}>
+            {showAllRooms ? "Show fewer rooms" : `View all ${eligibleRooms.length} contributing rooms`} <ArrowRight size={14} />
+          </button>
+        )}
       </section>
 
+      {/* Recent Winner Strip */}
       <aside className="jackpot-winner-strip">
-        <Trophy size={24} weight="fill" />
+        <Trophy size={24} weight="fill" color="#ffd32a" />
         <span className="jackpot-winner-label">Recent winner</span>
-        <strong>Ari.R won $42,180</strong>
-        <p>in Mega Trueig Jackpot with Full House after 38 balls · 14:32</p>
+        <strong>{recentWin.user} won {money(recentWin.amount)}</strong>
+        <p>in {recentWin.jackpotName || active.name} · {recentWin.time || "Just now"}</p>
         <button onClick={() => play()}>Play next round</button>
       </aside>
 
+      {/* Dynamic Rules Modal */}
       {rulesOpen && (
         <div className="tourney-modal-backdrop">
           <button className="tourney-modal-scrim" aria-label="Close jackpot rules" onClick={() => setRulesOpen(false)} />
@@ -266,12 +332,12 @@ export function JackpotExperience({
             <button className="tourney-modal-close" onClick={() => setRulesOpen(false)}>Close</button>
             <span className="section-kicker">Rules & eligibility</span>
             <h2 id="jackpot-rules-title">{active.name} rules</h2>
-            <p>Every ticket bought in contributing {active.variant} rooms adds +{active.contribution}% to the prize pool.</p>
+            <p>Every ticket bought in contributing {active.variant} rooms adds +{active.contribution}% directly to this progressive jackpot.</p>
             <ol>
-              <li>Qualify by buying at least 1 ticket ({money(active.price)} minimum) in a contributing room.</li>
-              <li>Win the jackpot by completing <b>{active.pattern}</b>.</li>
-              <li>If multiple players claim simultaneously, the jackpot splits equally.</li>
-              <li>When won, the jackpot immediately resets to {money(active.reset)}.</li>
+              <li>Qualify by purchasing at least 1 ticket ({money(active.price)} minimum) in an eligible contributing room.</li>
+              <li>Win the entire jackpot by achieving <b>{active.pattern}</b> within <b>{active.ballLimit} calls</b>.</li>
+              <li>If multiple players claim simultaneously in the same call, the prize pool splits equally among them.</li>
+              <li>When won, the jackpot prize is instantly credited to your wallet balance and the jackpot resets to {money(active.reset)}.</li>
             </ol>
             <button className="primary-button" onClick={() => { setRulesOpen(false); play(); }}>
               Play {active.name} now
@@ -282,3 +348,4 @@ export function JackpotExperience({
     </div>
   );
 }
+

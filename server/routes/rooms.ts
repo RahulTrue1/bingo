@@ -131,6 +131,13 @@ roomsRouter.put("/:id", (req: Request, res: Response) => {
   }
   if (updates.maxPlayers !== undefined) {
     updated.maxPlayers = Math.max(1, Number(updates.maxPlayers));
+    if (updated.players > updated.maxPlayers) {
+      updated.players = updated.maxPlayers;
+    }
+    const session = store.gameSessions[updated.id];
+    if (session && session.livePlayers > updated.maxPlayers) {
+      session.livePlayers = updated.maxPlayers;
+    }
   }
   if (updates.cardLimit !== undefined) {
     updated.cardLimit = Math.max(1, Number(updates.cardLimit));

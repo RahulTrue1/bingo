@@ -70,6 +70,24 @@ ticketsRouter.post("/buy", (req: Request, res: Response) => {
   const effectiveUserId = (userId || playerObj?.id || (activeUser === "Ari.R" ? "USR-11804" : `USR-${Math.floor(10000 + Math.random() * 90000)}`)).trim();
   const effectiveUsername = playerObj?.username || activeUser;
 
+  // Enforce maximum players capacity limit
+  const maxRoomPlayers = Math.max(1, Number(room.maxPlayers) || 1);
+  const distinctJoinedPlayers = new Set(
+    store.tickets
+      .filter((t) => t.roomId === room.id)
+      .map((t) => t.player.toLowerCase())
+  );
+  const alreadyJoined = distinctJoinedPlayers.has(effectiveUsername.toLowerCase()) ||
+    Boolean(effectiveUserId && store.tickets.some((t) => t.roomId === room.id && t.userId === effectiveUserId));
+
+  if (!alreadyJoined && distinctJoinedPlayers.size >= maxRoomPlayers) {
+    res.status(403).json({
+      success: false,
+      error: `Room "${room.name}" is full (maximum capacity: ${maxRoomPlayers} player${maxRoomPlayers > 1 ? "s" : ""}). No additional players can join this round.`,
+    });
+    return;
+  }
+
   const currentBalance = playerObj !== undefined ? playerObj.balance : store.wallet;
   if (currentBalance < totalCost) {
     res.status(400).json({
@@ -115,13 +133,17 @@ ticketsRouter.post("/buy", (req: Request, res: Response) => {
 
   // Update room stats
   room.cardsSold += numCount;
-  room.players = Math.min(room.maxPlayers, room.players + 1);
+  if (!alreadyJoined) {
+    distinctJoinedPlayers.add(effectiveUsername.toLowerCase());
+  }
+  room.players = Math.min(maxRoomPlayers, distinctJoinedPlayers.size);
 
   // Progressive jackpot contribution
   if (room.jackpot) {
-    const contribution = Math.round(totalCost * 0.025 * 100) / 100;
-    room.jackpot += contribution;
     const mainJp = store.jackpots.find((jp) => jp.linkedRooms.includes(room.id));
+    const rate = mainJp && mainJp.contributionPercent ? mainJp.contributionPercent / 100 : 0.025;
+    const contribution = Math.round(totalCost * rate * 100) / 100;
+    room.jackpot += contribution;
     if (mainJp) {
       mainJp.currentAmount += contribution;
       mainJp.history.unshift({
@@ -130,6 +152,13 @@ ticketsRouter.post("/buy", (req: Request, res: Response) => {
         time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
         user: effectiveUsername,
       });
+      syncBus.emitChange(
+        "jackpots",
+        "contribute",
+        mainJp,
+        mainJp.id,
+        `Jackpot ${mainJp.name} +$${contribution.toFixed(2)} from ticket purchase`
+      );
     }
   }
 

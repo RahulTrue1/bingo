@@ -1,9 +1,11 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { BingoRoomData } from "../../bingo-core";
 import { Icon } from "../shared/Icon";
 import type { PlayerView } from "../shared/types";
+import { money } from "../shared/types";
 import { HeroCarousel } from "./HeroCarousel";
 import { RoomCard } from "./RoomCard";
+import { apiClient, type JackpotModel } from "../../api-client";
 
 export function PlayerLobby({
   rooms,
@@ -17,6 +19,24 @@ export function PlayerLobby({
   const [filter, setFilter] = useState("All games");
   const [search, setSearch] = useState("");
   const [favorites, setFavorites] = useState<string[]>(["diamond-75"]);
+  const [topJackpotAmount, setTopJackpotAmount] = useState<number>(127480);
+
+  useEffect(() => {
+    const fetchTopJackpot = () => {
+      apiClient.jackpots.list().then((list) => {
+        if (list && list.length > 0) {
+          const maxVal = Math.max(...list.map((j) => j.currentAmount));
+          setTopJackpotAmount(maxVal);
+        }
+      }).catch(() => {});
+    };
+    fetchTopJackpot();
+    const unsub = apiClient.sync.subscribe((e) => {
+      if (e.entity === "jackpots") fetchTopJackpot();
+    });
+    return unsub;
+  }, []);
+
   const filters = ["All games", "Live now", "75-Ball", "90-Ball", "Speed", "Jackpots", "Free"];
   const filtered = rooms.filter((room) => {
     const matchesSearch = `${room.name} ${room.variant}`.toLowerCase().includes(search.toLowerCase());
@@ -70,9 +90,9 @@ export function PlayerLobby({
         </div>
         <div className="lobby-section-chips">
           {[
-            ["●", "Live now", "3 rooms"],
-            ["◷", "Starting soon", "5 rooms"],
-            ["✦", "Jackpot Bingo", "$125k live"],
+            ["●", "Live now", `${rooms.filter((r) => r.status === "Live").length} rooms`],
+            ["◷", "Starting soon", `${rooms.filter((r) => r.status === "Open" || r.status === "Scheduled").length} rooms`],
+            ["✦", "Jackpot Bingo", `${money(topJackpotAmount)} live`],
             ["⚡", "Speed Bingo", "Next in 00:17"],
             ["♛", "VIP Bingo", "Tonight 21:00"],
           ].map((item) => (

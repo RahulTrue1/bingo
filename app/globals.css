@@ -651,10 +651,12 @@ button:disabled { cursor: not-allowed; opacity: .48; }
 .tourney-prize-breakdown>div>button { align-self:flex-start; background:transparent; border:0; color:#976eff; font-size:9px; margin-top:3px; padding:0; }
 .tourney-modal-backdrop { align-items:center; background:rgba(3,3,14,.8); display:flex; inset:0; justify-content:center; padding:20px; position:fixed; z-index:100; }
 .tourney-modal-scrim { background:transparent; border:0; inset:0; position:absolute; }
-.tourney-rules-modal { background:linear-gradient(150deg,#17102f,#0b1328); border:1px solid rgba(151,117,255,.3); border-radius:18px; box-shadow:0 30px 80px rgba(0,0,0,.5); max-width:510px; padding:34px; position:relative; width:100%; z-index:1; }
-.tourney-modal-close { background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.1); border-radius:7px; color:#b8b1c8; font-size:9px; padding:7px 10px; position:absolute; right:18px; top:18px; }
-.tourney-rules-modal h2 { font-size:25px; margin:12px 0 8px; }
+.tourney-rules-modal { background:linear-gradient(150deg,#17102f,#0b1328); border:1px solid rgba(151,117,255,.3); border-radius:18px; box-shadow:0 30px 80px rgba(0,0,0,.5); max-width:510px; padding:34px; position:relative; width:100%; z-index:1; color:#fff; }
+.tourney-modal-close { background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.1); border-radius:7px; color:#b8b1c8; font-size:9px; padding:7px 10px; position:absolute; right:18px; top:18px; cursor:pointer; }
+.tourney-rules-modal h2 { font-size:25px; margin:12px 0 8px; color:#fff !important; }
 .tourney-rules-modal p,.tourney-rules-modal li { color:#a8a2b4; font-size:11px; line-height:1.65; }
+.tourney-rules-modal label { color:#cbd5e1; }
+.tourney-rules-modal input, .tourney-rules-modal select { color:#fff; }
 .tourney-rules-modal ol { margin:18px 0 23px; padding-left:20px; }
 .tourney-rules-modal li+li { margin-top:6px; }
 .tourney-rules-modal .primary-button { padding:12px 18px; }
@@ -970,10 +972,11 @@ button:disabled { cursor: not-allowed; opacity: .48; }
 .jackpot-admin-hero > div:nth-child(2) small { color:#b69d63; font-size:10px; font-weight:850; letter-spacing:1px; text-transform:uppercase; }
 .jackpot-admin-hero > div:nth-child(2) strong { color:#f4ca65; font-size:36px; margin:3px 0; font-family:'Manrope', sans-serif; }
 .jackpot-admin-hero > div:nth-child(2) span { color:#2dd2a6; font-size:11px; font-weight:600; }
-.jackpot-hero-actions { align-items:center; display:flex; margin-left:28px; }
-.jackpot-hero-actions > span { color:#aaa3b5; font-size:11px; margin:0 14px 0 3px; }
-.jackpot-hero-actions > button:last-child { background:rgba(255,255,255,.09); border:1px solid rgba(255,255,255,.12); border-radius:7px; color:#fff; font-size:12px; font-weight:600; padding:8px 14px; cursor:pointer; transition:all 0.2s ease; }
-.jackpot-hero-actions > button:last-child:hover { background:rgba(255,255,255,.18); }
+.jackpot-hero-actions { align-items:center; display:flex; gap:8px; flex-wrap:wrap; margin-left:20px; }
+.jackpot-hero-actions > span { color:#aaa3b5; font-size:11px; margin:0 6px 0 3px; }
+.jackpot-hero-actions button:not(.toggle) { background:rgba(255,255,255,.09); border:1px solid rgba(255,255,255,.14); border-radius:7px; color:#fff; font-size:12px; font-weight:600; padding:8px 14px; cursor:pointer; transition:all 0.2s ease; }
+.jackpot-hero-actions button:not(.toggle):hover { background:rgba(255,255,255,.2); transform:translateY(-1px); }
+.tier-custom { background:radial-gradient(circle at 85% 15%, rgba(108,92,231,0.25), transparent 50%), #1c1836 !important; border-color:rgba(108,92,231,0.4) !important; }
 .jackpot-admin-grid { display:grid; gap:14px; grid-template-columns:1fr 360px; }
 .jackpot-config, .jackpot-history { padding:20px; }
 .config-grid { display:grid; gap:16px; grid-template-columns:repeat(4,1fr); margin-top:20px; }
@@ -1589,6 +1592,141 @@ button:disabled { cursor: not-allowed; opacity: .48; }
 .player-profile-head p { color:#b5abbf; font-size:12px; }
 .player-profile-head > b { display:flex; flex-direction:column; font-size:22px; text-align:right; font-weight:800; font-family:'Manrope', sans-serif; }
 .player-profile-head small { color:#8f8999; font-size:10px; text-transform:uppercase; font-weight:600; }
+.player-password-inline-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 6px;
+  padding: 3px 8px;
+  font-size: 11px;
+}
+.player-password-inline-pill .pwd-icon { font-size: 11px; }
+.player-password-inline-pill .pwd-label { color: #d0c8dc; font-weight: 600; font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; }
+.player-password-inline-pill .pwd-code {
+  background: rgba(0, 0, 0, 0.35);
+  color: #4ade80;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 4px;
+  border: 1px solid rgba(74, 222, 128, 0.3);
+  letter-spacing: 0.5px;
+}
+.player-password-inline-pill .pwd-action-btn {
+  background: rgba(255, 255, 255, 0.16);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 7px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.player-password-inline-pill .pwd-action-btn:hover { background: rgba(255, 255, 255, 0.28); }
+.player-password-inline-pill .pwd-action-btn.copy-btn { background: #6366f1; border-color: #818cf8; }
+.player-password-inline-pill .pwd-action-btn.copy-btn:hover { background: #4f46e5; }
+.player-password-inline-pill .pwd-action-btn.copy-btn.copied { background: #16a34a; border-color: #22c55e; }
+
+.player-credentials-banner {
+  background: #fff;
+  border: 1px solid #e0e2ec;
+  border-left: 4px solid #6366f1;
+  border-radius: 10px;
+  padding: 12px 16px;
+  margin: 14px 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+.player-credentials-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.player-credentials-left .cred-icon {
+  font-size: 22px;
+  background: #eef2ff;
+  border-radius: 8px;
+  width: 38px;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.player-credentials-left .cred-title {
+  display: block;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: #6366f1;
+  margin-bottom: 3px;
+}
+.player-credentials-left .cred-val-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.player-credentials-left .cred-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #4b5563;
+}
+.player-credentials-left .cred-code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 13px;
+  font-weight: 700;
+  color: #111827;
+  background: #f3f4f6;
+  padding: 3px 9px;
+  border-radius: 5px;
+  border: 1px solid #d1d5db;
+  letter-spacing: 0.5px;
+}
+.player-credentials-left .cred-toggle-btn {
+  background: #f3f4f6;
+  border: 1px solid #d1d5db;
+  color: #374151;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 9px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.player-credentials-left .cred-toggle-btn:hover { background: #e5e7eb; }
+.player-credentials-left .cred-copy-btn {
+  background: #6366f1;
+  border: 1px solid #4f46e5;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.player-credentials-left .cred-copy-btn:hover { background: #4f46e5; }
+.player-credentials-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  text-align: right;
+  font-size: 11px;
+  color: #6b7280;
+}
+.player-credentials-meta b { color: #111827; font-weight: 700; }
+@media (max-width: 620px) {
+  .player-credentials-banner { flex-direction: column; align-items: flex-start; }
+  .player-credentials-meta { text-align: left; }
+}
 .player-profile-stats, .report-drill-stats { display:grid; gap:8px; grid-template-columns:repeat(6,1fr); margin:14px 0; }
 .player-profile-stats span, .report-drill-stats span { background:#fff; border:1px solid #e4e5eb; border-radius:8px; display:flex; flex-direction:column; padding:12px; }
 .player-profile-stats small, .report-drill-stats small { color:#999caa; font-size:10px; text-transform:uppercase; font-weight:600; }

@@ -34,6 +34,8 @@ function AdminPlayerDrawer({
   const [reason, setReason] = useState<string>("Operator deposit to play game");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState<boolean>(true);
+  const [copiedPassword, setCopiedPassword] = useState<boolean>(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -53,9 +55,11 @@ function AdminPlayerDrawer({
           setPlayer({
             id: "USR-" + Math.floor(10000 + Math.random() * 90000),
             username: target || "Ari.R",
+            password: "demo123",
             tier: "Standard",
             balance: 248.5,
             status: "Active",
+            lastLogin: "Just now",
             gamesPlayed: 128,
             totalEntry: 2180,
             winnings: 2840,
@@ -83,7 +87,10 @@ function AdminPlayerDrawer({
     try {
       const res = await apiClient.admin.addPlayerFunds(playerId, val, reason);
       if (res && res.success) {
-        setPlayer(res.player);
+        setPlayer({
+          ...res.player,
+          password: res.player.password || player?.password || "demo123",
+        });
         setStatusMessage(`+$${val.toFixed(2)} added! New balance: $${Number(res.wallet ?? res.player.balance).toFixed(2)}`);
         notify(`+$${val.toFixed(2)} credited to ${res.player.username}'s wallet.`);
       }
@@ -99,7 +106,10 @@ function AdminPlayerDrawer({
     try {
       const res = await apiClient.admin.playerAction(target, item);
       if (res?.player) {
-        setPlayer(res.player);
+        setPlayer({
+          ...res.player,
+          password: res.player.password || player?.password || "demo123",
+        });
       }
       notify(`${item} action applied to ${player?.username ?? action.label}.`);
     } catch {
@@ -108,6 +118,7 @@ function AdminPlayerDrawer({
   };
 
   const username = player?.username ?? action.label ?? "Ari.R";
+  const userPassword = player?.password || "demo123";
   const initials = username.slice(0, 2).toUpperCase();
   const balance = Number(player?.balance ?? 248.5).toFixed(2);
   const tier = player?.tier ?? "Standard";
@@ -117,6 +128,14 @@ function AdminPlayerDrawer({
   const winnings = Number(player?.winnings ?? 2840).toLocaleString();
   const totalEntry = Number(player?.totalEntry ?? 2180).toLocaleString();
 
+  const handleCopyPassword = () => {
+    if (typeof navigator !== "undefined" && navigator.clipboard) {
+      navigator.clipboard.writeText(userPassword);
+      setCopiedPassword(true);
+      setTimeout(() => setCopiedPassword(false), 2000);
+    }
+  };
+
   return (
     <div className="admin-drawer-backdrop">
       <aside className="admin-drawer wide">
@@ -125,7 +144,30 @@ function AdminPlayerDrawer({
           <div className="player-profile-head">
             <span>{initials}</span>
             <div>
-              <h2>{username}</h2>
+              <div style={{ display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap" }}>
+                <h2>{username}</h2>
+                <div className="player-password-inline-pill">
+                  <span className="pwd-icon">🔑</span>
+                  <span className="pwd-label">Password:</span>
+                  <code className="pwd-code">{showPassword ? userPassword : "••••••••••••"}</code>
+                  <button
+                    type="button"
+                    className="pwd-action-btn"
+                    onClick={() => setShowPassword(!showPassword)}
+                    title={showPassword ? "Hide password" : "Show password"}
+                  >
+                    {showPassword ? "Hide" : "Show"}
+                  </button>
+                  <button
+                    type="button"
+                    className={`pwd-action-btn copy-btn ${copiedPassword ? "copied" : ""}`}
+                    onClick={handleCopyPassword}
+                    title="Copy password to clipboard"
+                  >
+                    {copiedPassword ? "✓ Copied" : "Copy"}
+                  </button>
+                </div>
+              </div>
               <p>
                 {id} · {status} · {tier} tier {player?.email ? `· ${player.email}` : ""}
               </p>
@@ -134,6 +176,40 @@ function AdminPlayerDrawer({
               ${balance}
               <small>BALANCE</small>
             </b>
+          </div>
+
+          <div className="player-credentials-banner">
+            <div className="player-credentials-left">
+              <span className="cred-icon">🔑</span>
+              <div>
+                <span className="cred-title">PLAYER AUTHENTICATION CREDENTIALS</span>
+                <div className="cred-val-row">
+                  <span className="cred-label">Login Password:</span>
+                  <code className="cred-code">{showPassword ? userPassword : "••••••••••••"}</code>
+                  <button
+                    type="button"
+                    className="cred-toggle-btn"
+                    onClick={() => setShowPassword(!showPassword)}
+                    title={showPassword ? "Hide password" : "Show password"}
+                  >
+                    {showPassword ? "Hide" : "Show"}
+                  </button>
+                  <button
+                    type="button"
+                    className="cred-copy-btn"
+                    onClick={handleCopyPassword}
+                    title="Copy password"
+                  >
+                    {copiedPassword ? "✓ Copied!" : "Copy Password"}
+                  </button>
+                </div>
+              </div>
+            </div>
+            <div className="player-credentials-meta">
+              <span>Username: <b>{username}</b></span>
+              <span>Account ID: <b>{id}</b></span>
+              {player?.email && <span>Email: <b>{player.email}</b></span>}
+            </div>
           </div>
 
           <div className="operator-wallet-box">

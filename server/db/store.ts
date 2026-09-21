@@ -749,6 +749,7 @@ const defaultPlayers: PlayerProfile[] = [
     restrictions: [],
     lastLogin: "Today · 14:29",
     status: "Active",
+    password: "QueenBingo#2026",
   },
   {
     id: "USR-09814",
@@ -762,6 +763,7 @@ const defaultPlayers: PlayerProfile[] = [
     restrictions: [],
     lastLogin: "Today · 14:18",
     status: "Active",
+    password: "MikaWin#2026",
   },
   {
     id: "USR-11804",
@@ -775,6 +777,7 @@ const defaultPlayers: PlayerProfile[] = [
     restrictions: [],
     lastLogin: "Today · 14:21",
     status: "Active",
+    password: "demo123",
   },
   {
     id: "USR-07226",
@@ -788,6 +791,7 @@ const defaultPlayers: PlayerProfile[] = [
     restrictions: ["Muted in chat", "Manual claim check"],
     lastLogin: "Yesterday",
     status: "Restricted",
+    password: "RiskItAll#77",
   },
 ];
 
@@ -957,7 +961,10 @@ class Store {
           chatMessages: parsed.chatMessages || defaultChat,
           mutedUsers: parsed.mutedUsers || ["RiskyB"],
           patterns: parsed.patterns || defaultPatterns,
-          players: parsed.players || defaultPlayers,
+          players: (parsed.players || defaultPlayers).map((p: any) => ({
+            ...p,
+            password: p.password || (p.username?.toLowerCase().includes("rahul") ? "RahulSecretPass@77" : "demo123"),
+          })),
           settings: parsed.settings ? { ...defaultSettings, ...parsed.settings } : { ...defaultSettings },
           auditFeed: parsed.auditFeed || defaultAuditFeed,
           sessions: parsed.sessions || {},

@@ -765,13 +765,15 @@ List progressive jackpots with current amounts, maximum limits, contribution per
     {
       "id": "mega-trueig",
       "name": "Mega Trueig Jackpot",
-      "currentAmount": 125480.6,
+      "currentAmount": 127480.6,
       "startingAmount": 50000,
-      "maxAmount": 250000,
+      "maximumAmount": 250000,
+      "resetAmount": 50000,
       "contributionPercent": 2.5,
-      "qualifyingPattern": "Full House",
-      "maxBallCount": 42,
-      "active": true
+      "qualifyingPattern": "Full House in 42 balls",
+      "qualifyingBallLimit": 42,
+      "enabled": true,
+      "linkedRooms": ["mega-jackpot", "diamond-75"]
     }
   ]
 }
@@ -780,6 +782,53 @@ List progressive jackpots with current amounts, maximum limits, contribution per
 **cURL**:
 ```bash
 curl -s http://localhost:4000/api/jackpots
+```
+
+---
+
+### `POST /api/jackpots`
+Create a new progressive jackpot with customizable rules, contribution rates, and linked rooms.
+
+- **Method**: `POST`
+- **Request Body**:
+```json
+{
+  "name": "Golden Dragon Jackpot",
+  "variant": "75-Ball Progressive",
+  "startingAmount": 20000,
+  "currentAmount": 20000,
+  "maximumAmount": 100000,
+  "resetAmount": 20000,
+  "contributionPercent": 3.0,
+  "qualifyingPattern": "Full House in 40 balls",
+  "qualifyingBallLimit": 40,
+  "linkedRooms": ["diamond-75"],
+  "price": 3,
+  "difficulty": "Legendary",
+  "reward": "Life-changing"
+}
+```
+
+**cURL**:
+```bash
+curl -s -X POST http://localhost:4000/api/jackpots \
+  -H "Content-Type: application/json" \
+  -d '{"name": "Golden Dragon Jackpot", "startingAmount": 20000}'
+```
+
+---
+
+### `PUT /api/jackpots/:id`
+Update jackpot configuration, contribution rates, limits, and linked rooms.
+
+- **Method**: `PUT`
+- **Request Body**:
+```json
+{
+  "maximumAmount": 200000,
+  "contributionPercent": 3.5,
+  "enabled": true
+}
 ```
 
 ---
@@ -805,6 +854,26 @@ curl -s -X POST http://localhost:4000/api/jackpots/mega-trueig/contribute \
 
 ---
 
+### `POST /api/jackpots/:id/trigger`
+Award / Trigger jackpot win for a player, crediting the full progressive prize to the player's wallet balance, logging the payout transaction, and resetting the pot to its base reset value.
+
+- **Method**: `POST`
+- **Request Body**:
+```json
+{
+  "winnerName": "Ari.R"
+}
+```
+
+**cURL**:
+```bash
+curl -s -X POST http://localhost:4000/api/jackpots/mega-trueig/trigger \
+  -H "Content-Type: application/json" \
+  -d '{"winnerName": "Ari.R"}'
+```
+
+---
+
 ### `POST /api/jackpots/:id/reset`
 Reset jackpot to initial seed amount.
 
@@ -821,6 +890,18 @@ Reset jackpot to initial seed amount.
 curl -s -X POST http://localhost:4000/api/jackpots/mega-trueig/reset \
   -H "Content-Type: application/json" \
   -d '{"resetAmount": 50000}'
+```
+
+---
+
+### `DELETE /api/jackpots/:id`
+Delete a jackpot and unlink rooms (minimum 1 jackpot must remain).
+
+- **Method**: `DELETE`
+
+**cURL**:
+```bash
+curl -s -X DELETE http://localhost:4000/api/jackpots/custom-jackpot-id
 ```
 
 ---

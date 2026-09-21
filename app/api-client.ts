@@ -177,6 +177,7 @@ export interface PlayerModel {
   username: string;
   displayName?: string;
   email?: string;
+  password?: string;
   joinedDate?: string;
   tier: string;
   lastLogin: string;
@@ -515,10 +516,22 @@ export const apiClient = {
       const res = await request<{ success: boolean; jackpots: JackpotModel[] }>("/jackpots");
       return res?.jackpots ?? [];
     },
+    async create(data: Partial<JackpotModel>) {
+      return request<{ success: boolean; jackpot: JackpotModel; message: string }>("/jackpots", {
+        method: "POST",
+        body: JSON.stringify(data),
+      });
+    },
     async contribute(id: string, amount: number) {
       return request<{ success: boolean; jackpot: JackpotModel; message: string }>(`/jackpots/${id}/contribute`, {
         method: "POST",
         body: JSON.stringify({ amount }),
+      });
+    },
+    async trigger(id: string, winnerName?: string) {
+      return request<{ success: boolean; jackpot: JackpotModel; winner: string; payout: number; wallet: number; message: string }>(`/jackpots/${id}/trigger`, {
+        method: "POST",
+        body: JSON.stringify({ winnerName }),
       });
     },
     async update(id: string, updates: Partial<JackpotModel>) {
@@ -531,6 +544,11 @@ export const apiClient = {
       return request<{ success: boolean; jackpot: JackpotModel; message: string }>(`/jackpots/${id}/reset`, {
         method: "POST",
         body: JSON.stringify({ resetAmount }),
+      });
+    },
+    async delete(id: string) {
+      return request<{ success: boolean; message: string }>(`/jackpots/${id}`, {
+        method: "DELETE",
       });
     },
   },
@@ -729,6 +747,10 @@ export const apiClient = {
       if (status) q.set("status", status);
       const res = await request<{ success: boolean; count: number; players: PlayerModel[] }>(`/admin/players?${q.toString()}`);
       return res?.players ?? [];
+    },
+    async player(id: string) {
+      const res = await request<{ success: boolean; player: PlayerModel }>(`/admin/players/${encodeURIComponent(id)}`);
+      return res?.player;
     },
     async playerAction(id: string, action: string) {
       return request<{ success: boolean; player: PlayerModel; message: string }>(`/admin/players/${id}/action`, {

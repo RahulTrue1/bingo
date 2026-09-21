@@ -27,7 +27,10 @@ export function RoomCard({
   favorite: boolean;
   toggleFavorite: () => void;
 }) {
-  const occupancy = Math.min(100, Math.round((room.players / room.maxPlayers) * 100));
+  const maxRoomCapacity = Math.max(1, room.maxPlayers || 1);
+  const currentPlayers = Math.min(maxRoomCapacity, room.players || 0);
+  const isRoomFull = currentPlayers >= maxRoomCapacity;
+  const occupancy = Math.min(100, Math.round((currentPlayers / maxRoomCapacity) * 100));
   const entryLabel = room.status === "Live"
     ? "Join live"
     : room.status === "Selling Tickets" || room.status === "Starting Soon"
@@ -99,7 +102,7 @@ export function RoomCard({
             <UsersThree size={16} weight="duotone" />
             <span>
               <small>PLAYERS</small>
-              <b>{room.players} / {room.maxPlayers}</b>
+              <b>{currentPlayers} / {maxRoomCapacity}</b>
             </span>
           </span>
           <span>
@@ -119,7 +122,7 @@ export function RoomCard({
         </div>
         <div className="room-card-capacity">
           <div>
-            <span>{occupancy}% full</span>
+            <span>{isRoomFull ? "100% full (Capacity)" : `${occupancy}% full`}</span>
             <span>{room.cardsSold.toLocaleString()} cards sold</span>
           </div>
           <div className="sales-progress" aria-label={`${occupancy}% of player capacity filled`}>

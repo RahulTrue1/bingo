@@ -75,7 +75,8 @@ export function GameRoom({
   const [driftPlayers, setDriftPlayers] = useState(0);
   const [driftCards, setDriftCards] = useState(0);
   const [driftJackpot, setDriftJackpot] = useState(0);
-  const livePlayers = Math.max(1, room.players + driftPlayers);
+  const maxRoomCapacity = Math.max(1, Number(room.maxPlayers) || 1);
+  const livePlayers = Math.min(maxRoomCapacity, Math.max(1, Math.min(maxRoomCapacity, room.players) + driftPlayers));
   const liveCards = Math.max(0, room.cardsSold + driftCards);
   const liveJackpot = Math.max(0, (room.jackpot ?? 0) + driftJackpot);
 
@@ -259,13 +260,18 @@ export function GameRoom({
 
   useEffect(() => {
     if (phase !== "live") return;
+    if (maxRoomCapacity <= 1) return;
     const timer = window.setInterval(() => {
-      setDriftPlayers((v) => v + (Math.random() > 0.35 ? 1 : -1));
+      setDriftPlayers((v) => {
+        const total = room.players + v;
+        if (total >= maxRoomCapacity) return Math.max(0, maxRoomCapacity - room.players);
+        return v + (Math.random() > 0.35 ? 1 : -1);
+      });
       setDriftCards((v) => v + (Math.random() > 0.4 ? 1 : 0));
       if (room.jackpot) setDriftJackpot((v) => v + 0.25);
     }, 2200);
     return () => window.clearInterval(timer);
-  }, [phase, room.jackpot]);
+  }, [phase, room.jackpot, maxRoomCapacity, room.players]);
 
   useEffect(() => {
     if (phase !== "live" || claimLocked) return;
@@ -318,11 +324,23 @@ export function GameRoom({
       // Final stage win: Game Ends! Show modal once!
       setLastWinner(`${names.join(" & ")} · ${money(total)}`);
       if (names.includes(currentUsername)) {
-        setWallet(Math.round((wallet + splitPrize) * 100) / 100);
-        apiClient.game.claim(room.id, { ticketId: `CARD-${activeCard}`, playerName: currentUsername, manualPattern: activeStage.name }).then((res) => {
-          if (res?.wallet !== undefined) setWallet(res.wallet);
-        });
-        notify(`🏆 Full House BINGO! You won ${money(splitPrize)}! Round complete.`);
+        if (jackpotQualified) {
+          apiClient.jackpots.list().then((list) => {
+            const jp = list.find((j) => j.linkedRooms?.includes(room.id) || j.variant?.toLowerCase().includes(room.variant?.toLowerCase().slice(0, 2)));
+            if (jp) {
+              apiClient.jackpots.trigger(jp.id, currentUsername).then((res) => {
+                if (res?.wallet !== undefined) setWallet(res.wallet);
+              });
+            }
+          }).catch(() => {});
+          notify(`🎉 MEGA JACKPOT WON! You scored Full House in ${called.length} balls and won ${money(splitPrize)}!`);
+        } else {
+          setWallet(Math.round((wallet + splitPrize) * 100) / 100);
+          apiClient.game.claim(room.id, { ticketId: `CARD-${activeCard}`, playerName: currentUsername, manualPattern: activeStage.name }).then((res) => {
+            if (res?.wallet !== undefined) setWallet(res.wallet);
+          });
+          notify(`🏆 Full House BINGO! You won ${money(splitPrize)}! Round complete.`);
+        }
       } else {
         notify(`🏆 Game round complete! ${names.join(" & ")} won ${activeStage.name} (${money(splitPrize)} each).`);
       }
@@ -348,13 +366,19 @@ export function GameRoom({
     }
   };
 
-  const startRound = () => {
+  const startRound = async () => {
     if (!selectedCards.length) return notify("Select at least one card before starting the round.");
     if (wallet < price) return notify("Not enough wallet balance for these cards.");
-    setWallet(Math.round((wallet - price) * 100) / 100); setPhase("countdown"); setCountdown(5);
-    apiClient.tickets.buy(room.id, selectedCards.length, currentUsername, currentUser?.id).then((res) => {
-      if (res?.wallet !== undefined) setWallet(res.wallet);
-    });
+
+    const res = await apiClient.tickets.buy(room.id, selectedCards.length, currentUsername, currentUser?.id);
+    if (!res || !res.success) {
+      notify(`⚠️ ${res?.error || "Cannot join: Room capacity limit reached."}`);
+      return;
+    }
+
+    if (res?.wallet !== undefined) setWallet(res.wallet);
+    setPhase("countdown");
+    setCountdown(5);
     notify(`${selectedCards.length} card${selectedCards.length > 1 ? "s" : ""} secured · ${TransactionManager.reference("TRUEIG")}`);
   };
 
@@ -427,7 +451,7 @@ export function GameRoom({
           </span>
           <span>
             <small>Players</small>
-            <b>{livePlayers} / {room.maxPlayers}</b>
+            <b>{livePlayers} / {maxRoomCapacity}</b>
           </span>
           <span>
             <small>Card limit</small>
@@ -600,7 +624,7 @@ export function GameRoom({
         <section className="cards-panel">
           <div className="room-stats-strip">
             {[
-              ["PLAYERS ONLINE", `${livePlayers} / ${room.maxPlayers}`],
+              ["PLAYERS ONLINE", `${livePlayers} / ${maxRoomCapacity}`],
               ["CARDS SOLD", liveCards],
               ["CARD LIMIT", `Max ${maxCards}`],
               ["PRIZE POOL", money(room.prize)],
@@ -743,13 +767,17 @@ export function GameRoom({
                 <span key={name}>{name.slice(0, 2).toUpperCase()}</span>
               ))}
             </div>
-            <strong className="winner-prize">{money(winnerPrize)} each</strong>
+            <strong className="winner-prize" style={{ color: room.jackpot && (winnerPattern || activeStage.name).includes("Full") && called.length <= (room.progressiveBallLimit ?? 42) ? "#ffd32a" : undefined }}>
+              {money(winnerPrize)} each
+            </strong>
             <small>
               {winnerNames.length > 1
                 ? `${winnerNames.length} simultaneous winners · prize split equally`
-                : room.jackpot && (winnerPattern || activeStage.name).includes("Full")
-                  ? `Progressive qualified within ${room.progressiveBallLimit ?? 42} balls`
-                  : `Winning Card #0${activeCard + 1}`}
+                : room.jackpot && (winnerPattern || activeStage.name).includes("Full") && called.length <= (room.progressiveBallLimit ?? 42)
+                  ? `🏆 PROGRESSIVE JACKPOT HIT within ${called.length} balls (under ${room.progressiveBallLimit ?? 42} limit)!`
+                  : room.jackpot && (winnerPattern || activeStage.name).includes("Full")
+                    ? `Full House achieved after progressive cut (${called.length} balls)`
+                    : `Winning Card #0${activeCard + 1}`}
             </small>
             <button
               type="button"

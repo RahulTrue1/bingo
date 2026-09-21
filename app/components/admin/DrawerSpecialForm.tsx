@@ -25,6 +25,7 @@ export function DrawerSpecialForm({
   const [autoDaub, setAutoDaub] = useState(true);
 
   // Jackpot state
+  const [jpName, setJpName] = useState("Mega Trueig Jackpot");
   const [jpAmount, setJpAmount] = useState(125480);
   const [jpReset, setJpReset] = useState(50000);
   const [jpContribution, setJpContribution] = useState(2.5);
@@ -158,40 +159,86 @@ export function DrawerSpecialForm({
   if (kind.includes("jackpot"))
     return (
       <div className="drawer-section">
-        <h3>Jackpot configuration</h3>
+        <h3>{kind === "create-jackpot" ? "Create progressive jackpot" : "Jackpot configuration"}</h3>
+        <p style={{ fontSize: "12px", color: "var(--muted)", marginBottom: "14px" }}>
+          Configure progressive prize pots, contribution percentages, and qualifying conditions.
+        </p>
         <div className="drawer-form-grid">
-          <label>Jackpot name<input defaultValue="Mega Trueig Jackpot" /></label>
-          <label>Current amount ($)<input type="number" value={jpAmount} onChange={(e) => setJpAmount(Number(e.target.value))} /></label>
-          <label>Reset amount ($)<input type="number" value={jpReset} onChange={(e) => setJpReset(Number(e.target.value))} /></label>
-          <label>Contribution %<input type="number" step="0.1" value={jpContribution} onChange={(e) => setJpContribution(Number(e.target.value))} /></label>
+          <label>
+            Jackpot name
+            <input
+              value={jpName}
+              placeholder="e.g. Mega Trueig Jackpot"
+              onChange={(e) => setJpName(e.target.value)}
+            />
+          </label>
+          <label>
+            Current amount ($)
+            <input
+              type="number"
+              value={jpAmount}
+              onChange={(e) => setJpAmount(Number(e.target.value))}
+            />
+          </label>
+          <label>
+            Reset amount ($)
+            <input
+              type="number"
+              value={jpReset}
+              onChange={(e) => setJpReset(Number(e.target.value))}
+            />
+          </label>
+          <label>
+            Contribution %
+            <input
+              type="number"
+              step="0.1"
+              value={jpContribution}
+              onChange={(e) => setJpContribution(Number(e.target.value))}
+            />
+          </label>
         </div>
         <div className="special-actions" style={{ marginTop: "20px", display: "flex", gap: "8px", flexWrap: "wrap" }}>
           <button
             type="button"
             className="admin-primary"
             onClick={async () => {
-              await apiClient.jackpots.update("mega-trueig", {
-                currentAmount: jpAmount,
-                resetAmount: jpReset,
-                contributionPercent: jpContribution,
-              });
-              notify("✓ Jackpot configuration updated and broadcast to player ladder.");
+              if (kind === "create-jackpot") {
+                await apiClient.jackpots.create({
+                  name: jpName || "New Progressive Jackpot",
+                  currentAmount: jpAmount,
+                  startingAmount: jpReset,
+                  resetAmount: jpReset,
+                  contributionPercent: jpContribution,
+                });
+                notify(`✓ Jackpot "${jpName || "New Progressive Jackpot"}" created and broadcast!`);
+              } else {
+                await apiClient.jackpots.update("mega-trueig", {
+                  name: jpName || undefined,
+                  currentAmount: jpAmount,
+                  resetAmount: jpReset,
+                  contributionPercent: jpContribution,
+                });
+                notify("✓ Jackpot configuration updated and broadcast to player ladder.");
+              }
               close();
             }}
           >
-            Save jackpot
+            {kind === "create-jackpot" ? "Create jackpot" : "Save jackpot"}
           </button>
-          <button
-            type="button"
-            className="danger-button"
-            onClick={async () => {
-              await apiClient.jackpots.reset("mega-trueig", jpReset);
-              notify(`✓ Jackpot reset to $${jpReset.toLocaleString()}!`);
-              close();
-            }}
-          >
-            Reset jackpot
-          </button>
+          {kind !== "create-jackpot" && (
+            <button
+              type="button"
+              className="danger-button"
+              onClick={async () => {
+                await apiClient.jackpots.reset("mega-trueig", jpReset);
+                notify(`✓ Jackpot reset to $${jpReset.toLocaleString()}!`);
+                close();
+              }}
+            >
+              Reset jackpot
+            </button>
+          )}
         </div>
       </div>
     );
