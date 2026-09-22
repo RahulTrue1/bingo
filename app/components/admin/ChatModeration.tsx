@@ -26,7 +26,7 @@ export function ChatModeration({
   const refreshChat = () => {
     apiClient.chat.get("diamond-75").then((res) => {
       if (res && res.messages && res.messages.length > 0) {
-        setMessages(res.messages.map((m) => [m.time || "14:32", "Diamond 75", m.sender, m.text, m.id]));
+        setMessages(res.messages.map((m) => [m.time || "14:32", "Diamond 75", m.user || m.sender || "Player", m.text || "", m.id || ""]));
         if (Array.isArray(res.mutedUsers)) setMuted(res.mutedUsers);
       }
     }).catch(() => {});

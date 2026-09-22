@@ -174,11 +174,12 @@ export interface HeroBannerModel {
 
 export interface ChatMessageModel {
   id: string;
-  sender: string;
+  sender?: string;
+  user?: string;
   role: string;
   text: string;
   time: string;
-  timestamp: number;
+  timestamp?: number;
 }
 
 export interface PatternModel {

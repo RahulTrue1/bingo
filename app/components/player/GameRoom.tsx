@@ -140,7 +140,7 @@ export function GameRoom({
         : room.callDelay <= 2200
           ? "Normal"
           : "Slow"
-    : room.variant.includes("Speed")
+    : (room.variant || "").includes("Speed")
       ? "Turbo"
       : "Fast";
   const [userSpeed, setUserSpeed] = useState<string | null>(null);
@@ -178,14 +178,14 @@ export function GameRoom({
   const [lastWinner, setLastWinner] = useState("LuckyStar · $420");
   const [messages, setMessages] = useState([
     ["Trueigtech", `Welcome to ${room.name}. ${room.pattern} is the opening target.`, "now"],
-    ["PixelPete", room.variant.includes("Speed") ? "Ready for turbo mode ⚡" : "Good luck, everyone!", "1m"],
+    ["PixelPete", (room.variant || "").includes("Speed") ? "Ready for turbo mode ⚡" : "Good luck, everyone!", "1m"],
     ["MikaK", "Cards locked in. Eyes down!", "1m"],
   ]);
 
   useEffect(() => {
     apiClient.chat.get(room.id).then((res) => {
       if (res?.messages && res.messages.length > 0) {
-        setMessages(res.messages.map((m) => [m.sender, m.text, m.time]));
+        setMessages(res.messages.map((m) => [m.user || m.sender || "Player", m.text || "", m.time || "now"]));
       }
     }).catch(() => {});
   }, [room.id]);
@@ -301,7 +301,7 @@ export function GameRoom({
     // 2. Initial hydration from server
     apiClient.chat.get(room.id).then((res) => {
       if (res?.messages && res.messages.length > 0) {
-        setMessages(res.messages.map((m) => [m.sender, m.text, m.time]));
+        setMessages(res.messages.map((m) => [m.user || m.sender || "Player", m.text || "", m.time || "now"]));
       }
     }).catch(() => {});
 
@@ -318,9 +318,10 @@ export function GameRoom({
           setCurrent(null);
           setPhase(tourneyData?.status === "Live" ? "live" : "selling");
         } else {
+          // Room not live: reset called state cleanly
           setCalled([]);
           setCurrent(null);
-          setPhase("selling");
+          setPhase(room.status === "Live" ? "live" : "selling");
         }
       }
     }).catch(() => {});
@@ -384,8 +385,8 @@ export function GameRoom({
       // Chat events
       if (event.entity === "chat" && (!event.roomId || event.roomId === room.id)) {
         if (event.action === "message") {
-          const m = event.data as { user: string; text: string; time: string };
-          if (m) setMessages((prev) => [...prev.slice(-20), [m.user, m.text, m.time]]);
+          const m = event.data as { user?: string; sender?: string; text?: string; time?: string };
+          if (m) setMessages((prev) => [...prev.slice(-20), [m.user || m.sender || "Player", m.text || "", m.time || "now"]]);
         } else if (event.action === "broadcast") {
           const b = event.data as { text: string; time: string };
           if (b?.text) setMessages((prev) => [...prev.slice(-20), ["Operator", `📢 ${b.text}`, b.time || "now"]]);
@@ -644,7 +645,7 @@ export function GameRoom({
       if (names.includes(currentUsername)) {
         if (jackpotQualified) {
           apiClient.jackpots.list().then((list) => {
-            const jp = list.find((j) => j.linkedRooms?.includes(room.id) || j.variant?.toLowerCase().includes(room.variant?.toLowerCase().slice(0, 2)));
+            const jp = list.find((j) => j.linkedRooms?.includes(room.id) || (room.variant && j.variant?.toLowerCase().includes(room.variant.toLowerCase().slice(0, 2))));
             if (jp) {
               apiClient.jackpots.trigger(jp.id, currentUsername).then((res) => {
                 if (res?.wallet !== undefined) setWallet(res.wallet);
@@ -1438,15 +1439,20 @@ export function GameRoom({
               <span>◇</span>
               <p>Stage {stageIndex + 1}: <b>{activeStage.name}</b> for {money(activeStage.prize)}.</p>
             </div>
-            {messages.map((message, index) => (
-              <div className="chat-message" key={`${message[0]}-${index}`}>
-                <span className={`chat-avatar chat-${index % 4}`}>{message[0].slice(0, 2).toUpperCase()}</span>
-                <div>
-                  <p><b>{message[0]}</b><small>{message[2]}</small></p>
-                  <span>{message[1]}</span>
+            {messages.map((message, index) => {
+              const sender = String(message?.[0] || "Player");
+              const text = String(message?.[1] || "");
+              const time = String(message?.[2] || "");
+              return (
+                <div className="chat-message" key={`${sender}-${index}`}>
+                  <span className={`chat-avatar chat-${index % 4}`}>{(sender.slice(0, 2) || "PL").toUpperCase()}</span>
+                  <div>
+                    <p><b>{sender}</b><small>{time}</small></p>
+                    <span>{text}</span>
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
             {winnerNames.length > 0 && phase === "winner" && (
               <div className="winner-announcement">
                 <span>★</span>
@@ -1496,12 +1502,12 @@ export function GameRoom({
                 <span
                   key={`${name}-${idx}`}
                   style={{
-                    background: name.toLowerCase() === currentUsername.toLowerCase() ? "linear-gradient(135deg, #2bddaa, #00b894)" : undefined,
-                    color: name.toLowerCase() === currentUsername.toLowerCase() ? "#000" : undefined,
+                    background: name?.toLowerCase() === currentUsername.toLowerCase() ? "linear-gradient(135deg, #2bddaa, #00b894)" : undefined,
+                    color: name?.toLowerCase() === currentUsername.toLowerCase() ? "#000" : undefined,
                     fontWeight: 800,
                   }}
                 >
-                  {name.slice(0, 2).toUpperCase()}
+                  {(String(name || "WN").slice(0, 2)).toUpperCase()}
                 </span>
               ))}
             </div>

@@ -1036,3 +1036,17 @@ test("Maximum players capacity enforcement: blocks additional players from joini
   });
   assert.equal(buyOneAgain.status, 201);
 });
+
+test("Room chat hydration supports both user and sender without slice errors", async () => {
+  const res = await fetch(`${BASE_URL}/chat/trueig-90`);
+  assert.equal(res.status, 200);
+  const json = await res.json();
+  assert.equal(json.success, true);
+  assert.ok(Array.isArray(json.messages));
+  for (const m of json.messages) {
+    const sender = m.user || m.sender || "Player";
+    assert.ok(typeof sender === "string");
+    assert.ok(sender.slice(0, 2).length > 0);
+  }
+});
+

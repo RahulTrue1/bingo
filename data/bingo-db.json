@@ -9,7 +9,7 @@
       "prize": 5688,
       "players": 3,
       "maxPlayers": 10,
-      "cardsSold": 743,
+      "cardsSold": 744,
       "startsIn": "00:46",
       "pattern": "One Line → Two Lines → Full House",
       "accent": "teal",
@@ -425,8 +425,26 @@
       "customRtp": true
     }
   ],
-  "wallet": 109636.5,
+  "wallet": 109626.5,
   "transactions": [
+    {
+      "id": "TXN-771335",
+      "timestamp": "21:39:33",
+      "player": "Ari.R",
+      "room": "Trueig 910Classic",
+      "type": "Prize payout",
+      "amount": 4188,
+      "status": "Completed"
+    },
+    {
+      "id": "TXN-987112",
+      "timestamp": "21:39:15",
+      "player": "Ari.R",
+      "room": "Trueig 910Classic",
+      "type": "Ticket purchase",
+      "amount": -10,
+      "status": "Completed"
+    },
     {
       "id": "TXN-840734",
       "timestamp": "00:16:23",
@@ -2348,17 +2366,30 @@
   "gameSessions": {
     "trueig-90": {
       "roomId": "trueig-90",
-      "phase": "selling",
+      "phase": "winner",
       "countdown": 5,
-      "called": [],
-      "current": null,
+      "called": [
+        36,
+        66,
+        88,
+        19,
+        56,
+        73,
+        58,
+        13,
+        72,
+        71
+      ],
+      "current": 71,
       "speed": "Fast",
       "paused": false,
       "stageIndex": 2,
       "patternRound": 0,
-      "winnerNames": [],
-      "winnerPrize": 0,
-      "winnerPattern": "",
+      "winnerNames": [
+        "Ari.R"
+      ],
+      "winnerPrize": 4188,
+      "winnerPattern": "Full House",
       "livePlayers": 1,
       "liveCards": 682,
       "liveJackpot": 0,
@@ -2832,6 +2863,126 @@
     }
   },
   "tickets": [
+    {
+      "id": "TCK-310893",
+      "ticketIndex": 0,
+      "roomId": "trueig-90",
+      "userId": "USR-11804",
+      "player": "Ari.R",
+      "variant": "90-Ball Classic",
+      "cells": [
+        {
+          "value": 1,
+          "column": "0"
+        },
+        {
+          "value": "FREE",
+          "column": "1"
+        },
+        {
+          "value": 24,
+          "column": "2"
+        },
+        {
+          "value": "FREE",
+          "column": "3"
+        },
+        {
+          "value": 40,
+          "column": "4"
+        },
+        {
+          "value": "FREE",
+          "column": "5"
+        },
+        {
+          "value": 66,
+          "column": "6"
+        },
+        {
+          "value": "FREE",
+          "column": "7"
+        },
+        {
+          "value": 83,
+          "column": "8"
+        },
+        {
+          "value": "FREE",
+          "column": "0"
+        },
+        {
+          "value": 16,
+          "column": "1"
+        },
+        {
+          "value": 29,
+          "column": "2"
+        },
+        {
+          "value": 32,
+          "column": "3"
+        },
+        {
+          "value": "FREE",
+          "column": "4"
+        },
+        {
+          "value": 58,
+          "column": "5"
+        },
+        {
+          "value": "FREE",
+          "column": "6"
+        },
+        {
+          "value": 74,
+          "column": "7"
+        },
+        {
+          "value": "FREE",
+          "column": "8"
+        },
+        {
+          "value": 2,
+          "column": "0"
+        },
+        {
+          "value": 11,
+          "column": "1"
+        },
+        {
+          "value": "FREE",
+          "column": "2"
+        },
+        {
+          "value": "FREE",
+          "column": "3"
+        },
+        {
+          "value": 40,
+          "column": "4"
+        },
+        {
+          "value": "FREE",
+          "column": "5"
+        },
+        {
+          "value": 66,
+          "column": "6"
+        },
+        {
+          "value": "FREE",
+          "column": "7"
+        },
+        {
+          "value": 82,
+          "column": "8"
+        }
+      ],
+      "daubed": [],
+      "purchasedAt": "2026-09-22T16:09:15.894Z"
+    },
     {
       "id": "TCK-265388",
       "ticketIndex": 0,
@@ -12731,6 +12882,28 @@
   ],
   "claims": [
     {
+      "id": "CLM-355199",
+      "roomId": "trueig-90",
+      "ticketId": "CARD-0",
+      "playerName": "Ari.R",
+      "pattern": "Full House",
+      "status": "approved",
+      "prize": 4188,
+      "timestamp": "09:39 PM",
+      "cells": [
+        36,
+        66,
+        88,
+        19,
+        56,
+        73,
+        58,
+        13,
+        72,
+        71
+      ]
+    },
+    {
       "id": "CLM-742711",
       "roomId": "trueig-90",
       "ticketId": "CARD-0",
@@ -15116,16 +15289,16 @@
       "id": "USR-11804",
       "username": "Ari.R",
       "tier": "Standard",
-      "balance": 105448.5,
+      "balance": 105438.5,
       "gamesPlayed": 128,
-      "cardsPurchased": 397,
+      "cardsPurchased": 398,
       "wins": 18,
       "totalPrizes": 2840,
       "restrictions": [],
       "lastLogin": "Just now",
       "status": "Active",
       "password": "demo123",
-      "totalEntry": 460
+      "totalEntry": 470
     },
     {
       "id": "USR-07226",
@@ -15443,6 +15616,20 @@
     "updatedBy": "Super Admin"
   },
   "auditFeed": [
+    {
+      "id": "feed-1790093373459",
+      "type": "claim",
+      "title": "Bingo claim validated",
+      "detail": "Trueig 910Classic · Ari.R won $4188 on Full House",
+      "time": "21:39"
+    },
+    {
+      "id": "feed-1790093355895",
+      "type": "player",
+      "title": "Tickets purchased",
+      "detail": "1 card bought for Trueig 910Classic ($10.00) by Ari.R",
+      "time": "21:39"
+    },
     {
       "id": "feed-1790016386506",
       "type": "alert",
@@ -15778,20 +15965,6 @@
       "title": "Tickets purchased",
       "detail": "1 card bought for Diamond 75 ($2.00) by Ari.R",
       "time": "23:41"
-    },
-    {
-      "id": "feed-1790014238029",
-      "type": "alert",
-      "title": "Tournament stage scored",
-      "detail": "Trueigtech Weekend Cup Round of 256 scored. Leader: Ari.R",
-      "time": "23:40"
-    },
-    {
-      "id": "feed-1790014225636",
-      "type": "alert",
-      "title": "Tournament stage scored",
-      "detail": "Trueigtech Weekend Cup Round of 256 scored. Leader: Ari.R",
-      "time": "23:40"
     }
   ],
   "sessions": {
