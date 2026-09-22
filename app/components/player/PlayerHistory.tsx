@@ -18,16 +18,22 @@ export function PlayerHistory() {
   ];
 
   const rows = transactions.length > 0
-    ? transactions.map((t) => [
-        `#${t.id.replace(/[^0-9]/g, "").slice(-4) || "2841"}`,
-        t.room || "Diamond 75",
-        t.time || "Today · 14:32",
-        t.type.includes("purchase") ? "3" : "1",
-        t.amount < 0 ? `$${Math.abs(t.amount).toFixed(2)}` : "Free",
-        t.amount > 0 ? `+$${t.amount.toFixed(2)}` : "+$0.00",
-        t.amount > 0 ? "Won" : "Completed",
-      ])
-    : defaultRows;
+    ? transactions.map((t, index) => ({
+        key: t.id ? `${t.id}-${index}` : `tx-${index}`,
+        cells: [
+          `#${t.id.replace(/[^0-9]/g, "").slice(-4) || "2841"}`,
+          t.room || "Diamond 75",
+          t.time || "Today · 14:32",
+          t.type.includes("purchase") ? "3" : "1",
+          t.amount < 0 ? `$${Math.abs(t.amount).toFixed(2)}` : "Free",
+          t.amount > 0 ? `+$${t.amount.toFixed(2)}` : "+$0.00",
+          t.amount > 0 ? "Won" : "Completed",
+        ],
+      }))
+    : defaultRows.map((r, index) => ({
+        key: `def-${index}`,
+        cells: r,
+      }));
 
   return (
     <div className="simple-player-page">
@@ -75,8 +81,8 @@ export function PlayerHistory() {
           </thead>
           <tbody>
             {rows.map((row) => (
-              <tr key={row[0]}>
-                {row.map((cell, index) => (
+              <tr key={row.key}>
+                {row.cells.map((cell, index) => (
                   <td key={index}>
                     {index === 6 ? (
                       <span className={`table-status ${cell === "Won" ? "success" : "neutral"}`}>{cell}</span>

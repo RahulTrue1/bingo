@@ -917,7 +917,7 @@ export function GameRoom({
             <small>PREVIOUS BALLS</small>
             <div>
               {called.slice(-5).reverse().map((number, index) => (
-                <span className={index === 0 ? "latest" : ""} key={number}>
+                <span className={index === 0 ? "latest" : ""} key={`recent-${number}-${index}`}>
                   {ballLabel(number).replace("-", "")}
                 </span>
               ))}
@@ -927,7 +927,7 @@ export function GameRoom({
           <div className="winning-stage-list">
             <small>{isTournament ? `TOURNAMENT STAGES (${stages.length} ROUNDS)` : "WINNING STAGES"}</small>
             {stages.map((stage: any, index: number) => (
-              <div className={`${index === stageIndex ? "active" : ""} ${index < stageIndex ? "complete" : ""}`} key={stage.name}>
+              <div className={`${index === stageIndex ? "active" : ""} ${index < stageIndex ? "complete" : ""}`} key={`${stage.name}-${index}`}>
                 <i>{index < stageIndex ? "✓" : index + 1}</i>
                 <span>
                   <b>{stage.name}</b>
@@ -1392,9 +1392,9 @@ export function GameRoom({
             </div>
           </div>
           <div className={`ticket-grid ${!multiView ? "single" : ""}`}>
-            {visibleCards.map((index) => (
+            {visibleCards.map((index, cardIdx) => (
               <TrueigTicket
-                key={index}
+                key={`ticket-${index}-${cardIdx}`}
                 index={index}
                 values={cardValues[index]}
                 rows={rows}
@@ -1423,7 +1423,7 @@ export function GameRoom({
             </div>
             <div className={`number-board-grid board-${ballCount}`}>
               {Array.from({ length: ballCount }, (_, index) => index + 1).map((number) => (
-                <span className={called.includes(number) ? "called" : ""} key={number}>{number}</span>
+                <span className={called.includes(number) ? "called" : ""} key={`board-${number}`}>{number}</span>
               ))}
             </div>
           </div>
@@ -1465,8 +1465,8 @@ export function GameRoom({
               ["1", "TrueigQueen", "3 wins"],
               ["2", "MikaK", "2 wins"],
               ["3", currentUsername, "1 win"],
-            ].map((row) => (
-              <p key={row[0]}><i>{row[0]}</i><span>{row[1]}</span><small>{row[2]}</small></p>
+            ].map((row, idx) => (
+              <p key={`leader-${row[0]}-${idx}`}><i>{row[0]}</i><span>{row[1]}</span><small>{row[2]}</small></p>
             ))}
           </div>
         </aside>
@@ -1492,9 +1492,9 @@ export function GameRoom({
                 : `You completed ${winnerPattern || activeStage.name} after ${called.length} balls!`}
             </p>
             <div className="winner-avatars">
-              {winnerNames.map((name) => (
+              {winnerNames.map((name, idx) => (
                 <span
-                  key={name}
+                  key={`${name}-${idx}`}
                   style={{
                     background: name.toLowerCase() === currentUsername.toLowerCase() ? "linear-gradient(135deg, #2bddaa, #00b894)" : undefined,
                     color: name.toLowerCase() === currentUsername.toLowerCase() ? "#000" : undefined,

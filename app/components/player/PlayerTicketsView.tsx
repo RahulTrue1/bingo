@@ -112,7 +112,7 @@ export function PlayerTicketsView({
             };
 
             return (
-              <article className="standings-card wallet-ticket" key={ticket.id || index}>
+              <article className="standings-card wallet-ticket" key={`wallet-ticket-${ticket.id || index}-${index}`}>
                 <div>
                   <span className={`mini-orb accent-${room.accent}`}>{room.variant.match(/\d+/)?.[0] ?? "75"}</span>
                   <span>

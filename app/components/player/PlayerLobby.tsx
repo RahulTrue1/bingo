@@ -161,7 +161,7 @@ export function PlayerLobby({
               ["SJ", "SkyJump", "Trueig 90 Classic", "+$625"],
               ["LA", "LunaAce", "Turbo 30", "+$180"],
             ].map((winner, index) => (
-              <div className="winner-row" key={winner[1]}>
+              <div className="winner-row" key={`winner-${winner[1]}-${index}`}>
                 <span className={`winner-avatar avatar-${index}`}>{winner[0]}</span>
                 <div><strong>{winner[1]}</strong><small>{winner[2]}</small></div>
                 <b>{winner[3]}</b>
