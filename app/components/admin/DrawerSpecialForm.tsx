@@ -548,7 +548,7 @@ export function DrawerSpecialForm({
                 };
               });
               setRooms(updated);
-              await apiClient.rooms.applyRtpPolicy(policyRtp, syncMode === "all");
+              await apiClient.rooms.applyRtpPolicy(policyRtp, syncMode);
               notify(`✓ Network RTP policy set to ${policyRtp}%. Updated ${updated.length} rooms.`);
               close();
             }}

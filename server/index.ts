@@ -77,8 +77,15 @@ app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
 
 import { TournamentEngine } from "./services/tournament-engine.ts";
 
-// Start listening if not running in test mode
-if (process.env.NODE_ENV !== "test") {
+// Start listening if running standalone and not running in test mode
+const isDirectRun = Boolean(
+  process.argv[1] &&
+    (process.argv[1].endsWith("server/index.ts") ||
+      process.argv[1].endsWith("server/index.js") ||
+      process.argv[1].endsWith("server"))
+);
+
+if (isDirectRun && process.env.NODE_ENV !== "test") {
   TournamentEngine.init();
   app.listen(PORT, () => {
     console.log(`🚀 Trueigtech Bingo Express API running on http://localhost:${PORT}`);

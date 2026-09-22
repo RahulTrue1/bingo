@@ -1,4 +1,4 @@
-export type BingoStatus = "Live" | "Selling Tickets" | "Starting Soon" | "Open" | "Scheduled";
+export type BingoStatus = "Live" | "Selling Tickets" | "Starting Soon" | "Open" | "Scheduled" | "Paused";
 
 export type RtpMode = "dynamic" | "fixed";
 
@@ -31,6 +31,7 @@ export type BingoRoomData = {
   cardLimit?: number;
   promotion?: string;
   gameDate?: string;
+  round?: string;
 };
 
 export const demoRooms: BingoRoomData[] = [

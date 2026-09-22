@@ -570,7 +570,7 @@ export function BackofficeDrawer({
       };
       const res = await apiClient.rooms.update(gameRoomId, updates);
       setRooms(
-        rooms.map((r) => (r.id === gameRoomId ? (res?.room ?? { ...r, ...updates }) : r)),
+        rooms.map((r) => (r.id === gameRoomId ? (res ?? { ...r, ...updates }) : r)),
       );
       notify(`✓ Game "${name || target?.name || gameRoomId}" updated (${finalStatus}) - Ticket: $${updates.ticketPrice}, Prize: $${updates.prize}, Card Limit: ${updates.cardLimit}!`);
     }
@@ -654,7 +654,7 @@ export function BackofficeDrawer({
       setRooms(
         rooms.map((room) =>
           room.id === editingRoom.id
-            ? (res?.room ?? {
+            ? (res ?? {
                 ...room,
                 name,
                 variant,

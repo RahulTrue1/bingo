@@ -38,7 +38,7 @@ export function RoomManagement({
   const saveStatus = async (id: string, newStatus: BingoStatus) => {
     try {
       const res = await apiClient.rooms.update(id, { status: newStatus });
-      setRooms(rooms.map((room) => (room.id === id ? (res?.room ?? { ...room, status: newStatus }) : room)));
+      setRooms(rooms.map((room) => (room.id === id ? (res ?? { ...room, status: newStatus }) : room)));
       notify(`✓ ${rooms.find((r) => r.id === id)?.name ?? id} status changed to "${newStatus}". Synced to player lobby.`);
     } catch {
       notify(`Failed to update status for ${id}.`);

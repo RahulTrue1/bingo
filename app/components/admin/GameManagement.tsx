@@ -30,7 +30,7 @@ export function GameManagement({
     setUpdatingId(roomId);
     try {
       const res = await apiClient.rooms.update(roomId, { status: newStatus });
-      const updated = res?.room;
+      const updated = res;
       setRooms(rooms.map((r) => (r.id === roomId ? (updated ?? { ...r, status: newStatus }) : r)));
       notify(`✓ ${rooms.find((r) => r.id === roomId)?.name ?? roomId} is now "${newStatus}". Synced to player lobby.`);
     } catch {

@@ -6,22 +6,36 @@ const API_BASE = typeof window !== "undefined"
 
 export interface GameStateModel {
   roomId: string;
-  gameId: string;
-  variant: string;
-  status: string;
-  calledNumbers: number[];
-  currentBall: number | null;
-  totalBalls: number;
-  callIntervalMs: number;
+  gameId?: string;
+  variant?: string;
+  status?: string;
+  calledNumbers?: number[];
+  called?: number[];
+  currentBall?: number | null;
+  current?: number | null;
+  totalBalls?: number;
+  callIntervalMs?: number;
   phase: string;
-  round: number;
-  currentStageIndex: number;
-  winnerCount: number;
-  isPaused: boolean;
-  history: Array<{ ball: number; label: string; time: string }>;
-  recentCalls: Array<{ ball: number; label: string }>;
+  round?: number;
+  currentStageIndex?: number;
+  winnerCount?: number;
+  isPaused?: boolean;
+  paused?: boolean;
+  history?: Array<{ ball: number; label: string; time: string }>;
+  recentCalls?: Array<{ ball: number; label: string }>;
   winningStages?: Array<{ name: string; prize: number; pattern: string }>;
   uncalledCount?: number;
+  countdown?: number;
+  speed?: string;
+  stageIndex?: number;
+  patternRound?: number;
+  winnerNames?: string[];
+  winnerPrize?: number;
+  winnerPattern?: string;
+  livePlayers?: number;
+  liveCards?: number;
+  liveJackpot?: number;
+  lastWinner?: string;
 }
 
 export interface ClaimResultModel {
@@ -190,6 +204,7 @@ export interface PlayerModel {
   totalEntry?: number;
   totalPrizes?: number;
   winnings?: number;
+  wins?: number;
   balance: number;
   status: string;
   restrictions?: string[];
@@ -460,11 +475,12 @@ export const apiClient = {
     async buy(roomId: string, count = 1, username?: string, userId?: string) {
       return request<{
         success: boolean;
-        purchasedCount: number;
-        totalCost: number;
-        wallet: number;
-        tickets: BingoCardModel[];
-        message: string;
+        purchasedCount?: number;
+        totalCost?: number;
+        wallet?: number;
+        tickets?: BingoCardModel[];
+        message?: string;
+        error?: string;
       }>("/tickets/buy", {
         method: "POST",
         body: JSON.stringify({
@@ -563,7 +579,7 @@ export const apiClient = {
       return res?.tournaments ?? [];
     },
     async register(id: string, playerName = "Ari.R") {
-      return request<{ success: boolean; tournament: TournamentModel; wallet: number; message: string }>(
+      return request<{ success: boolean; tournament?: TournamentModel; wallet?: number; message?: string; error?: string }>(
         `/tournaments/${id}/register`,
         {
           method: "POST",

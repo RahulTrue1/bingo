@@ -1,10 +1,10 @@
 import type { BingoStatus } from "../../bingo-core";
 
-export function StatusPill({ status }: { status: BingoStatus }) {
+export function StatusPill({ status, label }: { status: BingoStatus; label?: string }) {
   return (
     <span className={`status status-${status.toLowerCase().replaceAll(" ", "-")}`}>
       <i />
-      {status}
+      {label || status}
     </span>
   );
 }

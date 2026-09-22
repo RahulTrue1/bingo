@@ -25,7 +25,7 @@ export function GameRoom({
   room: BingoRoomData;
   tournament?: any;
   wallet: number;
-  setWallet: (value: number) => void;
+  setWallet: (value: number | ((prev: number) => number)) => void;
   goBack: () => void;
   notify: (message: string) => void;
   currentUser?: any;
@@ -183,9 +183,9 @@ export function GameRoom({
   ]);
 
   useEffect(() => {
-    apiClient.chat.get(room.id).then((chatMessages) => {
-      if (chatMessages && chatMessages.length > 0) {
-        setMessages(chatMessages.map((m) => [m.sender, m.text, m.time]));
+    apiClient.chat.get(room.id).then((res) => {
+      if (res?.messages && res.messages.length > 0) {
+        setMessages(res.messages.map((m) => [m.sender, m.text, m.time]));
       }
     }).catch(() => {});
   }, [room.id]);
@@ -299,9 +299,9 @@ export function GameRoom({
     setTourneyModal(null);
 
     // 2. Initial hydration from server
-    apiClient.chat.get(room.id).then((chatMessages) => {
-      if (chatMessages && chatMessages.length > 0) {
-        setMessages(chatMessages.map((m) => [m.sender, m.text, m.time]));
+    apiClient.chat.get(room.id).then((res) => {
+      if (res?.messages && res.messages.length > 0) {
+        setMessages(res.messages.map((m) => [m.sender, m.text, m.time]));
       }
     }).catch(() => {});
 
@@ -926,7 +926,7 @@ export function GameRoom({
           </div>
           <div className="winning-stage-list">
             <small>{isTournament ? `TOURNAMENT STAGES (${stages.length} ROUNDS)` : "WINNING STAGES"}</small>
-            {stages.map((stage, index) => (
+            {stages.map((stage: any, index: number) => (
               <div className={`${index === stageIndex ? "active" : ""} ${index < stageIndex ? "complete" : ""}`} key={stage.name}>
                 <i>{index < stageIndex ? "✓" : index + 1}</i>
                 <span>

@@ -17,8 +17,10 @@ import type {
   UserSession,
 } from "../types.ts";
 
-const DATA_DIR = resolve(process.cwd(), "data");
+const isVercel = Boolean(process.env.VERCEL);
+const DATA_DIR = isVercel ? "/tmp" : resolve(process.cwd(), "data");
 const DB_FILE = resolve(DATA_DIR, "bingo-db.json");
+const SEED_FILE = resolve(process.cwd(), "data", "bingo-db.json");
 
 export interface DatabaseSchema {
   rooms: BingoRoomData[];
@@ -895,8 +897,9 @@ class Store {
 
   private loadFromDisk(): DatabaseSchema {
     try {
-      if (existsSync(DB_FILE)) {
-        const raw = readFileSync(DB_FILE, "utf-8");
+      const fileToRead = existsSync(DB_FILE) ? DB_FILE : (existsSync(SEED_FILE) ? SEED_FILE : null);
+      if (fileToRead) {
+        const raw = readFileSync(fileToRead, "utf-8");
         const parsed = JSON.parse(raw);
 
         // Ensure promotions have full catalog with rich metadata

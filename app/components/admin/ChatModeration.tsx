@@ -26,7 +26,7 @@ export function ChatModeration({
   const refreshChat = () => {
     apiClient.chat.get("diamond-75").then((res) => {
       if (res && res.messages && res.messages.length > 0) {
-        setMessages(res.messages.map((m) => [m.time || "14:32", "Diamond 75", m.user || m.sender, m.text, m.id]));
+        setMessages(res.messages.map((m) => [m.time || "14:32", "Diamond 75", m.sender, m.text, m.id]));
         if (Array.isArray(res.mutedUsers)) setMuted(res.mutedUsers);
       }
     }).catch(() => {});
@@ -38,7 +38,7 @@ export function ChatModeration({
       if (event.entity === "chat") {
         if (event.action === "message" && event.data) {
           const m = event.data as { user: string; text: string; time: string; id?: string };
-          setMessages((prev) => [[m.time || "now", event.roomId || "Diamond 75", m.user, m.text, m.id], ...prev.slice(0, 40)]);
+          setMessages((prev) => [[m.time || "now", event.roomId || "Diamond 75", m.user || "Player", m.text || "", m.id || ""], ...prev.slice(0, 40)]);
         } else {
           refreshChat();
         }
