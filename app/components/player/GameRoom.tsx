@@ -1,4 +1,5 @@
 import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
+import { Lightning, Sparkle, Star, Trophy, X } from "@phosphor-icons/react";
 import { apiClient } from "../../api-client";
 import {
   BingoEngine,
@@ -736,6 +737,22 @@ export function GameRoom({
     apiClient.game.restart(room.id).catch(() => {});
     notify(room.id === "pattern-arena" ? `Next pattern loaded: ${patternSeries[(patternRound + 1) % patternSeries.length]}.` : "Next round is open for tickets. Select cards to play!");
   };
+
+  const handleCloseWinModal = () => {
+    setShowWinModal(false);
+    nextRound();
+  };
+
+  useEffect(() => {
+    if (!showWinModal) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        handleCloseWinModal();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [showWinModal]);
 
   const sendChat = (event: FormEvent) => {
     event.preventDefault();
@@ -1478,93 +1495,147 @@ export function GameRoom({
         </aside>
       </div>
       {showWinModal && winnerNames.some((name) => name.toLowerCase() === currentUsername.toLowerCase()) && (
-        <div className="claim-overlay confirmed">
-          <div className="claim-modal">
+        <div
+          className="claim-overlay confirmed win-celebration-overlay"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              handleCloseWinModal();
+            }
+          }}
+        >
+          {/* Celebratory confetti animation */}
+          <div className="win-confetti-container" aria-hidden="true">
+            {Array.from({ length: 24 }).map((_, i) => (
+              <span key={`confetti-${i}`} className={`confetti-piece confetti-${(i % 5) + 1}`} />
+            ))}
+          </div>
+
+          <div className="claim-modal cool-win-card">
+            {/* Ambient neon backlighting */}
+            <div className="card-ambient-glow" aria-hidden="true" />
+
+            {/* Top Close Button - closing modal triggers next round */}
             <button
               type="button"
-              className="modal-close"
-              aria-label="Close win modal"
-              onClick={() => setShowWinModal(false)}
+              className="modal-close win-close-button"
+              aria-label="Close and open next round"
+              title="Close & open next round"
+              onClick={handleCloseWinModal}
             >
-              ×
+              <X size={15} weight="bold" />
             </button>
-            <div className="trueig-modal-brand">TRUEIGTECH BINGO ENGINE</div>
-            <div className="claim-icon">✓</div>
-            <span className="section-kicker">GAME TRUEIG-{2842 + patternRound}</span>
-            <h2>🎉 You Won BINGO!</h2>
-            <p>
+
+            {/* Brand Capsule */}
+            <div className="win-brand-capsule">
+              <span className="live-sparkle-dot" />
+              <span>TRUEIGTECH BINGO ENGINE</span>
+            </div>
+
+            {/* Radiant Victory Trophy Emblem */}
+            <div className="win-trophy-wrapper">
+              <div className="win-pulse-ring" />
+              <div className="win-pulse-ring delay" />
+              <div className="win-icon-glow">
+                <Trophy size={32} weight="fill" />
+              </div>
+              <Sparkle className="win-sparkle s-top-left" size={18} weight="fill" />
+              <Sparkle className="win-sparkle s-bottom-right" size={14} weight="fill" />
+            </div>
+
+            {/* Game Badge */}
+            <div className="win-game-pill">
+              <Lightning size={12} weight="fill" />
+              <span>GAME TRG310-{2842 + patternRound}</span>
+            </div>
+
+            {/* Title */}
+            <h2 className="win-title-gradient">🎉 You Won BINGO!</h2>
+
+            <p className="win-description">
               {winnerNames.length > 1
                 ? `You and ${winnerNames.filter((n) => n.toLowerCase() !== currentUsername.toLowerCase()).join(" & ")} completed ${winnerPattern || activeStage.name} after ${called.length} balls!`
                 : `You completed ${winnerPattern || activeStage.name} after ${called.length} balls!`}
             </p>
-            <div className="winner-avatars">
-              {winnerNames.map((name, idx) => (
-                <span
-                  key={`${name}-${idx}`}
-                  style={{
-                    background: name?.toLowerCase() === currentUsername.toLowerCase() ? "linear-gradient(135deg, #2bddaa, #00b894)" : undefined,
-                    color: name?.toLowerCase() === currentUsername.toLowerCase() ? "#000" : undefined,
-                    fontWeight: 800,
-                  }}
-                >
-                  {(String(name || "WN").slice(0, 2)).toUpperCase()}
-                </span>
-              ))}
+
+            {/* Big Prize Showcase Box */}
+            <div className={`win-prize-box ${room.jackpot && (winnerPattern || activeStage.name).includes("Full") && called.length <= (room.progressiveBallLimit ?? 42) ? "jackpot-hit" : ""}`}>
+              <div className="win-prize-kicker">
+                <Star size={12} weight="fill" />
+                <span>{isTournament ? "STAGE VICTORY" : "TOTAL PRIZE WON"}</span>
+                <Star size={12} weight="fill" />
+              </div>
+
+              {winnerPrize > 0 ? (
+                <div className="win-prize-amount">
+                  {money(winnerPrize)} <span className="win-prize-suffix">won!</span>
+                </div>
+              ) : (
+                <div className="win-prize-amount" style={{ fontSize: "28px" }}>
+                  {isTournament ? "Stage Qualified! 🏆" : "Round Won! 🎉"}
+                </div>
+              )}
+
+              {room.jackpot && (winnerPattern || activeStage.name).includes("Full") && called.length <= (room.progressiveBallLimit ?? 42) ? (
+                <div className="win-jackpot-badge">
+                  🏆 PROGRESSIVE JACKPOT HIT ({called.length} / {room.progressiveBallLimit ?? 42} balls)!
+                </div>
+              ) : winnerNames.length > 1 ? (
+                <div className="win-split-badge">
+                  {winnerNames.length} simultaneous winners · Prize split equally
+                </div>
+              ) : null}
             </div>
-            {winnerPrize > 0 ? (
-              <strong className="winner-prize" style={{ color: room.jackpot && (winnerPattern || activeStage.name).includes("Full") && called.length <= (room.progressiveBallLimit ?? 42) ? "#ffd32a" : "#2bddaa" }}>
-                {money(winnerPrize)} won!
-              </strong>
-            ) : (
-              <strong className="winner-prize" style={{ color: "#2bddaa" }}>
-                {isTournament ? "Stage Qualified! 🏆" : "Round Won!"}
-              </strong>
-            )}
-            <small>
-              {winnerNames.length > 1
-                ? `${winnerNames.length} simultaneous winners · prize split equally`
-                : room.jackpot && (winnerPattern || activeStage.name).includes("Full") && called.length <= (room.progressiveBallLimit ?? 42)
-                  ? `🏆 PROGRESSIVE JACKPOT HIT within ${called.length} balls (under ${room.progressiveBallLimit ?? 42} limit)!`
-                  : room.jackpot && (winnerPattern || activeStage.name).includes("Full")
-                    ? `Full House achieved after progressive cut (${called.length} balls)`
-                    : `Winning Card #0${activeCard + 1}`}
-            </small>
-            <div style={{ display: "flex", gap: "10px", marginTop: "18px" }}>
-              <button
-                type="button"
-                style={{
-                  flex: 1,
-                  padding: "12px",
-                  borderRadius: "10px",
-                  background: "rgba(255,255,255,0.08)",
-                  color: "#fff",
-                  border: "1px solid rgba(255,255,255,0.15)",
-                  cursor: "pointer",
-                  fontWeight: 700,
-                }}
-                onClick={() => setShowWinModal(false)}
-              >
-                View results
-              </button>
-              <button
-                type="button"
-                style={{
-                  flex: 1,
-                  padding: "12px",
-                  borderRadius: "10px",
-                  background: "linear-gradient(135deg, #2bddaa, #00b894)",
-                  color: "#0c0a1d",
-                  border: "none",
-                  cursor: "pointer",
-                  fontWeight: 800,
-                }}
-                onClick={() => {
-                  setShowWinModal(false);
-                  nextRound();
-                }}
-              >
-                Open next round →
-              </button>
+
+            {/* 3-Column Glass Stats Grid */}
+            <div className="win-stats-grid">
+              <div className="win-stat-chip">
+                <small>PATTERN</small>
+                <strong>{winnerPattern || activeStage.name}</strong>
+              </div>
+              <div className="win-stat-chip">
+                <small>BALLS</small>
+                <strong>{called.length} Called</strong>
+              </div>
+              <div className="win-stat-chip">
+                <small>CARD</small>
+                <strong>Ticket #{activeCard + 1 < 10 ? `0${activeCard + 1}` : activeCard + 1}</strong>
+              </div>
+            </div>
+
+            {/* Winner Identity Badge */}
+            <div className="win-players-row">
+              <div className="winner-avatars">
+                {winnerNames.map((name, idx) => (
+                  <span
+                    key={`${name}-${idx}`}
+                    className="win-avatar-badge"
+                    style={{
+                      background: name?.toLowerCase() === currentUsername.toLowerCase() ? "linear-gradient(135deg, #2bddaa, #00b894)" : undefined,
+                      color: name?.toLowerCase() === currentUsername.toLowerCase() ? "#0c0a1d" : undefined,
+                      fontWeight: 800,
+                    }}
+                    title={name}
+                  >
+                    {(String(name || "WN").slice(0, 2)).toUpperCase()}
+                  </span>
+                ))}
+              </div>
+              <span className="win-player-label">
+                Winner: <b>{currentUsername}</b>
+              </span>
+            </div>
+
+            {/* Clean bottom dismiss hint that also triggers next round */}
+            <div
+              className="win-dismiss-hint"
+              onClick={handleCloseWinModal}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") handleCloseWinModal();
+              }}
+            >
+              <span>✕ Close to start next round</span>
             </div>
           </div>
         </div>

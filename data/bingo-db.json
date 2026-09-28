@@ -9,7 +9,7 @@
       "prize": 5688,
       "players": 3,
       "maxPlayers": 10,
-      "cardsSold": 744,
+      "cardsSold": 746,
       "startsIn": "00:46",
       "pattern": "One Line → Two Lines → Full House",
       "accent": "teal",
@@ -86,9 +86,9 @@
       "status": "Starting Soon",
       "ticketPrice": 2,
       "prize": 1500,
-      "players": 2,
+      "players": 3,
       "maxPlayers": 400,
-      "cardsSold": 943,
+      "cardsSold": 944,
       "startsIn": "LIVE · Ball 28",
       "pattern": "Diamond",
       "accent": "violet",
@@ -425,8 +425,62 @@
       "customRtp": true
     }
   ],
-  "wallet": 109626.5,
+  "wallet": 114804.5,
   "transactions": [
+    {
+      "id": "TXN-328385",
+      "timestamp": "20:22:22",
+      "player": "TrueigQueen",
+      "room": "Diamond 75",
+      "type": "Prize payout",
+      "amount": 1000,
+      "status": "Completed"
+    },
+    {
+      "id": "TXN-351749",
+      "timestamp": "20:22:00",
+      "player": "TrueigQueen",
+      "room": "Diamond 75",
+      "type": "Ticket purchase",
+      "amount": -2,
+      "status": "Completed"
+    },
+    {
+      "id": "TXN-783561",
+      "timestamp": "20:21:11",
+      "player": "TrueigQueen",
+      "room": "Trueig 910Classic",
+      "type": "Prize payout",
+      "amount": 4188,
+      "status": "Completed"
+    },
+    {
+      "id": "TXN-677553",
+      "timestamp": "20:20:54",
+      "player": "TrueigQueen",
+      "room": "Trueig 910Classic",
+      "type": "Ticket purchase",
+      "amount": -10,
+      "status": "Completed"
+    },
+    {
+      "id": "TXN-940471",
+      "timestamp": "20:20:35",
+      "player": "TrueigQueen",
+      "room": "Trueig 910Classic",
+      "type": "Prize payout",
+      "amount": 4188,
+      "status": "Completed"
+    },
+    {
+      "id": "TXN-601645",
+      "timestamp": "20:31:00",
+      "player": "Ari.R",
+      "room": "Trueig 910Classic",
+      "type": "Ticket purchase",
+      "amount": -10,
+      "status": "Completed"
+    },
     {
       "id": "TXN-771335",
       "timestamp": "21:39:33",
@@ -2366,34 +2420,21 @@
   "gameSessions": {
     "trueig-90": {
       "roomId": "trueig-90",
-      "phase": "winner",
+      "phase": "selling",
       "countdown": 5,
-      "called": [
-        36,
-        66,
-        88,
-        19,
-        56,
-        73,
-        58,
-        13,
-        72,
-        71
-      ],
-      "current": 71,
+      "called": [],
+      "current": null,
       "speed": "Fast",
       "paused": false,
       "stageIndex": 2,
       "patternRound": 0,
-      "winnerNames": [
-        "Ari.R"
-      ],
-      "winnerPrize": 4188,
-      "winnerPattern": "Full House",
+      "winnerNames": [],
+      "winnerPrize": 0,
+      "winnerPattern": "",
       "livePlayers": 1,
       "liveCards": 682,
       "liveJackpot": 0,
-      "lastWinner": "Ari.R · $4188"
+      "lastWinner": "TrueigQueen · $4188"
     },
     "turbo-30": {
       "roomId": "turbo-30",
@@ -2415,37 +2456,21 @@
     },
     "diamond-75": {
       "roomId": "diamond-75",
-      "phase": "winner",
+      "phase": "selling",
       "countdown": 5,
-      "called": [
-        58,
-        64,
-        37,
-        61,
-        68,
-        1,
-        5,
-        48,
-        33,
-        69,
-        27,
-        43,
-        20
-      ],
-      "current": 20,
+      "called": [],
+      "current": null,
       "speed": "Fast",
       "paused": false,
       "stageIndex": 2,
       "patternRound": 0,
-      "winnerNames": [
-        "Ari.R"
-      ],
-      "winnerPrize": 1000,
-      "winnerPattern": "Diamond",
+      "winnerNames": [],
+      "winnerPrize": 0,
+      "winnerPattern": "",
       "livePlayers": 286,
       "liveCards": 934,
       "liveJackpot": 0,
-      "lastWinner": "Ari.R · $1000"
+      "lastWinner": "TrueigQueen · $1000"
     },
     "mega-jackpot": {
       "roomId": "mega-jackpot",
@@ -2587,8 +2612,25 @@
       "roomId": "tournament",
       "phase": "live",
       "countdown": 5,
-      "called": [],
-      "current": null,
+      "called": [
+        50,
+        73,
+        24,
+        41,
+        27,
+        16,
+        5,
+        29,
+        54,
+        31,
+        44,
+        46,
+        8,
+        10,
+        65,
+        42
+      ],
+      "current": 42,
       "speed": "Fast",
       "paused": false,
       "stageIndex": 0,
@@ -2863,6 +2905,358 @@
     }
   },
   "tickets": [
+    {
+      "id": "TCK-658767",
+      "ticketIndex": 0,
+      "roomId": "diamond-75",
+      "userId": "USR-10482",
+      "player": "TrueigQueen",
+      "variant": "75-Ball Pattern",
+      "cells": [
+        {
+          "value": 7,
+          "column": "B"
+        },
+        {
+          "value": 27,
+          "column": "I"
+        },
+        {
+          "value": 32,
+          "column": "N"
+        },
+        {
+          "value": 52,
+          "column": "G"
+        },
+        {
+          "value": 72,
+          "column": "O"
+        },
+        {
+          "value": 14,
+          "column": "B"
+        },
+        {
+          "value": 19,
+          "column": "I"
+        },
+        {
+          "value": 39,
+          "column": "N"
+        },
+        {
+          "value": 59,
+          "column": "G"
+        },
+        {
+          "value": 64,
+          "column": "O"
+        },
+        {
+          "value": 6,
+          "column": "B"
+        },
+        {
+          "value": 26,
+          "column": "I"
+        },
+        {
+          "value": "FREE",
+          "column": "N"
+        },
+        {
+          "value": 51,
+          "column": "G"
+        },
+        {
+          "value": 71,
+          "column": "O"
+        },
+        {
+          "value": 13,
+          "column": "B"
+        },
+        {
+          "value": 18,
+          "column": "I"
+        },
+        {
+          "value": 38,
+          "column": "N"
+        },
+        {
+          "value": 58,
+          "column": "G"
+        },
+        {
+          "value": 63,
+          "column": "O"
+        },
+        {
+          "value": 5,
+          "column": "B"
+        },
+        {
+          "value": 25,
+          "column": "I"
+        },
+        {
+          "value": 45,
+          "column": "N"
+        },
+        {
+          "value": 50,
+          "column": "G"
+        },
+        {
+          "value": 70,
+          "column": "O"
+        }
+      ],
+      "daubed": [],
+      "purchasedAt": "2026-09-28T14:52:00.472Z"
+    },
+    {
+      "id": "TCK-832746",
+      "ticketIndex": 0,
+      "roomId": "trueig-90",
+      "userId": "USR-10482",
+      "player": "TrueigQueen",
+      "variant": "90-Ball Classic",
+      "cells": [
+        {
+          "value": 9,
+          "column": "0"
+        },
+        {
+          "value": "FREE",
+          "column": "1"
+        },
+        {
+          "value": 27,
+          "column": "2"
+        },
+        {
+          "value": "FREE",
+          "column": "3"
+        },
+        {
+          "value": 43,
+          "column": "4"
+        },
+        {
+          "value": "FREE",
+          "column": "5"
+        },
+        {
+          "value": 69,
+          "column": "6"
+        },
+        {
+          "value": "FREE",
+          "column": "7"
+        },
+        {
+          "value": 83,
+          "column": "8"
+        },
+        {
+          "value": "FREE",
+          "column": "0"
+        },
+        {
+          "value": 19,
+          "column": "1"
+        },
+        {
+          "value": 22,
+          "column": "2"
+        },
+        {
+          "value": 35,
+          "column": "3"
+        },
+        {
+          "value": "FREE",
+          "column": "4"
+        },
+        {
+          "value": 51,
+          "column": "5"
+        },
+        {
+          "value": "FREE",
+          "column": "6"
+        },
+        {
+          "value": 77,
+          "column": "7"
+        },
+        {
+          "value": "FREE",
+          "column": "8"
+        },
+        {
+          "value": 1,
+          "column": "0"
+        },
+        {
+          "value": 14,
+          "column": "1"
+        },
+        {
+          "value": "FREE",
+          "column": "2"
+        },
+        {
+          "value": "FREE",
+          "column": "3"
+        },
+        {
+          "value": 43,
+          "column": "4"
+        },
+        {
+          "value": "FREE",
+          "column": "5"
+        },
+        {
+          "value": 69,
+          "column": "6"
+        },
+        {
+          "value": "FREE",
+          "column": "7"
+        },
+        {
+          "value": 82,
+          "column": "8"
+        }
+      ],
+      "daubed": [],
+      "purchasedAt": "2026-09-28T14:50:54.894Z"
+    },
+    {
+      "id": "TCK-104719",
+      "ticketIndex": 0,
+      "roomId": "trueig-90",
+      "userId": "USR-11804",
+      "player": "Ari.R",
+      "variant": "90-Ball Classic",
+      "cells": [
+        {
+          "value": 1,
+          "column": "0"
+        },
+        {
+          "value": "FREE",
+          "column": "1"
+        },
+        {
+          "value": 23,
+          "column": "2"
+        },
+        {
+          "value": "FREE",
+          "column": "3"
+        },
+        {
+          "value": 49,
+          "column": "4"
+        },
+        {
+          "value": "FREE",
+          "column": "5"
+        },
+        {
+          "value": 65,
+          "column": "6"
+        },
+        {
+          "value": "FREE",
+          "column": "7"
+        },
+        {
+          "value": 83,
+          "column": "8"
+        },
+        {
+          "value": "FREE",
+          "column": "0"
+        },
+        {
+          "value": 15,
+          "column": "1"
+        },
+        {
+          "value": 28,
+          "column": "2"
+        },
+        {
+          "value": 31,
+          "column": "3"
+        },
+        {
+          "value": "FREE",
+          "column": "4"
+        },
+        {
+          "value": 57,
+          "column": "5"
+        },
+        {
+          "value": "FREE",
+          "column": "6"
+        },
+        {
+          "value": 73,
+          "column": "7"
+        },
+        {
+          "value": "FREE",
+          "column": "8"
+        },
+        {
+          "value": 2,
+          "column": "0"
+        },
+        {
+          "value": 10,
+          "column": "1"
+        },
+        {
+          "value": "FREE",
+          "column": "2"
+        },
+        {
+          "value": "FREE",
+          "column": "3"
+        },
+        {
+          "value": 49,
+          "column": "4"
+        },
+        {
+          "value": "FREE",
+          "column": "5"
+        },
+        {
+          "value": 65,
+          "column": "6"
+        },
+        {
+          "value": "FREE",
+          "column": "7"
+        },
+        {
+          "value": 82,
+          "column": "8"
+        }
+      ],
+      "daubed": [],
+      "purchasedAt": "2026-09-26T15:01:00.651Z"
+    },
     {
       "id": "TCK-310893",
       "ticketIndex": 0,
@@ -12882,6 +13276,93 @@
   ],
   "claims": [
     {
+      "id": "CLM-757887",
+      "roomId": "diamond-75",
+      "ticketId": "CARD-0",
+      "playerName": "TrueigQueen",
+      "pattern": "Diamond",
+      "status": "approved",
+      "prize": 1000,
+      "timestamp": "08:22 PM",
+      "cells": [
+        58,
+        64,
+        37,
+        61,
+        68,
+        1,
+        5,
+        48,
+        33,
+        69,
+        27,
+        43,
+        20,
+        21,
+        13,
+        40,
+        4,
+        10,
+        18,
+        57,
+        59,
+        60,
+        3,
+        26,
+        75,
+        50,
+        52
+      ]
+    },
+    {
+      "id": "CLM-883765",
+      "roomId": "trueig-90",
+      "ticketId": "CARD-0",
+      "playerName": "TrueigQueen",
+      "pattern": "Full House",
+      "status": "approved",
+      "prize": 4188,
+      "timestamp": "08:21 PM",
+      "cells": [
+        72,
+        2,
+        4,
+        56,
+        19,
+        17,
+        82,
+        34,
+        26
+      ]
+    },
+    {
+      "id": "CLM-457731",
+      "roomId": "trueig-90",
+      "ticketId": "CARD-0",
+      "playerName": "TrueigQueen",
+      "pattern": "Full House",
+      "status": "approved",
+      "prize": 4188,
+      "timestamp": "08:20 PM",
+      "cells": [
+        36,
+        66,
+        88,
+        19,
+        56,
+        73,
+        58,
+        13,
+        72,
+        71,
+        6,
+        86,
+        16,
+        17,
+        83
+      ]
+    },
+    {
       "id": "CLM-355199",
       "roomId": "trueig-90",
       "ticketId": "CARD-0",
@@ -14806,28 +15287,29 @@
         },
         {
           "rank": 2,
+          "player": "TrueigQueen",
+          "points": 85,
+          "wins": 1,
+          "status": "Qualified",
+          "fast": "14 balls"
+        },
+        {
+          "rank": 3,
           "player": "LuckyStar",
           "points": 0,
           "wins": 0,
           "status": "Qualified"
         },
         {
-          "rank": 3,
-          "player": "BingoMaster",
-          "points": 0,
-          "wins": 0,
-          "status": "Qualified"
-        },
-        {
           "rank": 4,
-          "player": "SpeedySam",
+          "player": "BingoMaster",
           "points": 0,
           "wins": 0,
           "status": "Eliminated"
         },
         {
           "rank": 5,
-          "player": "TrueigQueen",
+          "player": "SpeedySam",
           "points": 0,
           "wins": 0,
           "status": "Eliminated"
@@ -15163,6 +15645,14 @@
     ],
     "trueig-90": [
       {
+        "id": "msg-1790434861900-5amj",
+        "roomId": "trueig-90",
+        "user": "Ari.R",
+        "text": "Winning energy in this room! 🔥",
+        "time": "20:31",
+        "role": "player"
+      },
+      {
         "id": "msg-1789802202651-x4rb",
         "roomId": "trueig-90",
         "user": "Ari.R",
@@ -15260,16 +15750,16 @@
       "id": "USR-10482",
       "username": "TrueigQueen",
       "tier": "VIP",
-      "balance": 27630.5,
+      "balance": 27618.5,
       "gamesPlayed": 842,
-      "cardsPurchased": 2458,
+      "cardsPurchased": 2460,
       "wins": 142,
       "totalPrizes": 24860,
       "restrictions": [],
       "lastLogin": "Just now",
       "status": "Active",
       "password": "QueenBingo#2026",
-      "totalEntry": 44.5
+      "totalEntry": 56.5
     },
     {
       "id": "USR-09814",
@@ -15289,16 +15779,16 @@
       "id": "USR-11804",
       "username": "Ari.R",
       "tier": "Standard",
-      "balance": 105438.5,
+      "balance": 105428.5,
       "gamesPlayed": 128,
-      "cardsPurchased": 398,
+      "cardsPurchased": 399,
       "wins": 18,
       "totalPrizes": 2840,
       "restrictions": [],
       "lastLogin": "Just now",
       "status": "Active",
       "password": "demo123",
-      "totalEntry": 470
+      "totalEntry": 480
     },
     {
       "id": "USR-07226",
@@ -15617,6 +16107,76 @@
   },
   "auditFeed": [
     {
+      "id": "feed-1790607146388",
+      "type": "alert",
+      "title": "Round restarted",
+      "detail": "Game round reset in diamond-75",
+      "time": "20:22"
+    },
+    {
+      "id": "feed-1790607142621",
+      "type": "claim",
+      "title": "Bingo claim validated",
+      "detail": "Diamond 75 · TrueigQueen won $1000 on Diamond",
+      "time": "20:22"
+    },
+    {
+      "id": "feed-1790607120472",
+      "type": "player",
+      "title": "Tickets purchased",
+      "detail": "1 card bought for Diamond 75 ($2.00) by TrueigQueen",
+      "time": "20:22"
+    },
+    {
+      "id": "feed-1790607097455",
+      "type": "alert",
+      "title": "Tournament stage scored",
+      "detail": "Trueigtech Weekend Cup Qualifiers scored. Leader: Ari.R",
+      "time": "20:21"
+    },
+    {
+      "id": "feed-1790607073540",
+      "type": "alert",
+      "title": "Round restarted",
+      "detail": "Game round reset in trueig-90",
+      "time": "20:21"
+    },
+    {
+      "id": "feed-1790607071515",
+      "type": "claim",
+      "title": "Bingo claim validated",
+      "detail": "Trueig 910Classic · TrueigQueen won $4188 on Full House",
+      "time": "20:21"
+    },
+    {
+      "id": "feed-1790607054894",
+      "type": "player",
+      "title": "Tickets purchased",
+      "detail": "1 card bought for Trueig 910Classic ($10.00) by TrueigQueen",
+      "time": "20:20"
+    },
+    {
+      "id": "feed-1790607050759",
+      "type": "alert",
+      "title": "Round restarted",
+      "detail": "Game round reset in trueig-90",
+      "time": "20:20"
+    },
+    {
+      "id": "feed-1790607035059",
+      "type": "claim",
+      "title": "Bingo claim validated",
+      "detail": "Trueig 910Classic · TrueigQueen won $4188 on Full House",
+      "time": "20:20"
+    },
+    {
+      "id": "feed-1790434860651",
+      "type": "player",
+      "title": "Tickets purchased",
+      "detail": "1 card bought for Trueig 910Classic ($10.00) by Ari.R",
+      "time": "20:31"
+    },
+    {
       "id": "feed-1790093373459",
       "type": "claim",
       "title": "Bingo claim validated",
@@ -15895,76 +16455,6 @@
       "title": "Manual ball call",
       "detail": "O-61 called manually in trueig-90",
       "time": "23:50"
-    },
-    {
-      "id": "feed-1790014729412",
-      "type": "alert",
-      "title": "Tournament stage scored",
-      "detail": "Trueigtech Weekend Cup Round of 256 scored. Leader: Ari.R",
-      "time": "23:48"
-    },
-    {
-      "id": "feed-1790014723947",
-      "type": "alert",
-      "title": "Tournament stage scored",
-      "detail": "Trueigtech Weekend Cup Round of 256 scored. Leader: Ari.R",
-      "time": "23:48"
-    },
-    {
-      "id": "feed-1790014668837",
-      "type": "claim",
-      "title": "Bingo claim validated",
-      "detail": "Trueig 910Classic · Ari.R won $4188 on Full House",
-      "time": "23:47"
-    },
-    {
-      "id": "feed-1790014651749",
-      "type": "alert",
-      "title": "Round restarted",
-      "detail": "Game round reset in trueig-90",
-      "time": "23:47"
-    },
-    {
-      "id": "feed-1790014646694",
-      "type": "claim",
-      "title": "Bingo claim validated",
-      "detail": "Trueig 910Classic · Ari.R won $4188 on Full House",
-      "time": "23:47"
-    },
-    {
-      "id": "feed-1790014629616",
-      "type": "player",
-      "title": "Tickets purchased",
-      "detail": "1 card bought for Trueig 910Classic ($10.00) by Ari.R",
-      "time": "23:47"
-    },
-    {
-      "id": "feed-1790014594129",
-      "type": "alert",
-      "title": "Tournament stage scored",
-      "detail": "Trueigtech Weekend Cup Round of 256 scored. Leader: Ari.R",
-      "time": "23:46"
-    },
-    {
-      "id": "feed-1790014556942",
-      "type": "alert",
-      "title": "Tournament stage scored",
-      "detail": "Trueigtech Weekend Cup Round of 256 scored. Leader: Ari.R",
-      "time": "23:45"
-    },
-    {
-      "id": "feed-1790014284918",
-      "type": "claim",
-      "title": "Bingo claim validated",
-      "detail": "Diamond 75 · Ari.R won $1000 on Diamond",
-      "time": "23:41"
-    },
-    {
-      "id": "feed-1790014264243",
-      "type": "player",
-      "title": "Tickets purchased",
-      "detail": "1 card bought for Diamond 75 ($2.00) by Ari.R",
-      "time": "23:41"
     }
   ],
   "sessions": {
@@ -16169,7 +16659,7 @@
       "username": "TrueigQueen",
       "userId": "USR-10482",
       "createdAt": "2026-09-21T16:23:52.732Z",
-      "lastSeen": "2026-09-21T17:24:32.554Z"
+      "lastSeen": "2026-09-28T14:52:25.087Z"
     }
   }
 }
