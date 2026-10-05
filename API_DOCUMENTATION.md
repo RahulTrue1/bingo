@@ -489,7 +489,7 @@ curl -s -X POST http://localhost:4000/api/game/diamond-75/cancel
 ---
 
 ### `POST /api/game/:roomId/claim`
-Submit a BINGO claim. The server validates card cells against drawn balls and pattern requirements. Valid claims credit the player's wallet and log audit entries.
+Submit a BINGO claim. The server validates card cells against drawn balls and pattern requirements (supporting optional client `called` / `calledNumbers` arrays). Valid claims immediately credit the winning player's balance (`winnerPlayer.balance`), increment their `wins` and `totalPrizes` metrics in `store.players`, sync `store.wallet`, broadcast real-time `wallet` and `players` SSE events, and log audit entries.
 
 - **Method**: `POST`
 - **Path Parameter**: `roomId` *(string)*
@@ -498,7 +498,8 @@ Submit a BINGO claim. The server validates card cells against drawn balls and pa
 {
   "ticketId": "TCK-842011",
   "playerName": "Ari.R",
-  "manualPattern": "One Line"
+  "manualPattern": "One Line",
+  "called": [12, 24, 33, 45, 68]
 }
 ```
 
@@ -516,6 +517,7 @@ Submit a BINGO claim. The server validates card cells against drawn balls and pa
     "prize": 500,
     "timestamp": "14:35"
   },
+  "state": { ... },
   "wallet": 748.5,
   "message": "🎉 BINGO! Validated One Line! Won $500.00!"
 }
@@ -531,7 +533,7 @@ curl -s -X POST http://localhost:4000/api/game/diamond-75/claim \
 ---
 
 ### `POST /api/game/:roomId/declare-winner`
-Backoffice operator manually declares a winner and awards a prize payout.
+Backoffice operator manually declares a winner and awards a prize payout. The winning amount is automatically credited to the player's account balance, increments their win stats in `store.players`, synchronizes the active wallet, and emits real-time sync events.
 
 - **Method**: `POST`
 - **Path Parameter**: `roomId` *(string)*
@@ -541,6 +543,16 @@ Backoffice operator manually declares a winner and awards a prize payout.
   "player": "LuckyStar",
   "prize": 400,
   "pattern": "One Line"
+}
+```
+
+**Example Response (`200 OK`)**:
+```json
+{
+  "success": true,
+  "state": { ... },
+  "wallet": 850,
+  "message": "Winner LuckyStar declared manually with prize $400."
 }
 ```
 
@@ -554,7 +566,7 @@ curl -s -X POST http://localhost:4000/api/game/diamond-75/declare-winner \
 ---
 
 ### `POST /api/game/:roomId/claims/:claimId/review`
-Admin operator reviews and approves or rejects a flagged or pending claim.
+Admin operator reviews and approves or rejects a flagged or pending claim. When approved, any prize is directly credited to the player's account balance in `store.players` and synced to the active wallet.
 
 - **Method**: `POST`
 - **Path Parameters**: `roomId`, `claimId`

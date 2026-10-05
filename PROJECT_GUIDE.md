@@ -74,18 +74,22 @@ The backend engine and core data structures of the Bingo application are contain
 The interface consists of two key modes of operation managed under a single-page architecture:
 
 ### 1. Player Experience Shell
+- **Header Navigation**: Centered primary navigation showing **GAMES** (external portal redirect to `http://14.96.241.250:8005`) and **BINGO**.
+- **User Tooltip Dropdown**: Clicking the user avatar / profile pill opens an interactive dropdown menu with access to:
+  - **Tickets**: Review scheduled cards and join rooms.
+  - **Jackpots**: Live progressive jackpot pools.
+  - **Tournaments**: Weekend Cup & progressive tournament elimination boards.
+  - **Promotions**: Claimable promotional cards and bonuses.
+  - **History**: Historical list of previous entries and prizes.
+  - **Profile**: Real-time account statistics, win tallies, and notifications.
+  - **Switch User**: Opens the interactive password-protected Auth Modal.
+- **Wallet HUD**: Clean real-time balance display with deposit `+` button removed from player view (fund injection is managed by operators in Backoffice or earned via game wins).
 - **Lobby View**: Features a high-fidelity carousel showcasing top progressive jackpots, featured game rooms, search filters for game types (Live, Speed, 75/90-Ball, Free), and live wins feeds.
 - **Active Game Room View**:
   - Interactive board showing the called balls and game progress rails (Selling → Countdown → Live → Validation → Winner → Results).
   - Virtual card grids displaying live daubed cells (supports **Auto-Daub** and manual selection).
   - Interactive chat panel and live leaderboards.
-  - Interactive **BINGO!** claim overlay which mimics real-time ticket audits and displays win announcements.
-- **Supporting Views**:
-  - **Tickets**: Review scheduled cards and join rooms.
-  - **Jackpots**: Live progressive jackpot pools.
-  - **Tournaments**: Standard tournament leaderboards showing qualified players.
-  - **History**: Historical list of previous entries and prizes.
-  - **Profile**: Account statistics and notifications.
+  - Interactive **BINGO!** claim overlay which mimics real-time ticket audits, credits prize winnings directly to the player account, and displays win announcements.
 
 ### 2. Admin Backoffice Experience Shell
 - **Dashboard**: High-level telemetry of the bingo network. Real-time graphs for ticket revenue versus payouts, live room activity widgets, top-performing room tables, and operational audit feeds.

@@ -455,8 +455,16 @@ export function DrawerSpecialForm({
               onChange={(e) => setBannerImage(e.target.value)}
               style={{ marginBottom: "8px" }}
             >
-              <option value="/banners/weekend-cup-jackpot.png">Weekend Cup Jackpot (/banners/weekend-cup-jackpot.png)</option>
-              <option value="/banners/fun-is-calling.png">Fun is Calling (/banners/fun-is-calling.png)</option>
+              <option value="/banners/weekend-cup-jackpot.png">Weekend Cup Trophy (/banners/weekend-cup-jackpot.png)</option>
+              <option value="/banners/fun-is-calling.png">Fun is Calling Host (/banners/fun-is-calling.png)</option>
+              <option value="/promotions/vip-gold-access.png">VIP Gold Access (/promotions/vip-gold-access.png)</option>
+              <option value="/jackpots/mega-energy.png">Mega Energy Jackpot (/jackpots/mega-energy.png)</option>
+              <option value="/promotions/weekend-cup.png">Weekend Cup Promo (/promotions/weekend-cup.png)</option>
+              <option value="/promotions/free-bingo-reward.png">Free Bingo Reward (/promotions/free-bingo-reward.png)</option>
+              <option value="/rooms/diamond-75.png">Diamond Arena (/rooms/diamond-75.png)</option>
+              <option value="/rooms/mega-trueig-jackpot.png">Mega Trueig Jackpot (/rooms/mega-trueig-jackpot.png)</option>
+              <option value="/rooms/midnight-bingo.png">Midnight Bingo Lounge (/rooms/midnight-bingo.png)</option>
+              <option value="/rooms/turbo-30.png">Turbo 30 Speed (/rooms/turbo-30.png)</option>
             </select>
             <input
               value={bannerImage}

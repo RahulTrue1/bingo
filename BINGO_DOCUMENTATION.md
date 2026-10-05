@@ -197,10 +197,18 @@ For grid variants (30-Ball and 80-Ball), `makeGridCard` applies a **Fisher-Yates
 
 ## 5. Player End (User Experience) Flow
 
-The player interface provides an all-in-one gaming suite accessible from the top navigation bar.
+The player interface provides an all-in-one gaming suite:
+- **Header Navigation**: Features centered primary navigation between **GAMES** (redirecting to the external gaming portal at `http://14.96.241.250:8005`) and **BINGO**.
+- **User Tooltip Dropdown**: Clicking the user profile avatar pill opens an interactive dropdown menu with access to **Tickets**, **Jackpots**, **Tournaments**, **Promotions**, **History**, **Profile**, and **Switch User** (Auth Modal).
+- **Wallet HUD**: Displays a clean, live-synced balance chip (self-deposit `+` button removed from player view; deposits are managed from the Backoffice or won through gameplay).
 
 ### 5.1 Lobby & Room Discovery
-- **Hero Carousel**: Features active high-stakes events (Weekend Cup $25,000, Mega Jackpot $125k+, Free Party).
+- **Dynamic Hero Carousel**:
+  - Displays all active promotional banners dynamically synchronized from the Backoffice banner manager.
+  - Features a single prominent hero banner slider that smoothly glides to the left (infinite looping track with cubic-bezier `transform: translateX`) every 4.5 seconds.
+  - Includes interactive **Previous (`‹`)** and **Next (`›`)** floating navigation arrows and active **pagination indicator dots** (`● ○ ○ ○`) for instant manual browsing.
+  - Eliminates duplicate cards and text collisions: pre-baked graphics render clean artwork with hotspot actions, while custom banners render dynamic titles, kickers, bodies, buttons, and prize chips over cinematic backdrops.
+  - Pauses auto-switching smoothly while hovered so players can read rules or click action buttons.
 - **Filtering & Search**:
   - Filters: *All games*, *Live now*, *75-Ball*, *90-Ball*, *Speed*, *Jackpots*, *Free*.
   - Search bar supports instant keyword filtering across game names and rules.
@@ -213,7 +221,7 @@ The player interface provides an all-in-one gaming suite accessible from the top
 - Real-time ticket calculation: Total Cost = Ticket Price * Number of Cards.
 - When "Buy cards" is clicked:
   1. Validates player balance: Wallet >= Total Cost.
-  2. Deducts funds from player wallet.
+  2. Deducts funds directly from player's account in database.
   3. Secures ticket batch with audit reference `TRUEIG-XXXXXX`.
   4. Advances game to the **Countdown Phase**.
 
@@ -248,12 +256,13 @@ The room displays a 6-phase rail at the top:
 - **Claim Modal Overlay**:
   - Phase changes to **Review**: Audits 3 items:
     1. Ticket ownership & player signature.
-    2. Called-number history verification.
+    2. Called-number history verification (supporting client called array).
     3. Geometric pattern match check.
   - Phase changes to **Winner**:
     - Announces winner name(s).
     - Splits prize pool equally if multiple players win simultaneously.
-    - Credits prize directly to player's wallet balance.
+    - Credits prize directly to the player's account balance (`winnerPlayer.balance`), win count (`wins`), and total prize metrics (`totalPrizes`) in `store.players`.
+    - Synchronizes `store.wallet` and broadcasts real-time SSE `wallet` and `players` update events.
     - Emits announcement into live room chat.
 
 ### 5.6 Multi-Stage Winning Progression

@@ -12,11 +12,13 @@ The system establishes a dynamic, bidirectional bridge between the **Player Fron
 ┌─────────────────────────────────────────┐          ┌─────────────────────────────────────────┐
 │       Player Frontend (:3000)           │          │       Admin Backoffice (:3000)          │
 │                                         │          │                                         │
-│  - [👤 Sign In / Switch User] Button    │          │  - Players Directory Table              │
-│  - Interactive Auth Modal (Tabs)        │          │  - Search & Status Filter               │
-│  - Dynamic Player Profile (No Mock)     │          │  - AdminPlayerDrawer                    │
-│  - In-Room Ticket Purchases & Chat      │          │  - Operator Wallet Box (+$25..+$500)    │
-│  - Live Wallet HUD (Auto-synced)        │          │  - Action Grid (Suspend, Block, etc.)   │
+│  - Top Header: GAMES & BINGO (Centered) │          │  - Players Directory Table              │
+│  - User Icon Tooltip Dropdown Menu      │          │  - Search & Status Filter               │
+│    (Tickets, Jackpots, Tournaments,     │          │  - AdminPlayerDrawer                    │
+│     Promotions, History, Profile,       │          │  - Operator Wallet Box (+$25..+$500)    │
+│     Switch User -> Auth Modal)          │          │  - Action Grid (Suspend, Block, etc.)   │
+│  - Live Wallet HUD (Deposit + Removed)  │          │  - Real-Time Audit & Ledger Logs        │
+│  - Instant Game Prize Wallet Credit     │          │                                         │
 └────────────────────┬────────────────────┘          └────────────────────┬────────────────────┘
                      │                                                    │
                      │ HTTP / SSE                                         │ HTTP / SSE
@@ -30,8 +32,12 @@ The system establishes a dynamic, bidirectional bridge between the **Player Fron
 │   • GET  /api/auth/me        • POST /admin/players/:id/     • POST /api/wallet/withdraw      │
 │   • GET  /api/auth/users       action                       • GET  /api/wallet/transactions  │
 │                                                                                              │
+│   Game & Prize Routes:                                                                       │
+│   • POST /api/game/:roomId/claim (Direct player balance & win stats credit)                  │
+│   • POST /api/game/:roomId/declare-winner                                                    │
+│                                                                                              │
 │                              Real-Time Sync Bus (SSE)                                        │
-│   • Channel: /api/sync/events (Emits: "auth", "players", "wallet", "tickets")                │
+│   • Channel: /api/sync/events (Emits: "auth", "players", "wallet", "tickets", "game")        │
 └──────────────────────────────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -41,8 +47,9 @@ The system establishes a dynamic, bidirectional bridge between the **Player Fron
 
 ### 2.1 Interactive Auth Modal (`app/components/player/AuthModal.tsx`)
 
-The authentication modal is accessible from the top-right header via the **`[👤 Sign In / Switch User]`** button:
-- Clicking opens an accessible card backdrop with active focus.
+The authentication modal is accessible from the user profile dropdown tooltip via the **`[🔁 Switch User / Sign In]`** action:
+- Clicking the User Avatar / Pill in the top-right header opens an interactive dropdown menu with all player sections.
+- Selecting **Switch User** (or clicking Sign In if not logged in) opens the modal with active focus.
 - Displays two operational tabs: **Log In** and **Sign Up**.
 - Closes via `×` button, `ESC` key, or backdrop click.
 
@@ -159,7 +166,7 @@ The active user profile is seamlessly bound to all game activities:
 1. **Game Rooms (`GameRoom.tsx`)**:
    - **Ticket Purchases**: Deducts entry cost directly from the logged-in user's balance.
    - **Live In-Room Chat**: Messages are sent with the logged-in player's username.
-   - **Bingo Claims**: When a player claims or demonstrates a win, the winning claim is logged under the active user's ID and handle.
+   - **Bingo Claims**: When a player claims or demonstrates a win, the winning claim is validated and the prize amount is directly credited to their player account balance (`winnerPlayer.balance`), win count (`wins`), and total prizes (`totalPrizes`). The active wallet updates instantly via real-time SSE broadcasts.
    - **Mini-Leaderboard**: Shows the active user in the room leaderboards.
 2. **Tournament Lobby (`TournamentLobby.tsx`)**:
    - **Registration**: Registers the logged-in user into tournament brackets.
@@ -202,7 +209,9 @@ Clicking **`View →`** opens a sliding inspection and management panel:
 
 ---
 
-## 💰 5. Operator Wallet Management (Admin Fund Injection)
+## 💰 5. Operator Wallet Management & Game Prize Crediting
+
+### 5.1 Operator Wallet Management (Admin Fund Injection)
 
 The **Operator Wallet Management Box** inside `AdminPlayerDrawer` allows administrators to credit playing funds or promotional balances to any player in real time.
 
@@ -223,7 +232,7 @@ The **Operator Wallet Management Box** inside `AdminPlayerDrawer` allows adminis
 └──────────────────────────────────────────────────────────────────┘
 ```
 
-### 5.1 Step-by-Step Operator Flow
+#### Step-by-Step Operator Flow
 
 1. Admin enters amount (or clicks a preset like `+$100`).
 2. Admin selects reason:
@@ -246,6 +255,25 @@ The **Operator Wallet Management Box** inside `AdminPlayerDrawer` allows adminis
    - Admin drawer balance updates immediately.
    - Player's frontend header wallet HUD updates in real-time without page reload.
    - A celebratory green toast appears: `"+$150.00 added to wallet by Admin"`.
+
+---
+
+### 5.2 Game Round Win Prize Crediting (Automatic Player Payouts)
+
+When a player achieves a winning pattern in any room:
+1. **Claim Submission**: The player or game engine invokes `POST /api/game/:roomId/claim` (or operator calls `POST /:roomId/declare-winner`).
+2. **Player Balance Update**:
+   - The server identifies the winning player account in `store.players`.
+   - Immediately increases `winnerPlayer.balance = Math.round((winnerPlayer.balance + prize) * 100) / 100`.
+   - Increments player metrics: `wins = (wins || 0) + 1` and `totalPrizes = (totalPrizes || 0) + prize`.
+   - Synchronizes `store.wallet` if the winner is currently the active player session.
+   - Adds a ledger entry: `{ type: "Prize payout", amount: prize, status: "Completed" }`.
+3. **Real-Time Broadcast & UI Reaction**:
+   - Emits SSE `wallet` event (`action: "win"`) with updated `wallet` and `balance`.
+   - Emits SSE `players` event (`action: "update"`) with the updated player profile.
+   - The client UI uses functional state updates (`setWallet((prev) => Math.round((prev + prize) * 100) / 100)`) and syncs with `res.wallet`.
+   - The player's header wallet HUD immediately reflects the new balance.
+   - Profile view displays updated win counts and total prize money won.
 
 ---
 

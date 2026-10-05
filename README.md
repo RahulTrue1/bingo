@@ -73,20 +73,23 @@ npm run dev
 ### 1. Player Journey
 
 1. **Player Enters Lobby**:
-   - The user opens the home view. The frontend requests `GET /api/rooms` and displays available rooms with real-time countdowns, ticket prices, and jackpot levels.
+   - The user opens the home view. Header navigation features centered **GAMES** (external portal) and **BINGO** options.
+   - Clicking the user profile avatar pill opens a dropdown menu containing **Tickets**, **Jackpots**, **Tournaments**, **Promotions**, **History**, **Profile**, and **Switch User**.
+   - The frontend requests `GET /api/rooms` and displays available rooms with real-time countdowns, ticket prices, and jackpot levels.
    - The user's wallet is loaded from `GET /api/wallet`.
-2. **Deposit Funds**:
-   - Clicking `+` in the header calls `POST /api/wallet/deposit` (`+$50.00`). The balance updates immediately on screen and in the database.
+2. **Wallet & Account Balance**:
+   - The player header displays a clean, real-time wallet HUD (self-deposit `+` button removed from player view).
+   - Playing funds are credited directly by Backoffice operators via the Operator Wallet Management drawer, or earned through game prize payouts and promotions.
 3. **Purchase Tickets**:
    - Entering a room (e.g. *Diamond 75*) and clicking **Buy Cards** calls `POST /api/tickets/buy`.
-   - The backend deducts the entry fee, generates deterministic card layout matrices, increments the room card counter, and deposits 2.5% of the ticket price into the progressive jackpot.
+   - The backend deducts the entry fee directly from the player's account balance, generates deterministic card layout matrices, increments the room card counter, and deposits 2.5% of the ticket price into the progressive jackpot.
 4. **Live Round & Daubing**:
    - The game transitions to `live` calling. Each ball drawn via `POST /api/game/:roomId/call-next` is broadcast to players.
-   - Numbers matching player cards are daubed (`POST /api/tickets/:id/daub`).
+   - Numbers matching player cards are daubed (`POST /api/tickets/:id/daub` or client Auto-Daub).
 5. **Claiming BINGO**:
    - Clicking **Claim BINGO** calls `POST /api/game/:roomId/claim`.
    - The server engine verifies whether the player's card satisfied the winning pattern with currently called balls.
-   - Upon verification, the prize is credited to the player's wallet (`store.wallet += prize`), a transaction is logged, and audit events are generated.
+   - Upon verification, the prize is credited directly to the player's account balance (`winnerPlayer.balance`), win count (`wins`), and total prizes (`totalPrizes`) in `store.players`. The active wallet synchronizes and broadcasts real-time SSE updates to all components.
 
 ---
 
