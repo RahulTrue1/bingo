@@ -5,11 +5,11 @@
       "name": "Trueig 910Classic",
       "variant": "90-Ball Classic",
       "status": "Scheduled",
-      "ticketPrice": 10,
-      "prize": 5688,
-      "players": 3,
+      "ticketPrice": 100,
+      "prize": 200,
+      "players": 5,
       "maxPlayers": 10,
-      "cardsSold": 746,
+      "cardsSold": 750,
       "startsIn": "00:46",
       "pattern": "One Line → Two Lines → Full House",
       "accent": "teal",
@@ -24,17 +24,17 @@
       "winningStages": [
         {
           "name": "One Line",
-          "prize": 500,
+          "prize": 50,
           "continueAfterWin": true
         },
         {
           "name": "Two Lines",
-          "prize": 1000,
+          "prize": 60,
           "continueAfterWin": true
         },
         {
           "name": "Full House",
-          "prize": 4188,
+          "prize": 80,
           "continueAfterWin": false
         }
       ],
@@ -84,13 +84,13 @@
       "name": "Diamond 75",
       "variant": "75-Ball Pattern",
       "status": "Starting Soon",
-      "ticketPrice": 2,
+      "ticketPrice": 20,
       "prize": 1500,
-      "players": 3,
+      "players": 5,
       "maxPlayers": 400,
-      "cardsSold": 944,
+      "cardsSold": 968,
       "startsIn": "LIVE · Ball 28",
-      "pattern": "Diamond",
+      "pattern": "Four Corners → One Line → Diamond",
       "accent": "violet",
       "featured": true,
       "tag": "PATTERN",
@@ -116,28 +116,30 @@
           "prize": 1000,
           "continueAfterWin": false
         }
-      ]
+      ],
+      "cardLimit": 8,
+      "gameDate": "2026-08-22"
     },
     {
       "id": "mega-jackpot",
       "name": "Mega Trueig Jackpot",
       "variant": "75-Ball Progressive",
       "status": "Selling Tickets",
-      "ticketPrice": 5,
+      "ticketPrice": 50,
       "prize": 4836,
       "jackpot": 125480,
       "players": 348,
       "maxPlayers": 500,
       "cardsSold": 1248,
       "startsIn": "02:18",
-      "pattern": "Full House ≤ 42 balls",
+      "pattern": "One Line → Full House",
       "accent": "gold",
       "featured": true,
       "tag": "JACKPOT",
       "frequency": "Every 15 min",
       "cardRows": 5,
       "cardColumns": 5,
-      "callDelay": 1050,
+      "callDelay": 1200,
       "progressiveBallLimit": 42,
       "rtp": 80,
       "rtpMode": "dynamic",
@@ -152,7 +154,9 @@
           "prize": 4336,
           "continueAfterWin": false
         }
-      ]
+      ],
+      "cardLimit": 8,
+      "gameDate": "2026-08-22"
     },
     {
       "id": "quick-80",
@@ -199,19 +203,19 @@
       "name": "Trueig Pattern Arena",
       "variant": "75-Ball Pattern Series",
       "status": "Open",
-      "ticketPrice": 1.5,
+      "ticketPrice": 100,
       "prize": 580,
-      "players": 1,
+      "players": 2,
       "maxPlayers": 300,
-      "cardsSold": 480,
+      "cardsSold": 482,
       "startsIn": "03:24",
-      "pattern": "Round 1 · X Pattern",
+      "pattern": "X Pattern",
       "accent": "violet",
       "tag": "5 ROUNDS",
       "frequency": "Every 12 min",
       "cardRows": 5,
       "cardColumns": 5,
-      "callDelay": 1100,
+      "callDelay": 1200,
       "rtp": 82,
       "rtpMode": "dynamic",
       "winningStages": [
@@ -220,7 +224,9 @@
           "prize": 580,
           "continueAfterWin": false
         }
-      ]
+      ],
+      "cardLimit": 8,
+      "gameDate": "2026-08-22"
     },
     {
       "id": "free-party",
@@ -229,9 +235,9 @@
       "status": "Open",
       "ticketPrice": 0,
       "prize": 100,
-      "players": 119,
+      "players": 3,
       "maxPlayers": 500,
-      "cardsSold": 439,
+      "cardsSold": 441,
       "startsIn": "08:32",
       "pattern": "Four Corners",
       "accent": "blue",
@@ -425,8 +431,332 @@
       "customRtp": true
     }
   ],
-  "wallet": 114804.5,
+  "wallet": 1088,
   "transactions": [
+    {
+      "id": "TXN-469220",
+      "timestamp": "21:31:15",
+      "player": "RahulRahulGame_331",
+      "room": "Trueig 910Classic",
+      "type": "Prize payout",
+      "amount": 4188,
+      "status": "Completed"
+    },
+    {
+      "id": "TXN-737628",
+      "timestamp": "21:30:56",
+      "player": "RahulRahulGame_331",
+      "room": "Trueig 910Classic",
+      "type": "Ticket purchase",
+      "amount": -100,
+      "status": "Completed"
+    },
+    {
+      "id": "TXN-781637",
+      "timestamp": "21:29:31",
+      "player": "RahulRahulGame_331",
+      "room": "Diamond 75",
+      "type": "Prize payout",
+      "amount": 1000,
+      "status": "Completed"
+    },
+    {
+      "id": "TXN-803236",
+      "timestamp": "21:29:09",
+      "player": "RahulRahulGame_331",
+      "room": "Diamond 75",
+      "type": "Ticket purchase",
+      "amount": -2,
+      "status": "Completed"
+    },
+    {
+      "id": "TXN-949967",
+      "timestamp": "21:28:42",
+      "player": "RahulRahulGame_331",
+      "room": "Diamond 75",
+      "type": "Prize payout",
+      "amount": 1000,
+      "status": "Completed"
+    },
+    {
+      "id": "TXN-793859",
+      "timestamp": "21:28:19",
+      "player": "RahulRahulGame_331",
+      "room": "Diamond 75",
+      "type": "Ticket purchase",
+      "amount": -16,
+      "status": "Completed"
+    },
+    {
+      "id": "TXN-612261",
+      "timestamp": "21:28:07",
+      "player": "RahulRahulGame_331",
+      "room": "Diamond 75",
+      "type": "Ticket purchase",
+      "amount": -16,
+      "status": "Completed"
+    },
+    {
+      "id": "TXN-609773",
+      "timestamp": "21:27:45",
+      "player": "RahulRahulGame_331",
+      "room": "Diamond 75",
+      "type": "Prize payout",
+      "amount": 1000,
+      "status": "Completed"
+    },
+    {
+      "id": "TXN-790250",
+      "timestamp": "21:27:22",
+      "player": "RahulRahulGame_331",
+      "room": "Diamond 75",
+      "type": "Ticket purchase",
+      "amount": -2,
+      "status": "Completed"
+    },
+    {
+      "id": "TXN-572509",
+      "timestamp": "21:27:00",
+      "player": "RahulRahulGame_331",
+      "room": "Diamond 75",
+      "type": "Prize payout",
+      "amount": 1000,
+      "status": "Completed"
+    },
+    {
+      "id": "TXN-681037",
+      "timestamp": "21:26:37",
+      "player": "RahulRahulGame_331",
+      "room": "Diamond 75",
+      "type": "Ticket purchase",
+      "amount": -2,
+      "status": "Completed"
+    },
+    {
+      "id": "TXN-807631",
+      "timestamp": "21:26:28",
+      "player": "RahulRahulGame_331",
+      "room": "Diamond 75",
+      "type": "Prize payout",
+      "amount": 1000,
+      "status": "Completed"
+    },
+    {
+      "id": "TXN-462652",
+      "timestamp": "21:24:10",
+      "player": "RahulRahulGame_331",
+      "room": "Diamond 75",
+      "type": "Ticket purchase",
+      "amount": -2,
+      "status": "Completed"
+    },
+    {
+      "id": "TXN-361236",
+      "timestamp": "21:24:05",
+      "player": "Ari.R",
+      "room": "Promotions",
+      "type": "Promotional credit",
+      "amount": 15,
+      "status": "Completed"
+    },
+    {
+      "id": "TXN-682412",
+      "timestamp": "21:23:42",
+      "player": "RahulRahulGame_331",
+      "room": "Free Bingo Party",
+      "type": "Ticket purchase",
+      "amount": 0,
+      "status": "Completed"
+    },
+    {
+      "id": "TXN-251731",
+      "timestamp": "21:23:03",
+      "player": "RahulRahulGame_331",
+      "room": "Diamond 75",
+      "type": "Prize payout",
+      "amount": 1000,
+      "status": "Completed"
+    },
+    {
+      "id": "TXN-386963",
+      "timestamp": "21:22:41",
+      "player": "RahulRahulGame_331",
+      "room": "Diamond 75",
+      "type": "Ticket purchase",
+      "amount": -2,
+      "status": "Completed"
+    },
+    {
+      "id": "TXN-648294",
+      "timestamp": "21:22:36",
+      "player": "Ari.R",
+      "room": "Promotions",
+      "type": "Promotional credit",
+      "amount": 15,
+      "status": "Completed"
+    },
+    {
+      "id": "TXN-376794",
+      "timestamp": "21:20:04",
+      "player": "RahulRahulGame_331",
+      "room": "Diamond 75",
+      "type": "Prize payout",
+      "amount": 1000,
+      "status": "Completed"
+    },
+    {
+      "id": "TXN-851799",
+      "timestamp": "21:19:38",
+      "player": "RahulRahulGame_331",
+      "room": "Diamond 75",
+      "type": "Ticket purchase",
+      "amount": -2,
+      "status": "Completed"
+    },
+    {
+      "id": "TXN-122122",
+      "timestamp": "21:18:14",
+      "player": "RahulRahulGame_331",
+      "room": "Diamond 75",
+      "type": "Prize payout",
+      "amount": 1000,
+      "status": "Completed"
+    },
+    {
+      "id": "TXN-407545",
+      "timestamp": "21:17:53",
+      "player": "RahulRahulGame_331",
+      "room": "Diamond 75",
+      "type": "Ticket purchase",
+      "amount": -2,
+      "status": "Completed"
+    },
+    {
+      "id": "TXN-601632",
+      "timestamp": "21:15:42",
+      "player": "NovaPlayer_4511",
+      "room": "Diamond 75",
+      "type": "Prize payout",
+      "amount": 1000,
+      "status": "Completed"
+    },
+    {
+      "id": "TXN-181215",
+      "timestamp": "21:15:19",
+      "player": "NovaPlayer_4511",
+      "room": "Diamond 75",
+      "type": "Ticket purchase",
+      "amount": -2,
+      "status": "Completed"
+    },
+    {
+      "id": "TXN-323769",
+      "timestamp": "21:14:33",
+      "player": "NovaPlayer_4511",
+      "room": "Trueig 910Classic",
+      "type": "Prize payout",
+      "amount": 4188,
+      "status": "Completed"
+    },
+    {
+      "id": "TXN-623003",
+      "timestamp": "21:14:17",
+      "player": "NovaPlayer_4511",
+      "room": "Trueig 910Classic",
+      "type": "Ticket purchase",
+      "amount": -10,
+      "status": "Completed"
+    },
+    {
+      "id": "TXN-618103",
+      "timestamp": "21:14:10",
+      "player": "NovaPlayer_4511",
+      "room": "Trueig 910Classic",
+      "type": "Prize payout",
+      "amount": 4188,
+      "status": "Completed"
+    },
+    {
+      "id": "TXN-211539",
+      "timestamp": "21:13:53",
+      "player": "NovaPlayer_4511",
+      "room": "Trueig 910Classic",
+      "type": "Ticket purchase",
+      "amount": -10,
+      "status": "Completed"
+    },
+    {
+      "id": "TXN-837124",
+      "timestamp": "21:13:31",
+      "player": "Ari.R",
+      "room": "Trueig 910Classic",
+      "type": "Prize payout",
+      "amount": 4188,
+      "status": "Completed"
+    },
+    {
+      "id": "TXN-108797",
+      "timestamp": "21:13:13",
+      "player": "Ari.R",
+      "room": "Trueig 910Classic",
+      "type": "Ticket purchase",
+      "amount": -10,
+      "status": "Completed"
+    },
+    {
+      "id": "TXN-505322",
+      "timestamp": "21:09:30",
+      "player": "Rahul",
+      "room": "Daily High Roller Masters",
+      "type": "Ticket purchase",
+      "amount": -25,
+      "status": "Completed"
+    },
+    {
+      "id": "TXN-383008",
+      "timestamp": "21:06:33",
+      "player": "Rahul",
+      "room": "Free Bingo Party",
+      "type": "Ticket purchase",
+      "amount": 0,
+      "status": "Completed"
+    },
+    {
+      "id": "TXN-511584",
+      "timestamp": "21:02:02",
+      "player": "Rahul",
+      "room": "Trueig Pattern Arena",
+      "type": "Ticket purchase",
+      "amount": -1.5,
+      "status": "Completed"
+    },
+    {
+      "id": "TXN-270289",
+      "timestamp": "21:01:49",
+      "player": "Rahul",
+      "room": "Backoffice Admin",
+      "type": "Deposit",
+      "amount": 25,
+      "status": "Completed"
+    },
+    {
+      "id": "TXN-492607",
+      "timestamp": "21:01:42",
+      "player": "Rahul",
+      "room": "Backoffice Admin",
+      "type": "Deposit",
+      "amount": 50,
+      "status": "Completed"
+    },
+    {
+      "id": "TXN-431350",
+      "timestamp": "21:01:07",
+      "player": "Rahul",
+      "room": "Trueig Pattern Arena",
+      "type": "Ticket purchase",
+      "amount": -1.5,
+      "status": "Completed"
+    },
     {
       "id": "TXN-328385",
       "timestamp": "20:22:22",
@@ -2434,7 +2764,7 @@
       "livePlayers": 1,
       "liveCards": 682,
       "liveJackpot": 0,
-      "lastWinner": "TrueigQueen · $4188"
+      "lastWinner": "RahulRahulGame_331 · $4188"
     },
     "turbo-30": {
       "roomId": "turbo-30",
@@ -2470,7 +2800,7 @@
       "livePlayers": 286,
       "liveCards": 934,
       "liveJackpot": 0,
-      "lastWinner": "TrueigQueen · $1000"
+      "lastWinner": "RahulRahulGame_331 · $1000"
     },
     "mega-jackpot": {
       "roomId": "mega-jackpot",
@@ -2525,10 +2855,23 @@
     },
     "pattern-arena": {
       "roomId": "pattern-arena",
-      "phase": "selling",
+      "phase": "live",
       "countdown": 5,
-      "called": [],
-      "current": null,
+      "called": [
+        5,
+        66,
+        74,
+        70,
+        62,
+        39,
+        18,
+        11,
+        6,
+        21,
+        64,
+        40
+      ],
+      "current": 40,
       "speed": "Fast",
       "paused": false,
       "stageIndex": 0,
@@ -2546,20 +2889,13 @@
       "phase": "live",
       "countdown": 5,
       "called": [
-        18,
-        41,
-        2,
-        75,
+        67,
+        32,
+        19,
         52,
-        20,
-        69,
-        51,
-        15,
-        57,
-        23,
-        74
+        51
       ],
-      "current": 74,
+      "current": 51,
       "speed": "Fast",
       "paused": false,
       "stageIndex": 0,
@@ -2905,6 +3241,3622 @@
     }
   },
   "tickets": [
+    {
+      "id": "TCK-955956",
+      "ticketIndex": 0,
+      "roomId": "trueig-90",
+      "userId": "USR-30800",
+      "player": "RahulRahulGame_331",
+      "variant": "90-Ball Classic",
+      "cells": [
+        {
+          "value": 8,
+          "column": "0"
+        },
+        {
+          "value": "FREE",
+          "column": "1"
+        },
+        {
+          "value": 27,
+          "column": "2"
+        },
+        {
+          "value": "FREE",
+          "column": "3"
+        },
+        {
+          "value": 43,
+          "column": "4"
+        },
+        {
+          "value": "FREE",
+          "column": "5"
+        },
+        {
+          "value": 69,
+          "column": "6"
+        },
+        {
+          "value": "FREE",
+          "column": "7"
+        },
+        {
+          "value": 90,
+          "column": "8"
+        },
+        {
+          "value": "FREE",
+          "column": "0"
+        },
+        {
+          "value": 19,
+          "column": "1"
+        },
+        {
+          "value": 22,
+          "column": "2"
+        },
+        {
+          "value": 35,
+          "column": "3"
+        },
+        {
+          "value": "FREE",
+          "column": "4"
+        },
+        {
+          "value": 51,
+          "column": "5"
+        },
+        {
+          "value": "FREE",
+          "column": "6"
+        },
+        {
+          "value": 77,
+          "column": "7"
+        },
+        {
+          "value": "FREE",
+          "column": "8"
+        },
+        {
+          "value": 9,
+          "column": "0"
+        },
+        {
+          "value": 14,
+          "column": "1"
+        },
+        {
+          "value": "FREE",
+          "column": "2"
+        },
+        {
+          "value": "FREE",
+          "column": "3"
+        },
+        {
+          "value": 43,
+          "column": "4"
+        },
+        {
+          "value": "FREE",
+          "column": "5"
+        },
+        {
+          "value": 69,
+          "column": "6"
+        },
+        {
+          "value": "FREE",
+          "column": "7"
+        },
+        {
+          "value": 89,
+          "column": "8"
+        }
+      ],
+      "daubed": [],
+      "purchasedAt": "2026-10-05T16:00:56.684Z"
+    },
+    {
+      "id": "TCK-802080",
+      "ticketIndex": 0,
+      "roomId": "diamond-75",
+      "userId": "USR-30800",
+      "player": "RahulRahulGame_331",
+      "variant": "75-Ball Pattern",
+      "cells": [
+        {
+          "value": 4,
+          "column": "B"
+        },
+        {
+          "value": 24,
+          "column": "I"
+        },
+        {
+          "value": 44,
+          "column": "N"
+        },
+        {
+          "value": 49,
+          "column": "G"
+        },
+        {
+          "value": 69,
+          "column": "O"
+        },
+        {
+          "value": 11,
+          "column": "B"
+        },
+        {
+          "value": 16,
+          "column": "I"
+        },
+        {
+          "value": 36,
+          "column": "N"
+        },
+        {
+          "value": 56,
+          "column": "G"
+        },
+        {
+          "value": 61,
+          "column": "O"
+        },
+        {
+          "value": 3,
+          "column": "B"
+        },
+        {
+          "value": 23,
+          "column": "I"
+        },
+        {
+          "value": "FREE",
+          "column": "N"
+        },
+        {
+          "value": 48,
+          "column": "G"
+        },
+        {
+          "value": 68,
+          "column": "O"
+        },
+        {
+          "value": 10,
+          "column": "B"
+        },
+        {
+          "value": 30,
+          "column": "I"
+        },
+        {
+          "value": 35,
+          "column": "N"
+        },
+        {
+          "value": 55,
+          "column": "G"
+        },
+        {
+          "value": 75,
+          "column": "O"
+        },
+        {
+          "value": 2,
+          "column": "B"
+        },
+        {
+          "value": 22,
+          "column": "I"
+        },
+        {
+          "value": 42,
+          "column": "N"
+        },
+        {
+          "value": 47,
+          "column": "G"
+        },
+        {
+          "value": 67,
+          "column": "O"
+        }
+      ],
+      "daubed": [],
+      "purchasedAt": "2026-10-05T15:59:09.001Z"
+    },
+    {
+      "id": "TCK-872284",
+      "ticketIndex": 7,
+      "roomId": "diamond-75",
+      "userId": "USR-30800",
+      "player": "RahulRahulGame_331",
+      "variant": "75-Ball Pattern",
+      "cells": [
+        {
+          "value": 13,
+          "column": "B"
+        },
+        {
+          "value": 18,
+          "column": "I"
+        },
+        {
+          "value": 38,
+          "column": "N"
+        },
+        {
+          "value": 58,
+          "column": "G"
+        },
+        {
+          "value": 63,
+          "column": "O"
+        },
+        {
+          "value": 5,
+          "column": "B"
+        },
+        {
+          "value": 25,
+          "column": "I"
+        },
+        {
+          "value": 45,
+          "column": "N"
+        },
+        {
+          "value": 50,
+          "column": "G"
+        },
+        {
+          "value": 70,
+          "column": "O"
+        },
+        {
+          "value": 12,
+          "column": "B"
+        },
+        {
+          "value": 17,
+          "column": "I"
+        },
+        {
+          "value": "FREE",
+          "column": "N"
+        },
+        {
+          "value": 57,
+          "column": "G"
+        },
+        {
+          "value": 62,
+          "column": "O"
+        },
+        {
+          "value": 4,
+          "column": "B"
+        },
+        {
+          "value": 24,
+          "column": "I"
+        },
+        {
+          "value": 44,
+          "column": "N"
+        },
+        {
+          "value": 49,
+          "column": "G"
+        },
+        {
+          "value": 69,
+          "column": "O"
+        },
+        {
+          "value": 11,
+          "column": "B"
+        },
+        {
+          "value": 16,
+          "column": "I"
+        },
+        {
+          "value": 36,
+          "column": "N"
+        },
+        {
+          "value": 56,
+          "column": "G"
+        },
+        {
+          "value": 61,
+          "column": "O"
+        }
+      ],
+      "daubed": [],
+      "purchasedAt": "2026-10-05T15:58:19.833Z"
+    },
+    {
+      "id": "TCK-381622",
+      "ticketIndex": 6,
+      "roomId": "diamond-75",
+      "userId": "USR-30800",
+      "player": "RahulRahulGame_331",
+      "variant": "75-Ball Pattern",
+      "cells": [
+        {
+          "value": 4,
+          "column": "B"
+        },
+        {
+          "value": 24,
+          "column": "I"
+        },
+        {
+          "value": 44,
+          "column": "N"
+        },
+        {
+          "value": 49,
+          "column": "G"
+        },
+        {
+          "value": 69,
+          "column": "O"
+        },
+        {
+          "value": 11,
+          "column": "B"
+        },
+        {
+          "value": 16,
+          "column": "I"
+        },
+        {
+          "value": 36,
+          "column": "N"
+        },
+        {
+          "value": 56,
+          "column": "G"
+        },
+        {
+          "value": 61,
+          "column": "O"
+        },
+        {
+          "value": 3,
+          "column": "B"
+        },
+        {
+          "value": 23,
+          "column": "I"
+        },
+        {
+          "value": "FREE",
+          "column": "N"
+        },
+        {
+          "value": 48,
+          "column": "G"
+        },
+        {
+          "value": 68,
+          "column": "O"
+        },
+        {
+          "value": 10,
+          "column": "B"
+        },
+        {
+          "value": 30,
+          "column": "I"
+        },
+        {
+          "value": 35,
+          "column": "N"
+        },
+        {
+          "value": 55,
+          "column": "G"
+        },
+        {
+          "value": 75,
+          "column": "O"
+        },
+        {
+          "value": 2,
+          "column": "B"
+        },
+        {
+          "value": 22,
+          "column": "I"
+        },
+        {
+          "value": 42,
+          "column": "N"
+        },
+        {
+          "value": 47,
+          "column": "G"
+        },
+        {
+          "value": 67,
+          "column": "O"
+        }
+      ],
+      "daubed": [],
+      "purchasedAt": "2026-10-05T15:58:19.833Z"
+    },
+    {
+      "id": "TCK-629536",
+      "ticketIndex": 5,
+      "roomId": "diamond-75",
+      "userId": "USR-30800",
+      "player": "RahulRahulGame_331",
+      "variant": "75-Ball Pattern",
+      "cells": [
+        {
+          "value": 10,
+          "column": "B"
+        },
+        {
+          "value": 30,
+          "column": "I"
+        },
+        {
+          "value": 35,
+          "column": "N"
+        },
+        {
+          "value": 55,
+          "column": "G"
+        },
+        {
+          "value": 75,
+          "column": "O"
+        },
+        {
+          "value": 2,
+          "column": "B"
+        },
+        {
+          "value": 22,
+          "column": "I"
+        },
+        {
+          "value": 42,
+          "column": "N"
+        },
+        {
+          "value": 47,
+          "column": "G"
+        },
+        {
+          "value": 67,
+          "column": "O"
+        },
+        {
+          "value": 9,
+          "column": "B"
+        },
+        {
+          "value": 29,
+          "column": "I"
+        },
+        {
+          "value": "FREE",
+          "column": "N"
+        },
+        {
+          "value": 54,
+          "column": "G"
+        },
+        {
+          "value": 74,
+          "column": "O"
+        },
+        {
+          "value": 1,
+          "column": "B"
+        },
+        {
+          "value": 21,
+          "column": "I"
+        },
+        {
+          "value": 41,
+          "column": "N"
+        },
+        {
+          "value": 46,
+          "column": "G"
+        },
+        {
+          "value": 66,
+          "column": "O"
+        },
+        {
+          "value": 8,
+          "column": "B"
+        },
+        {
+          "value": 28,
+          "column": "I"
+        },
+        {
+          "value": 33,
+          "column": "N"
+        },
+        {
+          "value": 53,
+          "column": "G"
+        },
+        {
+          "value": 73,
+          "column": "O"
+        }
+      ],
+      "daubed": [],
+      "purchasedAt": "2026-10-05T15:58:19.833Z"
+    },
+    {
+      "id": "TCK-750305",
+      "ticketIndex": 4,
+      "roomId": "diamond-75",
+      "userId": "USR-30800",
+      "player": "RahulRahulGame_331",
+      "variant": "75-Ball Pattern",
+      "cells": [
+        {
+          "value": 1,
+          "column": "B"
+        },
+        {
+          "value": 21,
+          "column": "I"
+        },
+        {
+          "value": 41,
+          "column": "N"
+        },
+        {
+          "value": 46,
+          "column": "G"
+        },
+        {
+          "value": 66,
+          "column": "O"
+        },
+        {
+          "value": 8,
+          "column": "B"
+        },
+        {
+          "value": 28,
+          "column": "I"
+        },
+        {
+          "value": 33,
+          "column": "N"
+        },
+        {
+          "value": 53,
+          "column": "G"
+        },
+        {
+          "value": 73,
+          "column": "O"
+        },
+        {
+          "value": 15,
+          "column": "B"
+        },
+        {
+          "value": 20,
+          "column": "I"
+        },
+        {
+          "value": "FREE",
+          "column": "N"
+        },
+        {
+          "value": 60,
+          "column": "G"
+        },
+        {
+          "value": 65,
+          "column": "O"
+        },
+        {
+          "value": 7,
+          "column": "B"
+        },
+        {
+          "value": 27,
+          "column": "I"
+        },
+        {
+          "value": 32,
+          "column": "N"
+        },
+        {
+          "value": 52,
+          "column": "G"
+        },
+        {
+          "value": 72,
+          "column": "O"
+        },
+        {
+          "value": 14,
+          "column": "B"
+        },
+        {
+          "value": 19,
+          "column": "I"
+        },
+        {
+          "value": 39,
+          "column": "N"
+        },
+        {
+          "value": 59,
+          "column": "G"
+        },
+        {
+          "value": 64,
+          "column": "O"
+        }
+      ],
+      "daubed": [],
+      "purchasedAt": "2026-10-05T15:58:19.833Z"
+    },
+    {
+      "id": "TCK-611229",
+      "ticketIndex": 3,
+      "roomId": "diamond-75",
+      "userId": "USR-30800",
+      "player": "RahulRahulGame_331",
+      "variant": "75-Ball Pattern",
+      "cells": [
+        {
+          "value": 7,
+          "column": "B"
+        },
+        {
+          "value": 27,
+          "column": "I"
+        },
+        {
+          "value": 32,
+          "column": "N"
+        },
+        {
+          "value": 52,
+          "column": "G"
+        },
+        {
+          "value": 72,
+          "column": "O"
+        },
+        {
+          "value": 14,
+          "column": "B"
+        },
+        {
+          "value": 19,
+          "column": "I"
+        },
+        {
+          "value": 39,
+          "column": "N"
+        },
+        {
+          "value": 59,
+          "column": "G"
+        },
+        {
+          "value": 64,
+          "column": "O"
+        },
+        {
+          "value": 6,
+          "column": "B"
+        },
+        {
+          "value": 26,
+          "column": "I"
+        },
+        {
+          "value": "FREE",
+          "column": "N"
+        },
+        {
+          "value": 51,
+          "column": "G"
+        },
+        {
+          "value": 71,
+          "column": "O"
+        },
+        {
+          "value": 13,
+          "column": "B"
+        },
+        {
+          "value": 18,
+          "column": "I"
+        },
+        {
+          "value": 38,
+          "column": "N"
+        },
+        {
+          "value": 58,
+          "column": "G"
+        },
+        {
+          "value": 63,
+          "column": "O"
+        },
+        {
+          "value": 5,
+          "column": "B"
+        },
+        {
+          "value": 25,
+          "column": "I"
+        },
+        {
+          "value": 45,
+          "column": "N"
+        },
+        {
+          "value": 50,
+          "column": "G"
+        },
+        {
+          "value": 70,
+          "column": "O"
+        }
+      ],
+      "daubed": [],
+      "purchasedAt": "2026-10-05T15:58:19.833Z"
+    },
+    {
+      "id": "TCK-839706",
+      "ticketIndex": 2,
+      "roomId": "diamond-75",
+      "userId": "USR-30800",
+      "player": "RahulRahulGame_331",
+      "variant": "75-Ball Pattern",
+      "cells": [
+        {
+          "value": 13,
+          "column": "B"
+        },
+        {
+          "value": 18,
+          "column": "I"
+        },
+        {
+          "value": 38,
+          "column": "N"
+        },
+        {
+          "value": 58,
+          "column": "G"
+        },
+        {
+          "value": 63,
+          "column": "O"
+        },
+        {
+          "value": 5,
+          "column": "B"
+        },
+        {
+          "value": 25,
+          "column": "I"
+        },
+        {
+          "value": 45,
+          "column": "N"
+        },
+        {
+          "value": 50,
+          "column": "G"
+        },
+        {
+          "value": 70,
+          "column": "O"
+        },
+        {
+          "value": 12,
+          "column": "B"
+        },
+        {
+          "value": 17,
+          "column": "I"
+        },
+        {
+          "value": "FREE",
+          "column": "N"
+        },
+        {
+          "value": 57,
+          "column": "G"
+        },
+        {
+          "value": 62,
+          "column": "O"
+        },
+        {
+          "value": 4,
+          "column": "B"
+        },
+        {
+          "value": 24,
+          "column": "I"
+        },
+        {
+          "value": 44,
+          "column": "N"
+        },
+        {
+          "value": 49,
+          "column": "G"
+        },
+        {
+          "value": 69,
+          "column": "O"
+        },
+        {
+          "value": 11,
+          "column": "B"
+        },
+        {
+          "value": 16,
+          "column": "I"
+        },
+        {
+          "value": 36,
+          "column": "N"
+        },
+        {
+          "value": 56,
+          "column": "G"
+        },
+        {
+          "value": 61,
+          "column": "O"
+        }
+      ],
+      "daubed": [],
+      "purchasedAt": "2026-10-05T15:58:19.833Z"
+    },
+    {
+      "id": "TCK-155449",
+      "ticketIndex": 1,
+      "roomId": "diamond-75",
+      "userId": "USR-30800",
+      "player": "RahulRahulGame_331",
+      "variant": "75-Ball Pattern",
+      "cells": [
+        {
+          "value": 4,
+          "column": "B"
+        },
+        {
+          "value": 24,
+          "column": "I"
+        },
+        {
+          "value": 44,
+          "column": "N"
+        },
+        {
+          "value": 49,
+          "column": "G"
+        },
+        {
+          "value": 69,
+          "column": "O"
+        },
+        {
+          "value": 11,
+          "column": "B"
+        },
+        {
+          "value": 16,
+          "column": "I"
+        },
+        {
+          "value": 36,
+          "column": "N"
+        },
+        {
+          "value": 56,
+          "column": "G"
+        },
+        {
+          "value": 61,
+          "column": "O"
+        },
+        {
+          "value": 3,
+          "column": "B"
+        },
+        {
+          "value": 23,
+          "column": "I"
+        },
+        {
+          "value": "FREE",
+          "column": "N"
+        },
+        {
+          "value": 48,
+          "column": "G"
+        },
+        {
+          "value": 68,
+          "column": "O"
+        },
+        {
+          "value": 10,
+          "column": "B"
+        },
+        {
+          "value": 30,
+          "column": "I"
+        },
+        {
+          "value": 35,
+          "column": "N"
+        },
+        {
+          "value": 55,
+          "column": "G"
+        },
+        {
+          "value": 75,
+          "column": "O"
+        },
+        {
+          "value": 2,
+          "column": "B"
+        },
+        {
+          "value": 22,
+          "column": "I"
+        },
+        {
+          "value": 42,
+          "column": "N"
+        },
+        {
+          "value": 47,
+          "column": "G"
+        },
+        {
+          "value": 67,
+          "column": "O"
+        }
+      ],
+      "daubed": [],
+      "purchasedAt": "2026-10-05T15:58:19.833Z"
+    },
+    {
+      "id": "TCK-700442",
+      "ticketIndex": 0,
+      "roomId": "diamond-75",
+      "userId": "USR-30800",
+      "player": "RahulRahulGame_331",
+      "variant": "75-Ball Pattern",
+      "cells": [
+        {
+          "value": 10,
+          "column": "B"
+        },
+        {
+          "value": 30,
+          "column": "I"
+        },
+        {
+          "value": 35,
+          "column": "N"
+        },
+        {
+          "value": 55,
+          "column": "G"
+        },
+        {
+          "value": 75,
+          "column": "O"
+        },
+        {
+          "value": 2,
+          "column": "B"
+        },
+        {
+          "value": 22,
+          "column": "I"
+        },
+        {
+          "value": 42,
+          "column": "N"
+        },
+        {
+          "value": 47,
+          "column": "G"
+        },
+        {
+          "value": 67,
+          "column": "O"
+        },
+        {
+          "value": 9,
+          "column": "B"
+        },
+        {
+          "value": 29,
+          "column": "I"
+        },
+        {
+          "value": "FREE",
+          "column": "N"
+        },
+        {
+          "value": 54,
+          "column": "G"
+        },
+        {
+          "value": 74,
+          "column": "O"
+        },
+        {
+          "value": 1,
+          "column": "B"
+        },
+        {
+          "value": 21,
+          "column": "I"
+        },
+        {
+          "value": 41,
+          "column": "N"
+        },
+        {
+          "value": 46,
+          "column": "G"
+        },
+        {
+          "value": 66,
+          "column": "O"
+        },
+        {
+          "value": 8,
+          "column": "B"
+        },
+        {
+          "value": 28,
+          "column": "I"
+        },
+        {
+          "value": 33,
+          "column": "N"
+        },
+        {
+          "value": 53,
+          "column": "G"
+        },
+        {
+          "value": 73,
+          "column": "O"
+        }
+      ],
+      "daubed": [],
+      "purchasedAt": "2026-10-05T15:58:19.833Z"
+    },
+    {
+      "id": "TCK-468814",
+      "ticketIndex": 7,
+      "roomId": "diamond-75",
+      "userId": "USR-30800",
+      "player": "RahulRahulGame_331",
+      "variant": "75-Ball Pattern",
+      "cells": [
+        {
+          "value": 7,
+          "column": "B"
+        },
+        {
+          "value": 27,
+          "column": "I"
+        },
+        {
+          "value": 32,
+          "column": "N"
+        },
+        {
+          "value": 52,
+          "column": "G"
+        },
+        {
+          "value": 72,
+          "column": "O"
+        },
+        {
+          "value": 14,
+          "column": "B"
+        },
+        {
+          "value": 19,
+          "column": "I"
+        },
+        {
+          "value": 39,
+          "column": "N"
+        },
+        {
+          "value": 59,
+          "column": "G"
+        },
+        {
+          "value": 64,
+          "column": "O"
+        },
+        {
+          "value": 6,
+          "column": "B"
+        },
+        {
+          "value": 26,
+          "column": "I"
+        },
+        {
+          "value": "FREE",
+          "column": "N"
+        },
+        {
+          "value": 51,
+          "column": "G"
+        },
+        {
+          "value": 71,
+          "column": "O"
+        },
+        {
+          "value": 13,
+          "column": "B"
+        },
+        {
+          "value": 18,
+          "column": "I"
+        },
+        {
+          "value": 38,
+          "column": "N"
+        },
+        {
+          "value": 58,
+          "column": "G"
+        },
+        {
+          "value": 63,
+          "column": "O"
+        },
+        {
+          "value": 5,
+          "column": "B"
+        },
+        {
+          "value": 25,
+          "column": "I"
+        },
+        {
+          "value": 45,
+          "column": "N"
+        },
+        {
+          "value": 50,
+          "column": "G"
+        },
+        {
+          "value": 70,
+          "column": "O"
+        }
+      ],
+      "daubed": [],
+      "purchasedAt": "2026-10-05T15:58:07.786Z"
+    },
+    {
+      "id": "TCK-650285",
+      "ticketIndex": 6,
+      "roomId": "diamond-75",
+      "userId": "USR-30800",
+      "player": "RahulRahulGame_331",
+      "variant": "75-Ball Pattern",
+      "cells": [
+        {
+          "value": 13,
+          "column": "B"
+        },
+        {
+          "value": 18,
+          "column": "I"
+        },
+        {
+          "value": 38,
+          "column": "N"
+        },
+        {
+          "value": 58,
+          "column": "G"
+        },
+        {
+          "value": 63,
+          "column": "O"
+        },
+        {
+          "value": 5,
+          "column": "B"
+        },
+        {
+          "value": 25,
+          "column": "I"
+        },
+        {
+          "value": 45,
+          "column": "N"
+        },
+        {
+          "value": 50,
+          "column": "G"
+        },
+        {
+          "value": 70,
+          "column": "O"
+        },
+        {
+          "value": 12,
+          "column": "B"
+        },
+        {
+          "value": 17,
+          "column": "I"
+        },
+        {
+          "value": "FREE",
+          "column": "N"
+        },
+        {
+          "value": 57,
+          "column": "G"
+        },
+        {
+          "value": 62,
+          "column": "O"
+        },
+        {
+          "value": 4,
+          "column": "B"
+        },
+        {
+          "value": 24,
+          "column": "I"
+        },
+        {
+          "value": 44,
+          "column": "N"
+        },
+        {
+          "value": 49,
+          "column": "G"
+        },
+        {
+          "value": 69,
+          "column": "O"
+        },
+        {
+          "value": 11,
+          "column": "B"
+        },
+        {
+          "value": 16,
+          "column": "I"
+        },
+        {
+          "value": 36,
+          "column": "N"
+        },
+        {
+          "value": 56,
+          "column": "G"
+        },
+        {
+          "value": 61,
+          "column": "O"
+        }
+      ],
+      "daubed": [],
+      "purchasedAt": "2026-10-05T15:58:07.786Z"
+    },
+    {
+      "id": "TCK-139585",
+      "ticketIndex": 5,
+      "roomId": "diamond-75",
+      "userId": "USR-30800",
+      "player": "RahulRahulGame_331",
+      "variant": "75-Ball Pattern",
+      "cells": [
+        {
+          "value": 4,
+          "column": "B"
+        },
+        {
+          "value": 24,
+          "column": "I"
+        },
+        {
+          "value": 44,
+          "column": "N"
+        },
+        {
+          "value": 49,
+          "column": "G"
+        },
+        {
+          "value": 69,
+          "column": "O"
+        },
+        {
+          "value": 11,
+          "column": "B"
+        },
+        {
+          "value": 16,
+          "column": "I"
+        },
+        {
+          "value": 36,
+          "column": "N"
+        },
+        {
+          "value": 56,
+          "column": "G"
+        },
+        {
+          "value": 61,
+          "column": "O"
+        },
+        {
+          "value": 3,
+          "column": "B"
+        },
+        {
+          "value": 23,
+          "column": "I"
+        },
+        {
+          "value": "FREE",
+          "column": "N"
+        },
+        {
+          "value": 48,
+          "column": "G"
+        },
+        {
+          "value": 68,
+          "column": "O"
+        },
+        {
+          "value": 10,
+          "column": "B"
+        },
+        {
+          "value": 30,
+          "column": "I"
+        },
+        {
+          "value": 35,
+          "column": "N"
+        },
+        {
+          "value": 55,
+          "column": "G"
+        },
+        {
+          "value": 75,
+          "column": "O"
+        },
+        {
+          "value": 2,
+          "column": "B"
+        },
+        {
+          "value": 22,
+          "column": "I"
+        },
+        {
+          "value": 42,
+          "column": "N"
+        },
+        {
+          "value": 47,
+          "column": "G"
+        },
+        {
+          "value": 67,
+          "column": "O"
+        }
+      ],
+      "daubed": [],
+      "purchasedAt": "2026-10-05T15:58:07.786Z"
+    },
+    {
+      "id": "TCK-502136",
+      "ticketIndex": 4,
+      "roomId": "diamond-75",
+      "userId": "USR-30800",
+      "player": "RahulRahulGame_331",
+      "variant": "75-Ball Pattern",
+      "cells": [
+        {
+          "value": 10,
+          "column": "B"
+        },
+        {
+          "value": 30,
+          "column": "I"
+        },
+        {
+          "value": 35,
+          "column": "N"
+        },
+        {
+          "value": 55,
+          "column": "G"
+        },
+        {
+          "value": 75,
+          "column": "O"
+        },
+        {
+          "value": 2,
+          "column": "B"
+        },
+        {
+          "value": 22,
+          "column": "I"
+        },
+        {
+          "value": 42,
+          "column": "N"
+        },
+        {
+          "value": 47,
+          "column": "G"
+        },
+        {
+          "value": 67,
+          "column": "O"
+        },
+        {
+          "value": 9,
+          "column": "B"
+        },
+        {
+          "value": 29,
+          "column": "I"
+        },
+        {
+          "value": "FREE",
+          "column": "N"
+        },
+        {
+          "value": 54,
+          "column": "G"
+        },
+        {
+          "value": 74,
+          "column": "O"
+        },
+        {
+          "value": 1,
+          "column": "B"
+        },
+        {
+          "value": 21,
+          "column": "I"
+        },
+        {
+          "value": 41,
+          "column": "N"
+        },
+        {
+          "value": 46,
+          "column": "G"
+        },
+        {
+          "value": 66,
+          "column": "O"
+        },
+        {
+          "value": 8,
+          "column": "B"
+        },
+        {
+          "value": 28,
+          "column": "I"
+        },
+        {
+          "value": 33,
+          "column": "N"
+        },
+        {
+          "value": 53,
+          "column": "G"
+        },
+        {
+          "value": 73,
+          "column": "O"
+        }
+      ],
+      "daubed": [],
+      "purchasedAt": "2026-10-05T15:58:07.786Z"
+    },
+    {
+      "id": "TCK-386653",
+      "ticketIndex": 3,
+      "roomId": "diamond-75",
+      "userId": "USR-30800",
+      "player": "RahulRahulGame_331",
+      "variant": "75-Ball Pattern",
+      "cells": [
+        {
+          "value": 1,
+          "column": "B"
+        },
+        {
+          "value": 21,
+          "column": "I"
+        },
+        {
+          "value": 41,
+          "column": "N"
+        },
+        {
+          "value": 46,
+          "column": "G"
+        },
+        {
+          "value": 66,
+          "column": "O"
+        },
+        {
+          "value": 8,
+          "column": "B"
+        },
+        {
+          "value": 28,
+          "column": "I"
+        },
+        {
+          "value": 33,
+          "column": "N"
+        },
+        {
+          "value": 53,
+          "column": "G"
+        },
+        {
+          "value": 73,
+          "column": "O"
+        },
+        {
+          "value": 15,
+          "column": "B"
+        },
+        {
+          "value": 20,
+          "column": "I"
+        },
+        {
+          "value": "FREE",
+          "column": "N"
+        },
+        {
+          "value": 60,
+          "column": "G"
+        },
+        {
+          "value": 65,
+          "column": "O"
+        },
+        {
+          "value": 7,
+          "column": "B"
+        },
+        {
+          "value": 27,
+          "column": "I"
+        },
+        {
+          "value": 32,
+          "column": "N"
+        },
+        {
+          "value": 52,
+          "column": "G"
+        },
+        {
+          "value": 72,
+          "column": "O"
+        },
+        {
+          "value": 14,
+          "column": "B"
+        },
+        {
+          "value": 19,
+          "column": "I"
+        },
+        {
+          "value": 39,
+          "column": "N"
+        },
+        {
+          "value": 59,
+          "column": "G"
+        },
+        {
+          "value": 64,
+          "column": "O"
+        }
+      ],
+      "daubed": [],
+      "purchasedAt": "2026-10-05T15:58:07.786Z"
+    },
+    {
+      "id": "TCK-576412",
+      "ticketIndex": 2,
+      "roomId": "diamond-75",
+      "userId": "USR-30800",
+      "player": "RahulRahulGame_331",
+      "variant": "75-Ball Pattern",
+      "cells": [
+        {
+          "value": 7,
+          "column": "B"
+        },
+        {
+          "value": 27,
+          "column": "I"
+        },
+        {
+          "value": 32,
+          "column": "N"
+        },
+        {
+          "value": 52,
+          "column": "G"
+        },
+        {
+          "value": 72,
+          "column": "O"
+        },
+        {
+          "value": 14,
+          "column": "B"
+        },
+        {
+          "value": 19,
+          "column": "I"
+        },
+        {
+          "value": 39,
+          "column": "N"
+        },
+        {
+          "value": 59,
+          "column": "G"
+        },
+        {
+          "value": 64,
+          "column": "O"
+        },
+        {
+          "value": 6,
+          "column": "B"
+        },
+        {
+          "value": 26,
+          "column": "I"
+        },
+        {
+          "value": "FREE",
+          "column": "N"
+        },
+        {
+          "value": 51,
+          "column": "G"
+        },
+        {
+          "value": 71,
+          "column": "O"
+        },
+        {
+          "value": 13,
+          "column": "B"
+        },
+        {
+          "value": 18,
+          "column": "I"
+        },
+        {
+          "value": 38,
+          "column": "N"
+        },
+        {
+          "value": 58,
+          "column": "G"
+        },
+        {
+          "value": 63,
+          "column": "O"
+        },
+        {
+          "value": 5,
+          "column": "B"
+        },
+        {
+          "value": 25,
+          "column": "I"
+        },
+        {
+          "value": 45,
+          "column": "N"
+        },
+        {
+          "value": 50,
+          "column": "G"
+        },
+        {
+          "value": 70,
+          "column": "O"
+        }
+      ],
+      "daubed": [],
+      "purchasedAt": "2026-10-05T15:58:07.786Z"
+    },
+    {
+      "id": "TCK-929013",
+      "ticketIndex": 1,
+      "roomId": "diamond-75",
+      "userId": "USR-30800",
+      "player": "RahulRahulGame_331",
+      "variant": "75-Ball Pattern",
+      "cells": [
+        {
+          "value": 13,
+          "column": "B"
+        },
+        {
+          "value": 18,
+          "column": "I"
+        },
+        {
+          "value": 38,
+          "column": "N"
+        },
+        {
+          "value": 58,
+          "column": "G"
+        },
+        {
+          "value": 63,
+          "column": "O"
+        },
+        {
+          "value": 5,
+          "column": "B"
+        },
+        {
+          "value": 25,
+          "column": "I"
+        },
+        {
+          "value": 45,
+          "column": "N"
+        },
+        {
+          "value": 50,
+          "column": "G"
+        },
+        {
+          "value": 70,
+          "column": "O"
+        },
+        {
+          "value": 12,
+          "column": "B"
+        },
+        {
+          "value": 17,
+          "column": "I"
+        },
+        {
+          "value": "FREE",
+          "column": "N"
+        },
+        {
+          "value": 57,
+          "column": "G"
+        },
+        {
+          "value": 62,
+          "column": "O"
+        },
+        {
+          "value": 4,
+          "column": "B"
+        },
+        {
+          "value": 24,
+          "column": "I"
+        },
+        {
+          "value": 44,
+          "column": "N"
+        },
+        {
+          "value": 49,
+          "column": "G"
+        },
+        {
+          "value": 69,
+          "column": "O"
+        },
+        {
+          "value": 11,
+          "column": "B"
+        },
+        {
+          "value": 16,
+          "column": "I"
+        },
+        {
+          "value": 36,
+          "column": "N"
+        },
+        {
+          "value": 56,
+          "column": "G"
+        },
+        {
+          "value": 61,
+          "column": "O"
+        }
+      ],
+      "daubed": [],
+      "purchasedAt": "2026-10-05T15:58:07.786Z"
+    },
+    {
+      "id": "TCK-450841",
+      "ticketIndex": 0,
+      "roomId": "diamond-75",
+      "userId": "USR-30800",
+      "player": "RahulRahulGame_331",
+      "variant": "75-Ball Pattern",
+      "cells": [
+        {
+          "value": 4,
+          "column": "B"
+        },
+        {
+          "value": 24,
+          "column": "I"
+        },
+        {
+          "value": 44,
+          "column": "N"
+        },
+        {
+          "value": 49,
+          "column": "G"
+        },
+        {
+          "value": 69,
+          "column": "O"
+        },
+        {
+          "value": 11,
+          "column": "B"
+        },
+        {
+          "value": 16,
+          "column": "I"
+        },
+        {
+          "value": 36,
+          "column": "N"
+        },
+        {
+          "value": 56,
+          "column": "G"
+        },
+        {
+          "value": 61,
+          "column": "O"
+        },
+        {
+          "value": 3,
+          "column": "B"
+        },
+        {
+          "value": 23,
+          "column": "I"
+        },
+        {
+          "value": "FREE",
+          "column": "N"
+        },
+        {
+          "value": 48,
+          "column": "G"
+        },
+        {
+          "value": 68,
+          "column": "O"
+        },
+        {
+          "value": 10,
+          "column": "B"
+        },
+        {
+          "value": 30,
+          "column": "I"
+        },
+        {
+          "value": 35,
+          "column": "N"
+        },
+        {
+          "value": 55,
+          "column": "G"
+        },
+        {
+          "value": 75,
+          "column": "O"
+        },
+        {
+          "value": 2,
+          "column": "B"
+        },
+        {
+          "value": 22,
+          "column": "I"
+        },
+        {
+          "value": 42,
+          "column": "N"
+        },
+        {
+          "value": 47,
+          "column": "G"
+        },
+        {
+          "value": 67,
+          "column": "O"
+        }
+      ],
+      "daubed": [],
+      "purchasedAt": "2026-10-05T15:58:07.786Z"
+    },
+    {
+      "id": "TCK-952076",
+      "ticketIndex": 0,
+      "roomId": "diamond-75",
+      "userId": "USR-30800",
+      "player": "RahulRahulGame_331",
+      "variant": "75-Ball Pattern",
+      "cells": [
+        {
+          "value": 7,
+          "column": "B"
+        },
+        {
+          "value": 27,
+          "column": "I"
+        },
+        {
+          "value": 32,
+          "column": "N"
+        },
+        {
+          "value": 52,
+          "column": "G"
+        },
+        {
+          "value": 72,
+          "column": "O"
+        },
+        {
+          "value": 14,
+          "column": "B"
+        },
+        {
+          "value": 19,
+          "column": "I"
+        },
+        {
+          "value": 39,
+          "column": "N"
+        },
+        {
+          "value": 59,
+          "column": "G"
+        },
+        {
+          "value": 64,
+          "column": "O"
+        },
+        {
+          "value": 6,
+          "column": "B"
+        },
+        {
+          "value": 26,
+          "column": "I"
+        },
+        {
+          "value": "FREE",
+          "column": "N"
+        },
+        {
+          "value": 51,
+          "column": "G"
+        },
+        {
+          "value": 71,
+          "column": "O"
+        },
+        {
+          "value": 13,
+          "column": "B"
+        },
+        {
+          "value": 18,
+          "column": "I"
+        },
+        {
+          "value": 38,
+          "column": "N"
+        },
+        {
+          "value": 58,
+          "column": "G"
+        },
+        {
+          "value": 63,
+          "column": "O"
+        },
+        {
+          "value": 5,
+          "column": "B"
+        },
+        {
+          "value": 25,
+          "column": "I"
+        },
+        {
+          "value": 45,
+          "column": "N"
+        },
+        {
+          "value": 50,
+          "column": "G"
+        },
+        {
+          "value": 70,
+          "column": "O"
+        }
+      ],
+      "daubed": [],
+      "purchasedAt": "2026-10-05T15:57:22.202Z"
+    },
+    {
+      "id": "TCK-906587",
+      "ticketIndex": 0,
+      "roomId": "diamond-75",
+      "userId": "USR-30800",
+      "player": "RahulRahulGame_331",
+      "variant": "75-Ball Pattern",
+      "cells": [
+        {
+          "value": 13,
+          "column": "B"
+        },
+        {
+          "value": 18,
+          "column": "I"
+        },
+        {
+          "value": 38,
+          "column": "N"
+        },
+        {
+          "value": 58,
+          "column": "G"
+        },
+        {
+          "value": 63,
+          "column": "O"
+        },
+        {
+          "value": 5,
+          "column": "B"
+        },
+        {
+          "value": 25,
+          "column": "I"
+        },
+        {
+          "value": 45,
+          "column": "N"
+        },
+        {
+          "value": 50,
+          "column": "G"
+        },
+        {
+          "value": 70,
+          "column": "O"
+        },
+        {
+          "value": 12,
+          "column": "B"
+        },
+        {
+          "value": 17,
+          "column": "I"
+        },
+        {
+          "value": "FREE",
+          "column": "N"
+        },
+        {
+          "value": 57,
+          "column": "G"
+        },
+        {
+          "value": 62,
+          "column": "O"
+        },
+        {
+          "value": 4,
+          "column": "B"
+        },
+        {
+          "value": 24,
+          "column": "I"
+        },
+        {
+          "value": 44,
+          "column": "N"
+        },
+        {
+          "value": 49,
+          "column": "G"
+        },
+        {
+          "value": 69,
+          "column": "O"
+        },
+        {
+          "value": 11,
+          "column": "B"
+        },
+        {
+          "value": 16,
+          "column": "I"
+        },
+        {
+          "value": 36,
+          "column": "N"
+        },
+        {
+          "value": 56,
+          "column": "G"
+        },
+        {
+          "value": 61,
+          "column": "O"
+        }
+      ],
+      "daubed": [],
+      "purchasedAt": "2026-10-05T15:56:37.004Z"
+    },
+    {
+      "id": "TCK-917770",
+      "ticketIndex": 0,
+      "roomId": "diamond-75",
+      "userId": "USR-30800",
+      "player": "RahulRahulGame_331",
+      "variant": "75-Ball Pattern",
+      "cells": [
+        {
+          "value": 1,
+          "column": "B"
+        },
+        {
+          "value": 21,
+          "column": "I"
+        },
+        {
+          "value": 41,
+          "column": "N"
+        },
+        {
+          "value": 46,
+          "column": "G"
+        },
+        {
+          "value": 66,
+          "column": "O"
+        },
+        {
+          "value": 8,
+          "column": "B"
+        },
+        {
+          "value": 28,
+          "column": "I"
+        },
+        {
+          "value": 33,
+          "column": "N"
+        },
+        {
+          "value": 53,
+          "column": "G"
+        },
+        {
+          "value": 73,
+          "column": "O"
+        },
+        {
+          "value": 15,
+          "column": "B"
+        },
+        {
+          "value": 20,
+          "column": "I"
+        },
+        {
+          "value": "FREE",
+          "column": "N"
+        },
+        {
+          "value": 60,
+          "column": "G"
+        },
+        {
+          "value": 65,
+          "column": "O"
+        },
+        {
+          "value": 7,
+          "column": "B"
+        },
+        {
+          "value": 27,
+          "column": "I"
+        },
+        {
+          "value": 32,
+          "column": "N"
+        },
+        {
+          "value": 52,
+          "column": "G"
+        },
+        {
+          "value": 72,
+          "column": "O"
+        },
+        {
+          "value": 14,
+          "column": "B"
+        },
+        {
+          "value": 19,
+          "column": "I"
+        },
+        {
+          "value": 39,
+          "column": "N"
+        },
+        {
+          "value": 59,
+          "column": "G"
+        },
+        {
+          "value": 64,
+          "column": "O"
+        }
+      ],
+      "daubed": [],
+      "purchasedAt": "2026-10-05T15:54:10.625Z"
+    },
+    {
+      "id": "TCK-533739",
+      "ticketIndex": 0,
+      "roomId": "free-party",
+      "userId": "USR-30800",
+      "player": "RahulRahulGame_331",
+      "variant": "75-Ball Community",
+      "cells": [
+        {
+          "value": 4,
+          "column": "B"
+        },
+        {
+          "value": 24,
+          "column": "I"
+        },
+        {
+          "value": 44,
+          "column": "N"
+        },
+        {
+          "value": 49,
+          "column": "G"
+        },
+        {
+          "value": 69,
+          "column": "O"
+        },
+        {
+          "value": 11,
+          "column": "B"
+        },
+        {
+          "value": 16,
+          "column": "I"
+        },
+        {
+          "value": 36,
+          "column": "N"
+        },
+        {
+          "value": 56,
+          "column": "G"
+        },
+        {
+          "value": 61,
+          "column": "O"
+        },
+        {
+          "value": 3,
+          "column": "B"
+        },
+        {
+          "value": 23,
+          "column": "I"
+        },
+        {
+          "value": "FREE",
+          "column": "N"
+        },
+        {
+          "value": 48,
+          "column": "G"
+        },
+        {
+          "value": 68,
+          "column": "O"
+        },
+        {
+          "value": 10,
+          "column": "B"
+        },
+        {
+          "value": 30,
+          "column": "I"
+        },
+        {
+          "value": 35,
+          "column": "N"
+        },
+        {
+          "value": 55,
+          "column": "G"
+        },
+        {
+          "value": 75,
+          "column": "O"
+        },
+        {
+          "value": 2,
+          "column": "B"
+        },
+        {
+          "value": 22,
+          "column": "I"
+        },
+        {
+          "value": 42,
+          "column": "N"
+        },
+        {
+          "value": 47,
+          "column": "G"
+        },
+        {
+          "value": 67,
+          "column": "O"
+        }
+      ],
+      "daubed": [],
+      "purchasedAt": "2026-10-05T15:53:42.146Z"
+    },
+    {
+      "id": "TCK-404142",
+      "ticketIndex": 0,
+      "roomId": "diamond-75",
+      "userId": "USR-30800",
+      "player": "RahulRahulGame_331",
+      "variant": "75-Ball Pattern",
+      "cells": [
+        {
+          "value": 7,
+          "column": "B"
+        },
+        {
+          "value": 27,
+          "column": "I"
+        },
+        {
+          "value": 32,
+          "column": "N"
+        },
+        {
+          "value": 52,
+          "column": "G"
+        },
+        {
+          "value": 72,
+          "column": "O"
+        },
+        {
+          "value": 14,
+          "column": "B"
+        },
+        {
+          "value": 19,
+          "column": "I"
+        },
+        {
+          "value": 39,
+          "column": "N"
+        },
+        {
+          "value": 59,
+          "column": "G"
+        },
+        {
+          "value": 64,
+          "column": "O"
+        },
+        {
+          "value": 6,
+          "column": "B"
+        },
+        {
+          "value": 26,
+          "column": "I"
+        },
+        {
+          "value": "FREE",
+          "column": "N"
+        },
+        {
+          "value": 51,
+          "column": "G"
+        },
+        {
+          "value": 71,
+          "column": "O"
+        },
+        {
+          "value": 13,
+          "column": "B"
+        },
+        {
+          "value": 18,
+          "column": "I"
+        },
+        {
+          "value": 38,
+          "column": "N"
+        },
+        {
+          "value": 58,
+          "column": "G"
+        },
+        {
+          "value": 63,
+          "column": "O"
+        },
+        {
+          "value": 5,
+          "column": "B"
+        },
+        {
+          "value": 25,
+          "column": "I"
+        },
+        {
+          "value": 45,
+          "column": "N"
+        },
+        {
+          "value": 50,
+          "column": "G"
+        },
+        {
+          "value": 70,
+          "column": "O"
+        }
+      ],
+      "daubed": [],
+      "purchasedAt": "2026-10-05T15:52:41.377Z"
+    },
+    {
+      "id": "TCK-930870",
+      "ticketIndex": 0,
+      "roomId": "diamond-75",
+      "userId": "USR-30800",
+      "player": "RahulRahulGame_331",
+      "variant": "75-Ball Pattern",
+      "cells": [
+        {
+          "value": 1,
+          "column": "B"
+        },
+        {
+          "value": 21,
+          "column": "I"
+        },
+        {
+          "value": 41,
+          "column": "N"
+        },
+        {
+          "value": 46,
+          "column": "G"
+        },
+        {
+          "value": 66,
+          "column": "O"
+        },
+        {
+          "value": 8,
+          "column": "B"
+        },
+        {
+          "value": 28,
+          "column": "I"
+        },
+        {
+          "value": 33,
+          "column": "N"
+        },
+        {
+          "value": 53,
+          "column": "G"
+        },
+        {
+          "value": 73,
+          "column": "O"
+        },
+        {
+          "value": 15,
+          "column": "B"
+        },
+        {
+          "value": 20,
+          "column": "I"
+        },
+        {
+          "value": "FREE",
+          "column": "N"
+        },
+        {
+          "value": 60,
+          "column": "G"
+        },
+        {
+          "value": 65,
+          "column": "O"
+        },
+        {
+          "value": 7,
+          "column": "B"
+        },
+        {
+          "value": 27,
+          "column": "I"
+        },
+        {
+          "value": 32,
+          "column": "N"
+        },
+        {
+          "value": 52,
+          "column": "G"
+        },
+        {
+          "value": 72,
+          "column": "O"
+        },
+        {
+          "value": 14,
+          "column": "B"
+        },
+        {
+          "value": 19,
+          "column": "I"
+        },
+        {
+          "value": 39,
+          "column": "N"
+        },
+        {
+          "value": 59,
+          "column": "G"
+        },
+        {
+          "value": 64,
+          "column": "O"
+        }
+      ],
+      "daubed": [],
+      "purchasedAt": "2026-10-05T15:49:38.780Z"
+    },
+    {
+      "id": "TCK-649400",
+      "ticketIndex": 0,
+      "roomId": "diamond-75",
+      "userId": "USR-30800",
+      "player": "RahulRahulGame_331",
+      "variant": "75-Ball Pattern",
+      "cells": [
+        {
+          "value": 13,
+          "column": "B"
+        },
+        {
+          "value": 18,
+          "column": "I"
+        },
+        {
+          "value": 38,
+          "column": "N"
+        },
+        {
+          "value": 58,
+          "column": "G"
+        },
+        {
+          "value": 63,
+          "column": "O"
+        },
+        {
+          "value": 5,
+          "column": "B"
+        },
+        {
+          "value": 25,
+          "column": "I"
+        },
+        {
+          "value": 45,
+          "column": "N"
+        },
+        {
+          "value": 50,
+          "column": "G"
+        },
+        {
+          "value": 70,
+          "column": "O"
+        },
+        {
+          "value": 12,
+          "column": "B"
+        },
+        {
+          "value": 17,
+          "column": "I"
+        },
+        {
+          "value": "FREE",
+          "column": "N"
+        },
+        {
+          "value": 57,
+          "column": "G"
+        },
+        {
+          "value": 62,
+          "column": "O"
+        },
+        {
+          "value": 4,
+          "column": "B"
+        },
+        {
+          "value": 24,
+          "column": "I"
+        },
+        {
+          "value": 44,
+          "column": "N"
+        },
+        {
+          "value": 49,
+          "column": "G"
+        },
+        {
+          "value": 69,
+          "column": "O"
+        },
+        {
+          "value": 11,
+          "column": "B"
+        },
+        {
+          "value": 16,
+          "column": "I"
+        },
+        {
+          "value": 36,
+          "column": "N"
+        },
+        {
+          "value": 56,
+          "column": "G"
+        },
+        {
+          "value": 61,
+          "column": "O"
+        }
+      ],
+      "daubed": [],
+      "purchasedAt": "2026-10-05T15:47:53.464Z"
+    },
+    {
+      "id": "TCK-454690",
+      "ticketIndex": 0,
+      "roomId": "diamond-75",
+      "userId": "USR-58063",
+      "player": "NovaPlayer_4511",
+      "variant": "75-Ball Pattern",
+      "cells": [
+        {
+          "value": 13,
+          "column": "B"
+        },
+        {
+          "value": 18,
+          "column": "I"
+        },
+        {
+          "value": 38,
+          "column": "N"
+        },
+        {
+          "value": 58,
+          "column": "G"
+        },
+        {
+          "value": 63,
+          "column": "O"
+        },
+        {
+          "value": 5,
+          "column": "B"
+        },
+        {
+          "value": 25,
+          "column": "I"
+        },
+        {
+          "value": 45,
+          "column": "N"
+        },
+        {
+          "value": 50,
+          "column": "G"
+        },
+        {
+          "value": 70,
+          "column": "O"
+        },
+        {
+          "value": 12,
+          "column": "B"
+        },
+        {
+          "value": 17,
+          "column": "I"
+        },
+        {
+          "value": "FREE",
+          "column": "N"
+        },
+        {
+          "value": 57,
+          "column": "G"
+        },
+        {
+          "value": 62,
+          "column": "O"
+        },
+        {
+          "value": 4,
+          "column": "B"
+        },
+        {
+          "value": 24,
+          "column": "I"
+        },
+        {
+          "value": 44,
+          "column": "N"
+        },
+        {
+          "value": 49,
+          "column": "G"
+        },
+        {
+          "value": 69,
+          "column": "O"
+        },
+        {
+          "value": 11,
+          "column": "B"
+        },
+        {
+          "value": 16,
+          "column": "I"
+        },
+        {
+          "value": 36,
+          "column": "N"
+        },
+        {
+          "value": 56,
+          "column": "G"
+        },
+        {
+          "value": 61,
+          "column": "O"
+        }
+      ],
+      "daubed": [],
+      "purchasedAt": "2026-10-05T15:45:19.499Z"
+    },
+    {
+      "id": "TCK-353328",
+      "ticketIndex": 0,
+      "roomId": "trueig-90",
+      "userId": "USR-58063",
+      "player": "NovaPlayer_4511",
+      "variant": "90-Ball Classic",
+      "cells": [
+        {
+          "value": 5,
+          "column": "0"
+        },
+        {
+          "value": "FREE",
+          "column": "1"
+        },
+        {
+          "value": 24,
+          "column": "2"
+        },
+        {
+          "value": "FREE",
+          "column": "3"
+        },
+        {
+          "value": 40,
+          "column": "4"
+        },
+        {
+          "value": "FREE",
+          "column": "5"
+        },
+        {
+          "value": 66,
+          "column": "6"
+        },
+        {
+          "value": "FREE",
+          "column": "7"
+        },
+        {
+          "value": 85,
+          "column": "8"
+        },
+        {
+          "value": "FREE",
+          "column": "0"
+        },
+        {
+          "value": 16,
+          "column": "1"
+        },
+        {
+          "value": 29,
+          "column": "2"
+        },
+        {
+          "value": 32,
+          "column": "3"
+        },
+        {
+          "value": "FREE",
+          "column": "4"
+        },
+        {
+          "value": 58,
+          "column": "5"
+        },
+        {
+          "value": "FREE",
+          "column": "6"
+        },
+        {
+          "value": 74,
+          "column": "7"
+        },
+        {
+          "value": "FREE",
+          "column": "8"
+        },
+        {
+          "value": 6,
+          "column": "0"
+        },
+        {
+          "value": 11,
+          "column": "1"
+        },
+        {
+          "value": "FREE",
+          "column": "2"
+        },
+        {
+          "value": "FREE",
+          "column": "3"
+        },
+        {
+          "value": 40,
+          "column": "4"
+        },
+        {
+          "value": "FREE",
+          "column": "5"
+        },
+        {
+          "value": 66,
+          "column": "6"
+        },
+        {
+          "value": "FREE",
+          "column": "7"
+        },
+        {
+          "value": 84,
+          "column": "8"
+        }
+      ],
+      "daubed": [],
+      "purchasedAt": "2026-10-05T15:44:17.194Z"
+    },
+    {
+      "id": "TCK-830657",
+      "ticketIndex": 0,
+      "roomId": "trueig-90",
+      "userId": "USR-58063",
+      "player": "NovaPlayer_4511",
+      "variant": "90-Ball Classic",
+      "cells": [
+        {
+          "value": 8,
+          "column": "0"
+        },
+        {
+          "value": "FREE",
+          "column": "1"
+        },
+        {
+          "value": 25,
+          "column": "2"
+        },
+        {
+          "value": "FREE",
+          "column": "3"
+        },
+        {
+          "value": 41,
+          "column": "4"
+        },
+        {
+          "value": "FREE",
+          "column": "5"
+        },
+        {
+          "value": 67,
+          "column": "6"
+        },
+        {
+          "value": "FREE",
+          "column": "7"
+        },
+        {
+          "value": 90,
+          "column": "8"
+        },
+        {
+          "value": "FREE",
+          "column": "0"
+        },
+        {
+          "value": 17,
+          "column": "1"
+        },
+        {
+          "value": 20,
+          "column": "2"
+        },
+        {
+          "value": 33,
+          "column": "3"
+        },
+        {
+          "value": "FREE",
+          "column": "4"
+        },
+        {
+          "value": 59,
+          "column": "5"
+        },
+        {
+          "value": "FREE",
+          "column": "6"
+        },
+        {
+          "value": 75,
+          "column": "7"
+        },
+        {
+          "value": "FREE",
+          "column": "8"
+        },
+        {
+          "value": 9,
+          "column": "0"
+        },
+        {
+          "value": 12,
+          "column": "1"
+        },
+        {
+          "value": "FREE",
+          "column": "2"
+        },
+        {
+          "value": "FREE",
+          "column": "3"
+        },
+        {
+          "value": 41,
+          "column": "4"
+        },
+        {
+          "value": "FREE",
+          "column": "5"
+        },
+        {
+          "value": 67,
+          "column": "6"
+        },
+        {
+          "value": "FREE",
+          "column": "7"
+        },
+        {
+          "value": 89,
+          "column": "8"
+        }
+      ],
+      "daubed": [],
+      "purchasedAt": "2026-10-05T15:43:53.617Z"
+    },
+    {
+      "id": "TCK-384910",
+      "ticketIndex": 0,
+      "roomId": "trueig-90",
+      "userId": "USR-11804",
+      "player": "Ari.R",
+      "variant": "90-Ball Classic",
+      "cells": [
+        {
+          "value": 2,
+          "column": "0"
+        },
+        {
+          "value": "FREE",
+          "column": "1"
+        },
+        {
+          "value": 20,
+          "column": "2"
+        },
+        {
+          "value": "FREE",
+          "column": "3"
+        },
+        {
+          "value": 46,
+          "column": "4"
+        },
+        {
+          "value": "FREE",
+          "column": "5"
+        },
+        {
+          "value": 62,
+          "column": "6"
+        },
+        {
+          "value": "FREE",
+          "column": "7"
+        },
+        {
+          "value": 86,
+          "column": "8"
+        },
+        {
+          "value": "FREE",
+          "column": "0"
+        },
+        {
+          "value": 12,
+          "column": "1"
+        },
+        {
+          "value": 25,
+          "column": "2"
+        },
+        {
+          "value": 38,
+          "column": "3"
+        },
+        {
+          "value": "FREE",
+          "column": "4"
+        },
+        {
+          "value": 54,
+          "column": "5"
+        },
+        {
+          "value": "FREE",
+          "column": "6"
+        },
+        {
+          "value": 70,
+          "column": "7"
+        },
+        {
+          "value": "FREE",
+          "column": "8"
+        },
+        {
+          "value": 3,
+          "column": "0"
+        },
+        {
+          "value": 17,
+          "column": "1"
+        },
+        {
+          "value": "FREE",
+          "column": "2"
+        },
+        {
+          "value": "FREE",
+          "column": "3"
+        },
+        {
+          "value": 46,
+          "column": "4"
+        },
+        {
+          "value": "FREE",
+          "column": "5"
+        },
+        {
+          "value": 62,
+          "column": "6"
+        },
+        {
+          "value": "FREE",
+          "column": "7"
+        },
+        {
+          "value": 85,
+          "column": "8"
+        }
+      ],
+      "daubed": [],
+      "purchasedAt": "2026-10-05T15:43:13.732Z"
+    },
+    {
+      "id": "TCK-843742",
+      "ticketIndex": 0,
+      "roomId": "free-party",
+      "userId": "USR-68648",
+      "player": "Rahul",
+      "variant": "75-Ball Community",
+      "cells": [
+        {
+          "value": 1,
+          "column": "B"
+        },
+        {
+          "value": 21,
+          "column": "I"
+        },
+        {
+          "value": 41,
+          "column": "N"
+        },
+        {
+          "value": 46,
+          "column": "G"
+        },
+        {
+          "value": 66,
+          "column": "O"
+        },
+        {
+          "value": 8,
+          "column": "B"
+        },
+        {
+          "value": 28,
+          "column": "I"
+        },
+        {
+          "value": 33,
+          "column": "N"
+        },
+        {
+          "value": 53,
+          "column": "G"
+        },
+        {
+          "value": 73,
+          "column": "O"
+        },
+        {
+          "value": 15,
+          "column": "B"
+        },
+        {
+          "value": 20,
+          "column": "I"
+        },
+        {
+          "value": "FREE",
+          "column": "N"
+        },
+        {
+          "value": 60,
+          "column": "G"
+        },
+        {
+          "value": 65,
+          "column": "O"
+        },
+        {
+          "value": 7,
+          "column": "B"
+        },
+        {
+          "value": 27,
+          "column": "I"
+        },
+        {
+          "value": 32,
+          "column": "N"
+        },
+        {
+          "value": 52,
+          "column": "G"
+        },
+        {
+          "value": 72,
+          "column": "O"
+        },
+        {
+          "value": 14,
+          "column": "B"
+        },
+        {
+          "value": 19,
+          "column": "I"
+        },
+        {
+          "value": 39,
+          "column": "N"
+        },
+        {
+          "value": 59,
+          "column": "G"
+        },
+        {
+          "value": 64,
+          "column": "O"
+        }
+      ],
+      "daubed": [],
+      "purchasedAt": "2026-10-05T15:36:33.511Z"
+    },
+    {
+      "id": "TCK-712598",
+      "ticketIndex": 0,
+      "roomId": "pattern-arena",
+      "userId": "USR-68648",
+      "player": "Rahul",
+      "variant": "75-Ball Pattern Series",
+      "cells": [
+        {
+          "value": 13,
+          "column": "B"
+        },
+        {
+          "value": 18,
+          "column": "I"
+        },
+        {
+          "value": 38,
+          "column": "N"
+        },
+        {
+          "value": 58,
+          "column": "G"
+        },
+        {
+          "value": 63,
+          "column": "O"
+        },
+        {
+          "value": 5,
+          "column": "B"
+        },
+        {
+          "value": 25,
+          "column": "I"
+        },
+        {
+          "value": 45,
+          "column": "N"
+        },
+        {
+          "value": 50,
+          "column": "G"
+        },
+        {
+          "value": 70,
+          "column": "O"
+        },
+        {
+          "value": 12,
+          "column": "B"
+        },
+        {
+          "value": 17,
+          "column": "I"
+        },
+        {
+          "value": "FREE",
+          "column": "N"
+        },
+        {
+          "value": 57,
+          "column": "G"
+        },
+        {
+          "value": 62,
+          "column": "O"
+        },
+        {
+          "value": 4,
+          "column": "B"
+        },
+        {
+          "value": 24,
+          "column": "I"
+        },
+        {
+          "value": 44,
+          "column": "N"
+        },
+        {
+          "value": 49,
+          "column": "G"
+        },
+        {
+          "value": 69,
+          "column": "O"
+        },
+        {
+          "value": 11,
+          "column": "B"
+        },
+        {
+          "value": 16,
+          "column": "I"
+        },
+        {
+          "value": 36,
+          "column": "N"
+        },
+        {
+          "value": 56,
+          "column": "G"
+        },
+        {
+          "value": 61,
+          "column": "O"
+        }
+      ],
+      "daubed": [],
+      "purchasedAt": "2026-10-05T15:32:02.584Z"
+    },
+    {
+      "id": "TCK-415787",
+      "ticketIndex": 0,
+      "roomId": "pattern-arena",
+      "userId": "USR-68648",
+      "player": "Rahul",
+      "variant": "75-Ball Pattern Series",
+      "cells": [
+        {
+          "value": 7,
+          "column": "B"
+        },
+        {
+          "value": 27,
+          "column": "I"
+        },
+        {
+          "value": 32,
+          "column": "N"
+        },
+        {
+          "value": 52,
+          "column": "G"
+        },
+        {
+          "value": 72,
+          "column": "O"
+        },
+        {
+          "value": 14,
+          "column": "B"
+        },
+        {
+          "value": 19,
+          "column": "I"
+        },
+        {
+          "value": 39,
+          "column": "N"
+        },
+        {
+          "value": 59,
+          "column": "G"
+        },
+        {
+          "value": 64,
+          "column": "O"
+        },
+        {
+          "value": 6,
+          "column": "B"
+        },
+        {
+          "value": 26,
+          "column": "I"
+        },
+        {
+          "value": "FREE",
+          "column": "N"
+        },
+        {
+          "value": 51,
+          "column": "G"
+        },
+        {
+          "value": 71,
+          "column": "O"
+        },
+        {
+          "value": 13,
+          "column": "B"
+        },
+        {
+          "value": 18,
+          "column": "I"
+        },
+        {
+          "value": 38,
+          "column": "N"
+        },
+        {
+          "value": 58,
+          "column": "G"
+        },
+        {
+          "value": 63,
+          "column": "O"
+        },
+        {
+          "value": 5,
+          "column": "B"
+        },
+        {
+          "value": 25,
+          "column": "I"
+        },
+        {
+          "value": 45,
+          "column": "N"
+        },
+        {
+          "value": 50,
+          "column": "G"
+        },
+        {
+          "value": 70,
+          "column": "O"
+        }
+      ],
+      "daubed": [],
+      "purchasedAt": "2026-10-05T15:31:07.022Z"
+    },
     {
       "id": "TCK-658767",
       "ticketIndex": 0,
@@ -13276,6 +17228,332 @@
   ],
   "claims": [
     {
+      "id": "CLM-848859",
+      "roomId": "trueig-90",
+      "ticketId": "CARD-0",
+      "playerName": "RahulRahulGame_331",
+      "pattern": "Full House",
+      "status": "approved",
+      "prize": 4188,
+      "timestamp": "09:31 PM",
+      "cells": [
+        67,
+        38,
+        36,
+        63,
+        68,
+        33,
+        4,
+        22,
+        79,
+        31,
+        23
+      ]
+    },
+    {
+      "id": "CLM-376701",
+      "roomId": "diamond-75",
+      "ticketId": "CARD-0",
+      "playerName": "RahulRahulGame_331",
+      "pattern": "Diamond",
+      "status": "approved",
+      "prize": 1000,
+      "timestamp": "09:29 PM",
+      "cells": [
+        45,
+        18,
+        55,
+        21,
+        15,
+        61,
+        25,
+        37,
+        10,
+        64,
+        72,
+        41,
+        33,
+        43
+      ]
+    },
+    {
+      "id": "CLM-140187",
+      "roomId": "diamond-75",
+      "ticketId": "CARD-0",
+      "playerName": "RahulRahulGame_331",
+      "pattern": "Diamond",
+      "status": "approved",
+      "prize": 1000,
+      "timestamp": "09:28 PM",
+      "cells": [
+        33,
+        62,
+        24,
+        61,
+        58,
+        70,
+        39,
+        18,
+        37,
+        71,
+        13,
+        19,
+        69,
+        16
+      ]
+    },
+    {
+      "id": "CLM-984403",
+      "roomId": "diamond-75",
+      "ticketId": "CARD-0",
+      "playerName": "RahulRahulGame_331",
+      "pattern": "Diamond",
+      "status": "approved",
+      "prize": 1000,
+      "timestamp": "09:27 PM",
+      "cells": [
+        39,
+        32,
+        14,
+        6,
+        61,
+        9,
+        41,
+        21,
+        68,
+        63,
+        60,
+        15,
+        62,
+        20,
+        37
+      ]
+    },
+    {
+      "id": "CLM-924486",
+      "roomId": "diamond-75",
+      "ticketId": "CARD-0",
+      "playerName": "RahulRahulGame_331",
+      "pattern": "Diamond",
+      "status": "approved",
+      "prize": 1000,
+      "timestamp": "09:27 PM",
+      "cells": [
+        59,
+        6,
+        40,
+        49,
+        22,
+        58,
+        35,
+        12,
+        28,
+        45,
+        66,
+        37,
+        42,
+        55,
+        47
+      ]
+    },
+    {
+      "id": "CLM-423665",
+      "roomId": "diamond-75",
+      "ticketId": "CARD-0",
+      "playerName": "RahulRahulGame_331",
+      "pattern": "Diamond",
+      "status": "approved",
+      "prize": 1000,
+      "timestamp": "09:26 PM",
+      "cells": [
+        29,
+        15,
+        14,
+        39,
+        28,
+        74,
+        1,
+        26,
+        69,
+        5,
+        3,
+        24,
+        37,
+        56
+      ]
+    },
+    {
+      "id": "CLM-408952",
+      "roomId": "diamond-75",
+      "ticketId": "CARD-0",
+      "playerName": "RahulRahulGame_331",
+      "pattern": "Diamond",
+      "status": "approved",
+      "prize": 1000,
+      "timestamp": "09:23 PM",
+      "cells": [
+        61,
+        16,
+        20,
+        6,
+        48,
+        11,
+        3,
+        67,
+        66,
+        23,
+        58,
+        75,
+        41,
+        60
+      ]
+    },
+    {
+      "id": "CLM-159623",
+      "roomId": "diamond-75",
+      "ticketId": "CARD-0",
+      "playerName": "RahulRahulGame_331",
+      "pattern": "Diamond",
+      "status": "approved",
+      "prize": 1000,
+      "timestamp": "09:20 PM",
+      "cells": [
+        17,
+        7,
+        35,
+        25,
+        56,
+        20,
+        64,
+        57,
+        51,
+        22,
+        69,
+        2,
+        33,
+        62,
+        29,
+        63,
+        45
+      ]
+    },
+    {
+      "id": "CLM-131248",
+      "roomId": "diamond-75",
+      "ticketId": "CARD-0",
+      "playerName": "RahulRahulGame_331",
+      "pattern": "Diamond",
+      "status": "approved",
+      "prize": 1000,
+      "timestamp": "09:18 PM",
+      "cells": [
+        10,
+        22,
+        2,
+        59,
+        35,
+        12,
+        16,
+        62,
+        3,
+        43,
+        63,
+        65,
+        33
+      ]
+    },
+    {
+      "id": "CLM-989227",
+      "roomId": "diamond-75",
+      "ticketId": "CARD-0",
+      "playerName": "NovaPlayer_4511",
+      "pattern": "Diamond",
+      "status": "approved",
+      "prize": 1000,
+      "timestamp": "09:15 PM",
+      "cells": [
+        73,
+        24,
+        68,
+        56,
+        62,
+        3,
+        45,
+        58,
+        75,
+        54,
+        7,
+        71,
+        57,
+        65,
+        41
+      ]
+    },
+    {
+      "id": "CLM-845887",
+      "roomId": "trueig-90",
+      "ticketId": "CARD-0",
+      "playerName": "NovaPlayer_4511",
+      "pattern": "Full House",
+      "status": "approved",
+      "prize": 4188,
+      "timestamp": "09:14 PM",
+      "cells": [
+        37,
+        27,
+        26,
+        67,
+        53,
+        58,
+        73,
+        68,
+        11
+      ]
+    },
+    {
+      "id": "CLM-459140",
+      "roomId": "trueig-90",
+      "ticketId": "CARD-0",
+      "playerName": "NovaPlayer_4511",
+      "pattern": "Full House",
+      "status": "approved",
+      "prize": 4188,
+      "timestamp": "09:14 PM",
+      "cells": [
+        55,
+        46,
+        62,
+        44,
+        79,
+        89,
+        35,
+        81,
+        47
+      ]
+    },
+    {
+      "id": "CLM-756402",
+      "roomId": "trueig-90",
+      "ticketId": "CARD-0",
+      "playerName": "Ari.R",
+      "pattern": "Full House",
+      "status": "approved",
+      "prize": 4188,
+      "timestamp": "09:13 PM",
+      "cells": [
+        36,
+        23,
+        40,
+        78,
+        54,
+        22,
+        21,
+        85,
+        89,
+        28
+      ]
+    },
+    {
       "id": "CLM-757887",
       "roomId": "diamond-75",
       "ticketId": "CARD-0",
@@ -15021,7 +19299,7 @@
       "description": "Elite 4-round high stakes showdown with $50,000 prize pool.",
       "entryFee": 25,
       "prizePool": 50000,
-      "playersCount": 193,
+      "playersCount": 194,
       "maxPlayers": 256,
       "startsAt": "Daily · 21:00",
       "status": "Completed",
@@ -15042,7 +19320,8 @@
         "Round winner": "+50 pts"
       },
       "registeredPlayers": [
-        "Ari.R"
+        "Ari.R",
+        "Rahul"
       ],
       "standings": [
         {
@@ -15080,6 +19359,13 @@
           "points": 171,
           "wins": 1,
           "status": "Finalist"
+        },
+        {
+          "rank": 6,
+          "player": "Rahul",
+          "points": 0,
+          "wins": 0,
+          "status": "Qualified"
         }
       ],
       "engine": {
@@ -15462,7 +19748,9 @@
       "ends": "Tonight · 9 PM",
       "featured": true,
       "status": "Active",
-      "claimedBy": []
+      "claimedBy": [
+        "USR-11804"
+      ]
     },
     {
       "id": "weekend-cup-reward",
@@ -15481,7 +19769,9 @@
       "ends": "Ends Sunday",
       "featured": true,
       "status": "Active",
-      "claimedBy": []
+      "claimedBy": [
+        "USR-11804"
+      ]
     },
     {
       "id": "promo-1789661599686",
@@ -15500,7 +19790,9 @@
       "roomId": "diamond-75",
       "ends": "Ongoing",
       "featured": true,
-      "claimedBy": []
+      "claimedBy": [
+        "USR-11804"
+      ]
     },
     {
       "id": "promo-1789661649753",
@@ -15519,7 +19811,9 @@
       "roomId": "diamond-75",
       "ends": "Ongoing",
       "featured": true,
-      "claimedBy": []
+      "claimedBy": [
+        "USR-11804"
+      ]
     }
   ],
   "banners": [
@@ -15556,6 +19850,40 @@
       "imageWidth": 1672,
       "imageHeight": 941,
       "active": true
+    },
+    {
+      "id": "banner-1791215721948",
+      "roomId": "trueig-90",
+      "kicker": "SPECIAL EVENT",
+      "title": "Weekend Super Cup",
+      "body": "Join thousands of players and win huge jackpot prizes.",
+      "cta": "Play now",
+      "alt": "View games",
+      "seconds": 3000,
+      "theme": "tournament",
+      "value": "$25,000",
+      "image": "/banners/weekend-cup-jackpot.png",
+      "imageAlt": "Weekend Super Cup",
+      "imageWidth": 1880,
+      "imageHeight": 836,
+      "active": false
+    },
+    {
+      "id": "banner-1791215736411",
+      "roomId": "trueig-90",
+      "kicker": "SPECIAL EVENT",
+      "title": "Weekend Super Cup 1",
+      "body": "Join thousands of players and win huge jackpot prizes.",
+      "cta": "Play now",
+      "alt": "View games",
+      "seconds": 3000,
+      "theme": "tournament",
+      "value": "$25,000",
+      "image": "/banners/weekend-cup-jackpot.png",
+      "imageAlt": "Weekend Super Cup 1",
+      "imageWidth": 1880,
+      "imageHeight": 836,
+      "active": false
     }
   ],
   "chatMessages": {
@@ -15779,16 +20107,16 @@
       "id": "USR-11804",
       "username": "Ari.R",
       "tier": "Standard",
-      "balance": 105428.5,
+      "balance": 105418.5,
       "gamesPlayed": 128,
-      "cardsPurchased": 399,
+      "cardsPurchased": 400,
       "wins": 18,
       "totalPrizes": 2840,
       "restrictions": [],
       "lastLogin": "Just now",
       "status": "Active",
       "password": "demo123",
-      "totalEntry": 480
+      "totalEntry": 490
     },
     {
       "id": "USR-07226",
@@ -15815,15 +20143,15 @@
       "email": "rahul@trueigtech.com",
       "joinedDate": "Sep 19, 2026",
       "tier": "Standard",
-      "balance": 8,
+      "balance": 55,
       "gamesPlayed": 0,
-      "cardsPurchased": 8,
+      "cardsPurchased": 11,
       "wins": 0,
       "totalPrizes": 0,
       "restrictions": [],
       "lastLogin": "Just now",
       "status": "Active",
-      "totalEntry": 64,
+      "totalEntry": 67,
       "password": "RahulSecretPass@77"
     },
     {
@@ -15833,15 +20161,16 @@
       "email": "novaplayer_4511@trueigtech.com",
       "joinedDate": "Sep 19, 2026",
       "tier": "Standard",
-      "balance": 100,
+      "balance": 78,
       "gamesPlayed": 0,
-      "cardsPurchased": 0,
+      "cardsPurchased": 3,
       "wins": 0,
       "totalPrizes": 0,
       "restrictions": [],
       "lastLogin": "Just now",
       "status": "Active",
-      "password": "demo123"
+      "password": "demo123",
+      "totalEntry": 22
     },
     {
       "id": "USR-27684",
@@ -15938,15 +20267,16 @@
       "email": "rahulrahulgame_331@player.trueigtech.com",
       "joinedDate": "Sep 19, 2026",
       "tier": "Standard",
-      "balance": 100,
+      "balance": 6142,
       "gamesPlayed": 0,
-      "cardsPurchased": 0,
-      "wins": 0,
-      "totalPrizes": 0,
+      "cardsPurchased": 25,
+      "wins": 3,
+      "totalPrizes": 6188,
       "restrictions": [],
       "lastLogin": "Just now",
       "status": "Active",
-      "password": "RahulSecretPass@77"
+      "password": "RahulSecretPass@77",
+      "totalEntry": 146
     },
     {
       "id": "USR-99125",
@@ -16107,354 +20437,354 @@
   },
   "auditFeed": [
     {
-      "id": "feed-1790607146388",
+      "id": "feed-1791216126735",
+      "type": "alert",
+      "title": "Room updated",
+      "detail": "Trueig 910Classic settings modified (Ticket: $100, Prize: $200)",
+      "time": "21:32"
+    },
+    {
+      "id": "feed-1791216077081",
+      "type": "alert",
+      "title": "Round restarted",
+      "detail": "Game round reset in trueig-90",
+      "time": "21:31"
+    },
+    {
+      "id": "feed-1791216075184",
+      "type": "claim",
+      "title": "Bingo claim validated",
+      "detail": "Trueig 910Classic · RahulRahulGame_331 won $4188 on Full House",
+      "time": "21:31"
+    },
+    {
+      "id": "feed-1791216056684",
+      "type": "player",
+      "title": "Tickets purchased",
+      "detail": "1 card bought for Trueig 910Classic ($100.00) by RahulRahulGame_331",
+      "time": "21:30"
+    },
+    {
+      "id": "feed-1791216043737",
+      "type": "alert",
+      "title": "Room updated",
+      "detail": "Trueig Pattern Arena settings modified (Ticket: $100, Prize: $580)",
+      "time": "21:30"
+    },
+    {
+      "id": "feed-1791216037516",
+      "type": "alert",
+      "title": "Room updated",
+      "detail": "Mega Trueig Jackpot settings modified (Ticket: $50, Prize: $4836)",
+      "time": "21:30"
+    },
+    {
+      "id": "feed-1791216032938",
+      "type": "alert",
+      "title": "Room updated",
+      "detail": "Diamond 75 settings modified (Ticket: $20, Prize: $1500)",
+      "time": "21:30"
+    },
+    {
+      "id": "feed-1791216023668",
+      "type": "alert",
+      "title": "Room updated",
+      "detail": "Trueig 910Classic settings modified (Ticket: $100, Prize: $5688)",
+      "time": "21:30"
+    },
+    {
+      "id": "feed-1791215975401",
       "type": "alert",
       "title": "Round restarted",
       "detail": "Game round reset in diamond-75",
-      "time": "20:22"
+      "time": "21:29"
     },
     {
-      "id": "feed-1790607142621",
+      "id": "feed-1791215971433",
       "type": "claim",
       "title": "Bingo claim validated",
-      "detail": "Diamond 75 · TrueigQueen won $1000 on Diamond",
-      "time": "20:22"
+      "detail": "Diamond 75 · RahulRahulGame_331 won $1000 on Diamond",
+      "time": "21:29"
     },
     {
-      "id": "feed-1790607120472",
+      "id": "feed-1791215949002",
       "type": "player",
       "title": "Tickets purchased",
-      "detail": "1 card bought for Diamond 75 ($2.00) by TrueigQueen",
-      "time": "20:22"
+      "detail": "1 card bought for Diamond 75 ($2.00) by RahulRahulGame_331",
+      "time": "21:29"
     },
     {
-      "id": "feed-1790607097455",
-      "type": "alert",
-      "title": "Tournament stage scored",
-      "detail": "Trueigtech Weekend Cup Qualifiers scored. Leader: Ari.R",
-      "time": "20:21"
-    },
-    {
-      "id": "feed-1790607073540",
+      "id": "feed-1791215926232",
       "type": "alert",
       "title": "Round restarted",
-      "detail": "Game round reset in trueig-90",
-      "time": "20:21"
+      "detail": "Game round reset in diamond-75",
+      "time": "21:28"
     },
     {
-      "id": "feed-1790607071515",
+      "id": "feed-1791215922110",
       "type": "claim",
       "title": "Bingo claim validated",
-      "detail": "Trueig 910Classic · TrueigQueen won $4188 on Full House",
-      "time": "20:21"
+      "detail": "Diamond 75 · RahulRahulGame_331 won $1000 on Diamond",
+      "time": "21:28"
     },
     {
-      "id": "feed-1790607054894",
+      "id": "feed-1791215899833",
       "type": "player",
       "title": "Tickets purchased",
-      "detail": "1 card bought for Trueig 910Classic ($10.00) by TrueigQueen",
-      "time": "20:20"
+      "detail": "8 cards bought for Diamond 75 ($16.00) by RahulRahulGame_331",
+      "time": "21:28"
     },
     {
-      "id": "feed-1790607050759",
+      "id": "feed-1791215887787",
+      "type": "player",
+      "title": "Tickets purchased",
+      "detail": "8 cards bought for Diamond 75 ($16.00) by RahulRahulGame_331",
+      "time": "21:28"
+    },
+    {
+      "id": "feed-1791215876634",
       "type": "alert",
       "title": "Round restarted",
-      "detail": "Game round reset in trueig-90",
-      "time": "20:20"
+      "detail": "Game round reset in diamond-75",
+      "time": "21:27"
     },
     {
-      "id": "feed-1790607035059",
+      "id": "feed-1791215865599",
       "type": "claim",
       "title": "Bingo claim validated",
-      "detail": "Trueig 910Classic · TrueigQueen won $4188 on Full House",
-      "time": "20:20"
+      "detail": "Diamond 75 · RahulRahulGame_331 won $1000 on Diamond",
+      "time": "21:27"
     },
     {
-      "id": "feed-1790434860651",
+      "id": "feed-1791215842202",
       "type": "player",
       "title": "Tickets purchased",
-      "detail": "1 card bought for Trueig 910Classic ($10.00) by Ari.R",
-      "time": "20:31"
+      "detail": "1 card bought for Diamond 75 ($2.00) by RahulRahulGame_331",
+      "time": "21:27"
     },
     {
-      "id": "feed-1790093373459",
-      "type": "claim",
-      "title": "Bingo claim validated",
-      "detail": "Trueig 910Classic · Ari.R won $4188 on Full House",
-      "time": "21:39"
-    },
-    {
-      "id": "feed-1790093355895",
-      "type": "player",
-      "title": "Tickets purchased",
-      "detail": "1 card bought for Trueig 910Classic ($10.00) by Ari.R",
-      "time": "21:39"
-    },
-    {
-      "id": "feed-1790016386506",
+      "id": "feed-1791215823210",
       "type": "alert",
       "title": "Round restarted",
-      "detail": "Game round reset in trueig-90",
-      "time": "00:16"
+      "detail": "Game round reset in diamond-75",
+      "time": "21:27"
     },
     {
-      "id": "feed-1790016383411",
+      "id": "feed-1791215820357",
       "type": "claim",
       "title": "Bingo claim validated",
-      "detail": "Trueig 910Classic · Ari.R won $4188 on Full House",
-      "time": "00:16"
+      "detail": "Diamond 75 · RahulRahulGame_331 won $1000 on Diamond",
+      "time": "21:27"
     },
     {
-      "id": "feed-1790016365924",
+      "id": "feed-1791215797004",
       "type": "player",
       "title": "Tickets purchased",
-      "detail": "1 card bought for Trueig 910Classic ($10.00) by Ari.R",
-      "time": "00:16"
+      "detail": "1 card bought for Diamond 75 ($2.00) by RahulRahulGame_331",
+      "time": "21:26"
     },
     {
-      "id": "feed-1790016342654",
-      "type": "alert",
-      "title": "Tournament stage scored",
-      "detail": "Trueigtech Weekend Cup Qualifiers scored. Leader: Ari.R",
-      "time": "00:15"
-    },
-    {
-      "id": "feed-1790016199193",
-      "type": "alert",
-      "title": "Tournament stage scored",
-      "detail": "Trueigtech Weekend Cup Qualifiers scored. Leader: Ari.R",
-      "time": "00:13"
-    },
-    {
-      "id": "feed-1790015877601",
-      "type": "claim",
-      "title": "Bingo claim validated",
-      "detail": "Trueig 910Classic · Ari.R won $4188 on Full House",
-      "time": "00:07"
-    },
-    {
-      "id": "feed-1790015860510",
-      "type": "player",
-      "title": "Tickets purchased",
-      "detail": "4 cards bought for Trueig 910Classic ($40.00) by Ari.R",
-      "time": "00:07"
-    },
-    {
-      "id": "feed-1790015855340",
-      "type": "player",
-      "title": "Tickets purchased",
-      "detail": "4 cards bought for Trueig 910Classic ($40.00) by Ari.R",
-      "time": "00:07"
-    },
-    {
-      "id": "feed-1790015843242",
+      "id": "feed-1791215790495",
       "type": "alert",
       "title": "Round restarted",
-      "detail": "Game round reset in trueig-90",
-      "time": "00:07"
+      "detail": "Game round reset in diamond-75",
+      "time": "21:26"
     },
     {
-      "id": "feed-1790015840100",
+      "id": "feed-1791215788656",
       "type": "claim",
       "title": "Bingo claim validated",
-      "detail": "Trueig 910Classic · Ari.R won $4188 on Full House",
-      "time": "00:07"
+      "detail": "Diamond 75 · RahulRahulGame_331 won $1000 on Diamond",
+      "time": "21:26"
     },
     {
-      "id": "feed-1790015821806",
+      "id": "feed-1791215736411",
+      "type": "alert",
+      "title": "Banner created",
+      "detail": "Banner \"Weekend Super Cup 1\" added to lobby",
+      "time": "21:25"
+    },
+    {
+      "id": "feed-1791215721948",
+      "type": "alert",
+      "title": "Banner created",
+      "detail": "Banner \"Weekend Super Cup\" added to lobby",
+      "time": "21:25"
+    },
+    {
+      "id": "feed-1791215650625",
       "type": "player",
       "title": "Tickets purchased",
-      "detail": "2 cards bought for Trueig 910Classic ($20.00) by Ari.R",
-      "time": "00:07"
+      "detail": "1 card bought for Diamond 75 ($2.00) by RahulRahulGame_331",
+      "time": "21:24"
     },
     {
-      "id": "feed-1790015818790",
-      "type": "alert",
-      "title": "Round restarted",
-      "detail": "Game round reset in trueig-90",
-      "time": "00:06"
+      "id": "feed-1791215645859",
+      "type": "player",
+      "title": "Promotion claimed",
+      "detail": "Ari.R claimed Happy Hour Bingo",
+      "time": "21:24"
     },
     {
-      "id": "feed-1790015813426",
-      "type": "claim",
-      "title": "Bingo claim validated",
-      "detail": "Trueig 910Classic · Ari.R won $4188 on Full House",
-      "time": "00:06"
-    },
-    {
-      "id": "feed-1790015808325",
-      "type": "claim",
-      "title": "Bingo claim validated",
-      "detail": "Trueig 910Classic · Ari.R won $4188 on Two Lines",
-      "time": "00:06"
-    },
-    {
-      "id": "feed-1790015804341",
-      "type": "claim",
-      "title": "Bingo claim validated",
-      "detail": "Trueig 910Classic · Ari.R won $4188 on One Line",
-      "time": "00:06"
-    },
-    {
-      "id": "feed-1790015792644",
+      "id": "feed-1791215622146",
       "type": "player",
       "title": "Tickets purchased",
-      "detail": "1 card bought for Trueig 910Classic ($10.00) by Ari.R",
-      "time": "00:06"
+      "detail": "1 card bought for Free Bingo Party ($0.00) by RahulRahulGame_331",
+      "time": "21:23"
     },
     {
-      "id": "feed-1790015766560",
-      "type": "alert",
-      "title": "Tournament stage scored",
-      "detail": "Trueigtech Weekend Cup Qualifiers scored. Leader: LuckyStar",
-      "time": "00:06"
-    },
-    {
-      "id": "feed-1790015738443",
-      "type": "alert",
-      "title": "Tournament stage scored",
-      "detail": "Trueigtech Weekend Cup Qualifiers scored. Leader: Ari.R",
-      "time": "00:05"
-    },
-    {
-      "id": "feed-1790015726635",
-      "type": "player",
-      "title": "Tournament registration",
-      "detail": "Ari.R joined Trueigtech Weekend Cup",
-      "time": "00:05"
-    },
-    {
-      "id": "feed-1790015612575",
+      "id": "feed-1791215584289",
       "type": "alert",
       "title": "Round restarted",
-      "detail": "Game round reset in pattern-arena",
-      "time": "00:03"
+      "detail": "Game round reset in diamond-75",
+      "time": "21:23"
     },
     {
-      "id": "feed-1790015588925",
+      "id": "feed-1791215583495",
+      "type": "claim",
+      "title": "Bingo claim validated",
+      "detail": "Diamond 75 · RahulRahulGame_331 won $1000 on Diamond",
+      "time": "21:23"
+    },
+    {
+      "id": "feed-1791215561377",
       "type": "player",
       "title": "Tickets purchased",
-      "detail": "1 card bought for Trueig Pattern Arena ($1.50) by Ari.R",
-      "time": "00:03"
+      "detail": "1 card bought for Diamond 75 ($2.00) by RahulRahulGame_331",
+      "time": "21:22"
     },
     {
-      "id": "feed-1790015587393",
-      "type": "alert",
-      "title": "Round restarted",
-      "detail": "Game round reset in pattern-arena",
-      "time": "00:03"
-    },
-    {
-      "id": "feed-1790015400504",
-      "type": "alert",
-      "title": "Tournament stage scored",
-      "detail": "Trueigtech Weekend Cup Qualifiers scored. Leader: LuckyStar",
-      "time": "00:00"
-    },
-    {
-      "id": "feed-1790015309481",
-      "type": "alert",
-      "title": "Tournament stage scored",
-      "detail": "Trueigtech Weekend Cup Qualifiers scored. Leader: LuckyStar",
-      "time": "23:58"
-    },
-    {
-      "id": "feed-1790015282444",
-      "type": "alert",
-      "title": "Tournament started",
-      "detail": "Trueigtech Weekend Cup launched with Stage 1: Qualifiers",
-      "time": "23:58"
-    },
-    {
-      "id": "feed-1790015267396",
+      "id": "feed-1791215556564",
       "type": "player",
-      "title": "Tournament registration",
-      "detail": "Ari.R joined Trueigtech Weekend Cup",
-      "time": "23:57"
+      "title": "Promotion claimed",
+      "detail": "Ari.R claimed Happy Hour Bingo",
+      "time": "21:22"
     },
     {
-      "id": "feed-1790015244349",
-      "type": "alert",
-      "title": "Tournament created",
-      "detail": "New tournament: Trueigtech Weekend Cup (Prize: $200)",
-      "time": "23:57"
-    },
-    {
-      "id": "feed-1790015217499",
-      "type": "alert",
-      "title": "Tournament deleted",
-      "detail": "Tournament Trueigtech Weekend Cup deleted",
-      "time": "23:56"
-    },
-    {
-      "id": "feed-1790015175766",
-      "type": "alert",
-      "title": "Tournament stage scored",
-      "detail": "Trueigtech Weekend Cup Round of 256 scored. Leader: Ari.R",
-      "time": "23:56"
-    },
-    {
-      "id": "feed-1790015166403",
-      "type": "alert",
-      "title": "Tournament stage scored",
-      "detail": "Trueigtech Weekend Cup Round of 256 scored. Leader: Ari.R",
-      "time": "23:56"
-    },
-    {
-      "id": "feed-1790015156925",
-      "type": "alert",
-      "title": "Tournament stage scored",
-      "detail": "Trueigtech Weekend Cup Round of 256 scored. Leader: Ari.R",
-      "time": "23:55"
-    },
-    {
-      "id": "feed-1790015076781",
-      "type": "alert",
-      "title": "Tournament stage scored",
-      "detail": "Trueigtech Weekend Cup Round of 256 scored. Leader: Ari.R",
-      "time": "23:54"
-    },
-    {
-      "id": "feed-1790014889544",
+      "id": "feed-1791215544294",
       "type": "alert",
       "title": "Round restarted",
       "detail": "Game round reset in free-party",
-      "time": "23:51"
+      "time": "21:22"
     },
     {
-      "id": "feed-1790014865794",
+      "id": "feed-1791215406178",
       "type": "alert",
       "title": "Round restarted",
-      "detail": "Game round reset in free-party",
-      "time": "23:51"
+      "detail": "Game round reset in diamond-75",
+      "time": "21:20"
     },
     {
-      "id": "feed-1790014823911",
+      "id": "feed-1791215404551",
       "type": "claim",
-      "title": "Operator declared winner",
-      "detail": "LuckyStar awarded $400 in Trueig 910Classic",
-      "time": "23:50"
+      "title": "Bingo claim validated",
+      "detail": "Diamond 75 · RahulRahulGame_331 won $1000 on Diamond",
+      "time": "21:20"
     },
     {
-      "id": "feed-1790014811246",
+      "id": "feed-1791215378780",
+      "type": "player",
+      "title": "Tickets purchased",
+      "detail": "1 card bought for Diamond 75 ($2.00) by RahulRahulGame_331",
+      "time": "21:19"
+    },
+    {
+      "id": "feed-1791215299132",
       "type": "alert",
-      "title": "Round cancelled",
-      "detail": "Cancelled and refunded trueig-90",
-      "time": "23:50"
+      "title": "Round restarted",
+      "detail": "Game round reset in diamond-75",
+      "time": "21:18"
     },
     {
-      "id": "feed-1790014809946",
+      "id": "feed-1791215294399",
+      "type": "claim",
+      "title": "Bingo claim validated",
+      "detail": "Diamond 75 · RahulRahulGame_331 won $1000 on Diamond",
+      "time": "21:18"
+    },
+    {
+      "id": "feed-1791215273465",
+      "type": "player",
+      "title": "Tickets purchased",
+      "detail": "1 card bought for Diamond 75 ($2.00) by RahulRahulGame_331",
+      "time": "21:17"
+    },
+    {
+      "id": "feed-1791215150913",
+      "type": "alert",
+      "title": "Round restarted",
+      "detail": "Game round reset in diamond-75",
+      "time": "21:15"
+    },
+    {
+      "id": "feed-1791215142848",
+      "type": "claim",
+      "title": "Bingo claim validated",
+      "detail": "Diamond 75 · NovaPlayer_4511 won $1000 on Diamond",
+      "time": "21:15"
+    },
+    {
+      "id": "feed-1791215119499",
+      "type": "player",
+      "title": "Tickets purchased",
+      "detail": "1 card bought for Diamond 75 ($2.00) by NovaPlayer_4511",
+      "time": "21:15"
+    },
+    {
+      "id": "feed-1791215086613",
       "type": "alert",
       "title": "Round restarted",
       "detail": "Game round reset in trueig-90",
-      "time": "23:50"
+      "time": "21:14"
     },
     {
-      "id": "feed-1790014806429",
+      "id": "feed-1791215073834",
+      "type": "claim",
+      "title": "Bingo claim validated",
+      "detail": "Trueig 910Classic · NovaPlayer_4511 won $4188 on Full House",
+      "time": "21:14"
+    },
+    {
+      "id": "feed-1791215057195",
+      "type": "player",
+      "title": "Tickets purchased",
+      "detail": "1 card bought for Trueig 910Classic ($10.00) by NovaPlayer_4511",
+      "time": "21:14"
+    },
+    {
+      "id": "feed-1791215052480",
       "type": "alert",
-      "title": "Manual ball call",
-      "detail": "O-61 called manually in trueig-90",
-      "time": "23:50"
+      "title": "Round restarted",
+      "detail": "Game round reset in trueig-90",
+      "time": "21:14"
+    },
+    {
+      "id": "feed-1791215050250",
+      "type": "claim",
+      "title": "Bingo claim validated",
+      "detail": "Trueig 910Classic · NovaPlayer_4511 won $4188 on Full House",
+      "time": "21:14"
+    },
+    {
+      "id": "feed-1791215033617",
+      "type": "player",
+      "title": "Tickets purchased",
+      "detail": "1 card bought for Trueig 910Classic ($10.00) by NovaPlayer_4511",
+      "time": "21:13"
+    },
+    {
+      "id": "feed-1791215019652",
+      "type": "alert",
+      "title": "Round restarted",
+      "detail": "Game round reset in trueig-90",
+      "time": "21:13"
+    },
+    {
+      "id": "feed-1791215011302",
+      "type": "claim",
+      "title": "Bingo claim validated",
+      "detail": "Trueig 910Classic · Ari.R won $4188 on Full House",
+      "time": "21:13"
     }
   ],
   "sessions": {
@@ -16660,6 +20990,69 @@
       "userId": "USR-10482",
       "createdAt": "2026-09-21T16:23:52.732Z",
       "lastSeen": "2026-09-28T14:52:25.087Z"
+    },
+    "tig_sess_hhlcxwfx_1791214154414": {
+      "token": "tig_sess_hhlcxwfx_1791214154414",
+      "username": "RiskyB",
+      "userId": "USR-07226",
+      "createdAt": "2026-10-05T15:29:14.414Z",
+      "lastSeen": "2026-10-05T15:29:15.467Z"
+    },
+    "tig_sess_bkobu417_1791214156197": {
+      "token": "tig_sess_bkobu417_1791214156197",
+      "username": "Ari.R",
+      "userId": "USR-11804",
+      "createdAt": "2026-10-05T15:29:16.197Z",
+      "lastSeen": "2026-10-05T15:29:16.245Z"
+    },
+    "tig_sess_wfl7cb1q_1791214156912": {
+      "token": "tig_sess_wfl7cb1q_1791214156912",
+      "username": "RiskyB",
+      "userId": "USR-07226",
+      "createdAt": "2026-10-05T15:29:16.912Z",
+      "lastSeen": "2026-10-05T15:29:23.961Z"
+    },
+    "tig_sess_ycfqbhng_1791214163048": {
+      "token": "tig_sess_ycfqbhng_1791214163048",
+      "username": "NovaPlayer_4511",
+      "userId": "USR-58063",
+      "createdAt": "2026-10-05T15:29:23.048Z",
+      "lastSeen": "2026-10-05T15:30:43.967Z"
+    },
+    "tig_sess_x1edckzd_1791214247404": {
+      "token": "tig_sess_x1edckzd_1791214247404",
+      "username": "Rahul",
+      "userId": "USR-68648",
+      "createdAt": "2026-10-05T15:30:47.404Z",
+      "lastSeen": "2026-10-05T15:39:40.385Z"
+    },
+    "tig_sess_foz3edxh_1791214803269": {
+      "token": "tig_sess_foz3edxh_1791214803269",
+      "username": "MikaK",
+      "userId": "USR-09814",
+      "createdAt": "2026-10-05T15:40:03.269Z",
+      "lastSeen": "2026-10-05T15:41:41.912Z"
+    },
+    "tig_sess_fq4ksd6i_1791214906740": {
+      "token": "tig_sess_fq4ksd6i_1791214906740",
+      "username": "Ari.R",
+      "userId": "USR-11804",
+      "createdAt": "2026-10-05T15:41:46.740Z",
+      "lastSeen": "2026-10-05T15:43:42.284Z"
+    },
+    "tig_sess_f175lqlc_1791215030314": {
+      "token": "tig_sess_f175lqlc_1791215030314",
+      "username": "NovaPlayer_4511",
+      "userId": "USR-58063",
+      "createdAt": "2026-10-05T15:43:50.314Z",
+      "lastSeen": "2026-10-05T15:47:08.616Z"
+    },
+    "tig_sess_26mion9b_1791215245600": {
+      "token": "tig_sess_26mion9b_1791215245600",
+      "username": "RahulRahulGame_331",
+      "userId": "USR-30800",
+      "createdAt": "2026-10-05T15:47:25.600Z",
+      "lastSeen": "2026-10-05T16:04:18.299Z"
     }
   }
 }

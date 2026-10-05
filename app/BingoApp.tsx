@@ -191,14 +191,6 @@ export default function Home({ initialMode = "player" }: { initialMode?: AppMode
             currentUser={currentUser}
             onOpenAuth={() => setAuthModalOpen(true)}
             openAuthModal={() => setAuthModalOpen(true)}
-            onAddFunds={async () => {
-              const res = await apiClient.wallet.deposit(50, currentUser?.username);
-              if (res && typeof res.balance === "number") {
-                setWallet(res.balance);
-                refreshUser(currentUser?.username);
-                notify(`Added $50.00 to wallet! Balance: $${res.balance.toFixed(2)}`);
-              }
-            }}
           />
           {playerView === "lobby" && <PlayerLobby rooms={rooms} enterRoom={enterRoom} setView={setPlayerView} />}
           {playerView === "room" && (

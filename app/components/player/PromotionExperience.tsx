@@ -188,18 +188,6 @@ export function PromotionExperience({
     notify(`Opening ${targetRoom.name} with your active ${code} reward applied.`);
   }
 
-  const handleAddFunds = async () => {
-    try {
-      const res = await apiClient.wallet.deposit(50);
-      if (res && typeof res.balance === "number") {
-        setWallet(res.balance);
-        notify(`Added $50.00 to wallet! Balance: $${res.balance.toFixed(2)}`);
-      }
-    } catch {
-      notify("Failed to add funds. Please try again.");
-    }
-  };
-
   return (
     <div className="simple-player-page promotions-experience">
       <header className="promotions-page-header">
@@ -216,7 +204,6 @@ export function PromotionExperience({
             <small>REWARD WALLET</small>
             <strong>{money(wallet)}</strong>
           </div>
-          <button onClick={handleAddFunds}>+ Add funds</button>
         </div>
       </header>
 

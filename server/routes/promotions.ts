@@ -103,8 +103,22 @@ promotionsRouter.post("/:id/claim", (req: Request, res: Response) => {
   promo.claimedBy.push(userId);
 
   // Apply reward
+  let awardedWallet = store.wallet;
   if (promo.rewardType === "credits" && promo.rewardValue > 0) {
-    store.wallet += promo.rewardValue;
+    const player = store.players.find(
+      (p) => p.id === userId || p.username.toLowerCase() === playerName.toLowerCase()
+    );
+    if (player) {
+      player.balance = Math.round((player.balance + promo.rewardValue) * 100) / 100;
+      awardedWallet = player.balance;
+      if (player.username.toLowerCase() === (store.activeUsername || "Ari.R").toLowerCase()) {
+        store.wallet = player.balance;
+      }
+    } else {
+      store.wallet = Math.round((store.wallet + promo.rewardValue) * 100) / 100;
+      awardedWallet = store.wallet;
+    }
+
     store.addTransaction({
       player: playerName,
       room: "Promotions",
@@ -112,7 +126,10 @@ promotionsRouter.post("/:id/claim", (req: Request, res: Response) => {
       amount: promo.rewardValue,
       status: "Completed",
     });
-    syncBus.emitChange("wallet", "promotion-credit", { wallet: store.wallet, amount: promo.rewardValue });
+    syncBus.emitChange("wallet", "promotion-credit", { wallet: awardedWallet, balance: awardedWallet, amount: promo.rewardValue, player: playerName });
+    if (player) {
+      syncBus.emitChange("players", "update", { player, user: player, username: player.username });
+    }
   }
 
   store.addAudit("player", "Promotion claimed", `${playerName} claimed ${promo.title}`);
@@ -123,7 +140,7 @@ promotionsRouter.post("/:id/claim", (req: Request, res: Response) => {
   res.json({
     success: true,
     promotion: promo,
-    wallet: store.wallet,
+    wallet: awardedWallet,
     message: `Claimed ${promo.title}! Reward applied to your account.`,
   });
 });

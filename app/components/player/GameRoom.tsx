@@ -624,7 +624,7 @@ export function GameRoom({
       // Intermediate stage win: do NOT block screen with modal! Keep user in live game!
       setLastWinner(`${names.join(" & ")} · ${money(total)}`);
       if (names.includes(currentUsername)) {
-        setWallet(Math.round((wallet + splitPrize) * 100) / 100);
+        setWallet((prev) => Math.round((prev + splitPrize) * 100) / 100);
         apiClient.game.claim(room.id, { ticketId: `CARD-${activeCard}`, playerName: currentUsername, manualPattern: activeStage.name }).then((res) => {
           if (res?.wallet !== undefined) setWallet(res.wallet);
         });
@@ -655,7 +655,7 @@ export function GameRoom({
           }).catch(() => {});
           notify(`🎉 MEGA JACKPOT WON! You scored Full House in ${called.length} balls and won ${money(splitPrize)}!`);
         } else {
-          setWallet(Math.round((wallet + splitPrize) * 100) / 100);
+          setWallet((prev) => Math.round((prev + splitPrize) * 100) / 100);
           apiClient.game.claim(room.id, { ticketId: `CARD-${activeCard}`, playerName: currentUsername, manualPattern: activeStage.name }).then((res) => {
             if (res?.wallet !== undefined) setWallet(res.wallet);
           });

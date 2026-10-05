@@ -195,17 +195,32 @@ gameRouter.post("/:roomId/cancel", (req: Request, res: Response) => {
   const userTickets = store.tickets.filter((t) => t.roomId === req.params.roomId);
   const room = store.rooms.find((r) => r.id === req.params.roomId);
   const refundAmount = room ? userTickets.length * room.ticketPrice : 0;
+  let awardedWallet = store.wallet;
 
   if (refundAmount > 0) {
-    store.wallet += refundAmount;
+    const resolved = store.resolveUser(req);
+    const targetPlayerName = (req.body?.player as string) || (req.headers["x-player-username"] as string) || resolved?.username || store.activeUsername || "Ari.R";
+    const player = resolved || store.players.find(
+      (p) => p.username.toLowerCase() === targetPlayerName.toLowerCase() || p.id.toLowerCase() === targetPlayerName.toLowerCase()
+    );
+    if (player) {
+      player.balance = Math.round((player.balance + refundAmount) * 100) / 100;
+      awardedWallet = player.balance;
+      if (player.username.toLowerCase() === (store.activeUsername || "Ari.R").toLowerCase()) {
+        store.wallet = player.balance;
+      }
+    } else {
+      store.wallet = Math.round((store.wallet + refundAmount) * 100) / 100;
+      awardedWallet = store.wallet;
+    }
     store.addTransaction({
-      player: "Ari.R",
+      player: targetPlayerName,
       room: room?.name ?? req.params.roomId,
       type: "Refund",
       amount: refundAmount,
       status: "Completed",
     });
-    syncBus.emitChange("wallet", "refund", { wallet: store.wallet, refundAmount }, req.params.roomId);
+    syncBus.emitChange("wallet", "refund", { wallet: awardedWallet, balance: awardedWallet, refundAmount, player: targetPlayerName }, req.params.roomId);
   }
 
   store.addAudit("alert", "Round cancelled", `Cancelled and refunded ${req.params.roomId}`);
@@ -223,6 +238,7 @@ gameRouter.post("/:roomId/cancel", (req: Request, res: Response) => {
     success: true,
     message: `Round cancelled. Refunded $${refundAmount.toFixed(2)} to wallet.`,
     refundAmount,
+    wallet: awardedWallet,
     state: session,
   });
 });
@@ -238,17 +254,29 @@ gameRouter.post("/:roomId/claim", (req: Request, res: Response) => {
     return;
   }
 
+  const resolved = store.resolveUser(req);
+  const targetPlayerName = playerName || (req.headers["x-player-username"] as string) || resolved?.username || store.activeUsername || "Ari.R";
+  const winnerPlayer = resolved || store.players.find(
+    (p) => p.username.toLowerCase() === targetPlayerName.toLowerCase() || p.id.toLowerCase() === targetPlayerName.toLowerCase()
+  );
+
   // Find ticket
   const ticket = store.tickets.find((t) => t.id === ticketId);
+  const calledBalls: number[] = (Array.isArray(req.body.called) && req.body.called.length > 0)
+    ? req.body.called
+    : (Array.isArray(req.body.calledNumbers) && req.body.calledNumbers.length > 0)
+    ? req.body.calledNumbers
+    : session.called;
+
   const patternToTest =
     manualPattern ||
     (room.winningStages && room.winningStages[session.stageIndex]
       ? room.winningStages[session.stageIndex].name
       : room.pattern);
 
-  const isValid = ticket
-    ? PatternValidator.checkPattern(ticket.cells, session.called, patternToTest)
-    : true; // fallback if claimed without specific ticket record
+  const isValid = ticket && calledBalls.length > 0
+    ? PatternValidator.checkPattern(ticket.cells, calledBalls, patternToTest)
+    : true; // fallback if claimed without specific ticket record or in client-managed session
 
   const currentStage = room.winningStages?.[session.stageIndex];
   let prize = currentStage && currentStage.prize > 0 ? currentStage.prize : room.prize;
@@ -261,26 +289,39 @@ gameRouter.post("/:roomId/claim", (req: Request, res: Response) => {
     id: `CLM-${Math.floor(100000 + Math.random() * 900000)}`,
     roomId: req.params.roomId,
     ticketId: ticketId || "DEFAULT",
-    playerName,
+    playerName: targetPlayerName,
     pattern: patternToTest,
     status: isValid ? "approved" : "rejected",
     prize: isValid ? prize : 0,
     timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-    cells: session.called,
+    cells: calledBalls.length > 0 ? calledBalls : session.called,
   };
 
   store.claims.unshift(claim);
+  let awardedWallet = store.wallet;
 
   if (isValid) {
-    session.winnerNames = [playerName];
+    session.winnerNames = [targetPlayerName];
     session.winnerPrize = prize;
     session.winnerPattern = patternToTest;
-    session.lastWinner = `${playerName} · $${prize}`;
+    session.lastWinner = `${targetPlayerName} · $${prize}`;
 
     // Credit player wallet
-    store.wallet += prize;
+    if (winnerPlayer) {
+      winnerPlayer.balance = Math.round((winnerPlayer.balance + prize) * 100) / 100;
+      winnerPlayer.wins = (winnerPlayer.wins ?? 0) + 1;
+      winnerPlayer.totalPrizes = Math.round(((winnerPlayer.totalPrizes ?? 0) + prize) * 100) / 100;
+      awardedWallet = winnerPlayer.balance;
+      if (winnerPlayer.username.toLowerCase() === (store.activeUsername || "Ari.R").toLowerCase()) {
+        store.wallet = winnerPlayer.balance;
+      }
+    } else {
+      store.wallet = Math.round((store.wallet + prize) * 100) / 100;
+      awardedWallet = store.wallet;
+    }
+
     store.addTransaction({
-      player: playerName,
+      player: targetPlayerName,
       room: room.name,
       type: "Prize payout",
       amount: prize,
@@ -290,7 +331,7 @@ gameRouter.post("/:roomId/claim", (req: Request, res: Response) => {
     store.addAudit(
       "claim",
       "Bingo claim validated",
-      `${room.name} · ${playerName} won $${prize} on ${patternToTest}`
+      `${room.name} · ${targetPlayerName} won $${prize} on ${patternToTest}`
     );
 
     // If more stages exist and continueAfterWin is true
@@ -306,11 +347,14 @@ gameRouter.post("/:roomId/claim", (req: Request, res: Response) => {
       "claim",
       { claim, state: session },
       req.params.roomId,
-      `🎉 BINGO! ${playerName} won $${prize.toFixed(2)} with ${patternToTest}!`
+      `🎉 BINGO! ${targetPlayerName} won $${prize.toFixed(2)} with ${patternToTest}!`
     );
-    syncBus.emitChange("wallet", "win", { wallet: store.wallet, prize });
+    syncBus.emitChange("wallet", "win", { wallet: awardedWallet, balance: awardedWallet, prize, player: targetPlayerName });
+    if (winnerPlayer) {
+      syncBus.emitChange("players", "update", { player: winnerPlayer, user: winnerPlayer, username: winnerPlayer.username });
+    }
   } else {
-    store.addAudit("alert", "Claim rejected", `${room.name} · Invalid pattern claimed by ${playerName}`);
+    store.addAudit("alert", "Claim rejected", `${room.name} · Invalid pattern claimed by ${targetPlayerName}`);
   }
 
   store.save();
@@ -319,7 +363,7 @@ gameRouter.post("/:roomId/claim", (req: Request, res: Response) => {
     success: isValid,
     claim,
     state: session,
-    wallet: store.wallet,
+    wallet: awardedWallet,
     message: isValid
       ? `🎉 BINGO! Validated ${patternToTest}! Won $${prize.toFixed(2)}!`
       : "Claim rejected: Pattern conditions not yet satisfied.",
@@ -329,20 +373,38 @@ gameRouter.post("/:roomId/claim", (req: Request, res: Response) => {
 // POST /api/game/:roomId/declare-winner - Operator manual winner declaration
 gameRouter.post("/:roomId/declare-winner", (req: Request, res: Response) => {
   const { player = "LuckyStar", prize = 400, pattern = "One Line" } = req.body;
+  const numPrize = Number(prize);
   const session = getOrCreateSession(req.params.roomId);
   const room = store.rooms.find((r) => r.id === req.params.roomId);
 
   session.winnerNames = [player];
-  session.winnerPrize = Number(prize);
+  session.winnerPrize = numPrize;
   session.winnerPattern = pattern;
   session.phase = "winner";
   session.lastWinner = `${player} · $${prize}`;
+
+  let awardedWallet = store.wallet;
+  const winnerPlayer = store.players.find(
+    (p) => p.username.toLowerCase() === player.toLowerCase() || p.id.toLowerCase() === player.toLowerCase()
+  );
+  if (winnerPlayer) {
+    winnerPlayer.balance = Math.round((winnerPlayer.balance + numPrize) * 100) / 100;
+    winnerPlayer.wins = (winnerPlayer.wins ?? 0) + 1;
+    winnerPlayer.totalPrizes = Math.round(((winnerPlayer.totalPrizes ?? 0) + numPrize) * 100) / 100;
+    awardedWallet = winnerPlayer.balance;
+    if (winnerPlayer.username.toLowerCase() === (store.activeUsername || "Ari.R").toLowerCase()) {
+      store.wallet = winnerPlayer.balance;
+    }
+  } else {
+    store.wallet = Math.round((store.wallet + numPrize) * 100) / 100;
+    awardedWallet = store.wallet;
+  }
 
   store.addTransaction({
     player,
     room: room?.name ?? req.params.roomId,
     type: "Prize payout",
-    amount: Number(prize),
+    amount: numPrize,
     status: "Completed",
   });
 
@@ -352,15 +414,19 @@ gameRouter.post("/:roomId/declare-winner", (req: Request, res: Response) => {
   syncBus.emitChange(
     "game",
     "declare-winner",
-    { state: session, player, prize: Number(prize), pattern },
+    { state: session, player, prize: numPrize, pattern },
     req.params.roomId,
-    `Operator declared ${player} the winner with prize $${Number(prize).toFixed(2)}!`
+    `Operator declared ${player} the winner with prize $${numPrize.toFixed(2)}!`
   );
-  syncBus.emitChange("wallet", "payout", { wallet: store.wallet, prize: Number(prize) });
+  syncBus.emitChange("wallet", "payout", { wallet: awardedWallet, balance: awardedWallet, prize: numPrize, player });
+  if (winnerPlayer) {
+    syncBus.emitChange("players", "update", { player: winnerPlayer, user: winnerPlayer, username: winnerPlayer.username });
+  }
 
   res.json({
     success: true,
     state: session,
+    wallet: awardedWallet,
     message: `Winner ${player} declared manually with prize $${prize}.`,
   });
 });
@@ -381,8 +447,24 @@ gameRouter.post("/:roomId/claims/:claimId/review", (req: Request, res: Response)
   }
 
   claim.status = action === "approve" ? "approved" : "rejected";
+  let awardedWallet = store.wallet;
+
   if (action === "approve" && claim.prize > 0) {
-    store.wallet += claim.prize;
+    const winnerPlayer = store.players.find(
+      (p) => p.username.toLowerCase() === claim.playerName.toLowerCase() || p.id.toLowerCase() === claim.playerName.toLowerCase()
+    );
+    if (winnerPlayer) {
+      winnerPlayer.balance = Math.round((winnerPlayer.balance + claim.prize) * 100) / 100;
+      winnerPlayer.wins = (winnerPlayer.wins ?? 0) + 1;
+      winnerPlayer.totalPrizes = Math.round(((winnerPlayer.totalPrizes ?? 0) + claim.prize) * 100) / 100;
+      awardedWallet = winnerPlayer.balance;
+      if (winnerPlayer.username.toLowerCase() === (store.activeUsername || "Ari.R").toLowerCase()) {
+        store.wallet = winnerPlayer.balance;
+      }
+    } else {
+      store.wallet = Math.round((store.wallet + claim.prize) * 100) / 100;
+      awardedWallet = store.wallet;
+    }
   }
 
   store.addAudit(
@@ -400,8 +482,14 @@ gameRouter.post("/:roomId/claims/:claimId/review", (req: Request, res: Response)
     `Claim ${action}d for ${claim.playerName}.`
   );
   if (action === "approve" && claim.prize > 0) {
-    syncBus.emitChange("wallet", "claim-approved", { wallet: store.wallet, prize: claim.prize });
+    syncBus.emitChange("wallet", "claim-approved", { wallet: awardedWallet, balance: awardedWallet, prize: claim.prize, player: claim.playerName });
+    const winnerPlayer = store.players.find(
+      (p) => p.username.toLowerCase() === claim.playerName.toLowerCase() || p.id.toLowerCase() === claim.playerName.toLowerCase()
+    );
+    if (winnerPlayer) {
+      syncBus.emitChange("players", "update", { player: winnerPlayer, user: winnerPlayer, username: winnerPlayer.username });
+    }
   }
 
-  res.json({ success: true, claim, wallet: store.wallet });
+  res.json({ success: true, claim, wallet: awardedWallet });
 });

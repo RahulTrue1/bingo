@@ -1050,3 +1050,67 @@ test("Room chat hydration supports both user and sender without slice errors", a
   }
 });
 
+test("Bingo win prize payout: claiming bingo awards prize directly to player balance and wallet", async () => {
+  const testPlayer = `Winner_${Date.now()}`;
+  const signupRes = await fetch(`${BASE_URL}/auth/signup`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ username: testPlayer, password: "winPassword123" }),
+  });
+  assert.equal(signupRes.status, 201);
+  const signupJson = await signupRes.json();
+  const initialBalance = signupJson.user.balance;
+  assert.ok(typeof initialBalance === "number");
+
+  // Buy 1 ticket for diamond-75
+  const buyRes = await fetch(`${BASE_URL}/tickets/buy`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ roomId: "diamond-75", count: 1, username: testPlayer }),
+  });
+  assert.equal(buyRes.status, 201);
+  const buyJson = await buyRes.json();
+  const ticketId = buyJson.tickets[0].id;
+  const balanceAfterBuy = buyJson.wallet;
+
+  const winningValues = buyJson.tickets[0].cells
+    .map((c) => c.value)
+    .filter((v) => typeof v === "number");
+
+  // Claim bingo win
+  const claimRes = await fetch(`${BASE_URL}/game/diamond-75/claim`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      roomId: "diamond-75",
+      ticketId,
+      playerName: testPlayer,
+      manualPattern: "Diamond",
+      called: winningValues,
+    }),
+  });
+  assert.equal(claimRes.status, 200);
+  const claimJson = await claimRes.json();
+  assert.equal(claimJson.success, true);
+  assert.ok(claimJson.claim.prize > 0);
+
+  // Expected balance after win
+  const expectedBalance = Math.round((balanceAfterBuy + claimJson.claim.prize) * 100) / 100;
+  assert.equal(claimJson.wallet, expectedBalance);
+
+  // Verify wallet endpoint returns the credited balance
+  const walletRes = await fetch(`${BASE_URL}/wallet?username=${testPlayer}`);
+  assert.equal(walletRes.status, 200);
+  const walletJson = await walletRes.json();
+  assert.equal(walletJson.balance, expectedBalance);
+
+  // Verify auth/me profile returns credited balance and updated stats
+  const meRes = await fetch(`${BASE_URL}/auth/me?username=${testPlayer}`);
+  assert.equal(meRes.status, 200);
+  const meJson = await meRes.json();
+  assert.equal(meJson.user.balance, expectedBalance);
+  assert.equal(meJson.user.wins, 1);
+  assert.equal(meJson.user.totalPrizes, claimJson.claim.prize);
+});
+
+
