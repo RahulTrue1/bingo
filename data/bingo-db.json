@@ -19854,36 +19854,36 @@
     {
       "id": "banner-1791215721948",
       "roomId": "trueig-90",
-      "kicker": "SPECIAL EVENT",
+      "kicker": "VIP SPECIAL",
       "title": "Weekend Super Cup",
       "body": "Join thousands of players and win huge jackpot prizes.",
       "cta": "Play now",
       "alt": "View games",
       "seconds": 3000,
       "theme": "tournament",
-      "value": "$25,000",
-      "image": "/banners/weekend-cup-jackpot.png",
+      "value": "$35,000",
+      "image": "/promotions/vip-gold-access.png",
       "imageAlt": "Weekend Super Cup",
       "imageWidth": 1880,
       "imageHeight": 836,
-      "active": false
+      "active": true
     },
     {
       "id": "banner-1791215736411",
       "roomId": "trueig-90",
-      "kicker": "SPECIAL EVENT",
+      "kicker": "MEGA JACKPOT",
       "title": "Weekend Super Cup 1",
       "body": "Join thousands of players and win huge jackpot prizes.",
       "cta": "Play now",
       "alt": "View games",
       "seconds": 3000,
       "theme": "tournament",
-      "value": "$25,000",
-      "image": "/banners/weekend-cup-jackpot.png",
+      "value": "$50,000",
+      "image": "/jackpots/mega-energy.png",
       "imageAlt": "Weekend Super Cup 1",
       "imageWidth": 1880,
       "imageHeight": 836,
-      "active": false
+      "active": true
     }
   ],
   "chatMessages": {
@@ -21052,7 +21052,7 @@
       "username": "RahulRahulGame_331",
       "userId": "USR-30800",
       "createdAt": "2026-10-05T15:47:25.600Z",
-      "lastSeen": "2026-10-05T16:42:51.617Z"
+      "lastSeen": "2026-10-05T16:43:43.178Z"
     }
   }
 }

@@ -205,7 +205,8 @@ The player interface provides an all-in-one gaming suite:
 ### 5.1 Lobby & Room Discovery
 - **Dynamic Hero Carousel**:
   - Displays all active promotional banners dynamically synchronized from the Backoffice banner manager.
-  - Features a single prominent hero banner slider that smoothly glides to the left (infinite looping track with cubic-bezier `transform: translateX`) every 4.5 seconds.
+  - Features a **2-card side-by-side presentation** on desktop (`flex: 0 0 50%` per card) and compact 1-card view on mobile (`max-width: 768px`) that smoothly glides to the left (infinite looping track with cubic-bezier `transform: translateX`) every 4.5 seconds.
+  - Seamless infinite wrap-around buffer (`[last, ...slides, first, second]`) ensuring smooth sliding without snapping or blank screens.
   - Includes interactive **Previous (`‹`)** and **Next (`›`)** floating navigation arrows and active **pagination indicator dots** (`● ○ ○ ○`) for instant manual browsing.
   - Eliminates duplicate cards and text collisions: pre-baked graphics render clean artwork with hotspot actions, while custom banners render dynamic titles, kickers, bodies, buttons, and prize chips over cinematic backdrops.
   - Pauses auto-switching smoothly while hovered so players can read rules or click action buttons.

@@ -74,6 +74,7 @@ npm run dev
 
 1. **Player Enters Lobby**:
    - The user opens the home view. Header navigation features centered **GAMES** (external portal) and **BINGO** options.
+   - Dynamic Hero Carousel displays a **2-card side-by-side presentation** on desktop with smooth leftward transitions, infinite looping, manual navigation arrows, and pagination indicator dots.
    - Clicking the user profile avatar pill opens a dropdown menu containing **Tickets**, **Jackpots**, **Tournaments**, **Promotions**, **History**, **Profile**, and **Switch User**.
    - The frontend requests `GET /api/rooms` and displays available rooms with real-time countdowns, ticket prices, and jackpot levels.
    - The user's wallet is loaded from `GET /api/wallet`.
