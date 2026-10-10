@@ -37,16 +37,49 @@ export function PlayerLobby({
     return unsub;
   }, []);
 
+  const [sortBy, setSortBy] = useState<"popular" | "prize" | "price" | "name">("popular");
+
   const filters = ["All games", "Live now", "75-Ball", "90-Ball", "Speed", "Jackpots", "Free"];
-  const filtered = rooms.filter((room) => {
-    const matchesSearch = `${room.name} ${room.variant}`.toLowerCase().includes(search.toLowerCase());
-    const matchesFilter = filter === "All games"
-      || (filter === "Live now" && room.status === "Live")
-      || (filter === "Jackpots" && Boolean(room.jackpot))
-      || (filter === "Free" && room.ticketPrice === 0)
-      || room.variant.includes(filter.replace("-Ball", ""));
-    return matchesSearch && matchesFilter;
-  });
+  const filtered = rooms
+    .filter((room) => {
+      const q = search.trim().toLowerCase();
+      const matchesSearch =
+        !q ||
+        `${room.name} ${room.variant} ${room.id} ${room.pattern || ""} ${room.tag || ""}`
+          .toLowerCase()
+          .includes(q);
+      const matchesFilter =
+        filter === "All games" ||
+        (filter === "Live now" && room.status === "Live") ||
+        (filter === "Jackpots" && Boolean(room.jackpot)) ||
+        (filter === "Free" && room.ticketPrice === 0) ||
+        room.variant.toLowerCase().includes(filter.replace("-Ball", "").toLowerCase());
+      return matchesSearch && matchesFilter;
+    })
+    .sort((a, b) => {
+      if (sortBy === "popular") return b.players - a.players;
+      if (sortBy === "prize") return (b.jackpot ?? b.prize ?? 0) - (a.jackpot ?? a.prize ?? 0);
+      if (sortBy === "price") return a.ticketPrice - b.ticketPrice;
+      if (sortBy === "name") return a.name.localeCompare(b.name);
+      return 0;
+    });
+
+  const cycleSort = () => {
+    const cycle: Record<string, "popular" | "prize" | "price" | "name"> = {
+      popular: "prize",
+      prize: "price",
+      price: "name",
+      name: "popular",
+    };
+    setSortBy((prev) => cycle[prev]);
+  };
+
+  const sortLabels: Record<string, string> = {
+    popular: "Popular",
+    prize: "Highest Prize",
+    price: "Lowest Price",
+    name: "A–Z",
+  };
 
   const toggleFavorite = (id: string) =>
     setFavorites((current) => current.includes(id) ? current.filter((item) => item !== id) : [...current, id]);
@@ -69,7 +102,25 @@ export function PlayerLobby({
               onChange={(event) => setSearch(event.target.value)}
               placeholder="Search rooms or variants"
             />
-            <kbd>⌘ K</kbd>
+            {search ? (
+              <button
+                type="button"
+                onClick={() => setSearch("")}
+                style={{
+                  background: "none",
+                  border: "none",
+                  color: "#8a94a6",
+                  cursor: "pointer",
+                  padding: "0 8px",
+                  fontSize: "14px",
+                }}
+                title="Clear search"
+              >
+                ×
+              </button>
+            ) : (
+              <kbd>⌘ K</kbd>
+            )}
           </div>
         </div>
         <div className="filter-row">
@@ -84,8 +135,8 @@ export function PlayerLobby({
               </button>
             ))}
           </div>
-          <button className="sort-button">
-            <Icon>↕</Icon> Sort: Popular
+          <button className="sort-button" type="button" onClick={cycleSort} title="Change sort order">
+            <Icon>↕</Icon> Sort: {sortLabels[sortBy]}
           </button>
         </div>
         <div className="lobby-section-chips">

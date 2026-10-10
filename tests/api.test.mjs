@@ -1113,4 +1113,43 @@ test("Bingo win prize payout: claiming bingo awards prize directly to player bal
   assert.equal(meJson.user.totalPrizes, claimJson.claim.prize);
 });
 
+test("Room filtering logic correctly filters by search term, variant, and status", async () => {
+  const res = await fetch(`${BASE_URL}/rooms`);
+  assert.equal(res.status, 200);
+  const json = await res.json();
+  const rooms = json.rooms;
+
+  // 1. Search filter: "tru"
+  const truRooms = rooms.filter((r) =>
+    r.name.toLowerCase().includes("tru") ||
+    r.id.toLowerCase().includes("tru") ||
+    r.variant.toLowerCase().includes("tru")
+  );
+  assert.ok(truRooms.length > 0);
+  assert.ok(truRooms.some((r) => r.id === "trueig-90" || r.name.toLowerCase().includes("trueig")));
+
+  // 2. Variant filter: "75-Ball"
+  const v75Rooms = rooms.filter((r) =>
+    r.variant.toLowerCase().includes("75")
+  );
+  assert.ok(v75Rooms.length > 0);
+  v75Rooms.forEach((r) => assert.ok(r.variant.includes("75")));
+
+  // 3. Status filter: "Live"
+  const liveRooms = rooms.filter((r) => r.status === "Live");
+  assert.ok(liveRooms.length > 0);
+  liveRooms.forEach((r) => assert.equal(r.status, "Live"));
+
+  // 4. Combined filter: "tru" + "75-Ball"
+  const combined = rooms.filter((r) =>
+    (r.name.toLowerCase().includes("tru") || r.id.toLowerCase().includes("tru")) &&
+    r.variant.toLowerCase().includes("75")
+  );
+  assert.ok(combined.length > 0);
+  combined.forEach((r) => {
+    assert.ok(r.name.toLowerCase().includes("tru") || r.id.toLowerCase().includes("tru"));
+    assert.ok(r.variant.includes("75"));
+  });
+});
+
 

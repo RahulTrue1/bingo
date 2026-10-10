@@ -5,6 +5,7 @@ import { Icon } from "../shared/Icon";
 export function TransactionsTable() {
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState("All types");
+  const [dateFilter, setDateFilter] = useState("All time");
   const [txList, setTxList] = useState<WalletTransaction[]>([]);
 
   useEffect(() => {
@@ -33,10 +34,22 @@ export function TransactionsTable() {
       ])
     : defaultTransactions;
 
+  const isFiltered = search.trim() !== "" || typeFilter !== "All types" || dateFilter !== "All time";
+
+  const resetFilters = () => {
+    setSearch("");
+    setTypeFilter("All types");
+    setDateFilter("All time");
+  };
+
   const filtered = rows.filter((row) => {
     const matchSearch = row.some((cell) => cell.toLowerCase().includes(search.toLowerCase()));
     const matchType = typeFilter === "All types" || row[3] === typeFilter;
-    return matchSearch && matchType;
+    const matchDate =
+      dateFilter === "All time" ||
+      dateFilter === "Last 7 days" ||
+      (dateFilter === "Today" && (row[6].includes(":") || row[6].toLowerCase().includes("today")));
+    return matchSearch && matchType && matchDate;
   });
 
   const purchases = txList.filter((t) => t.type.includes("purchase")).reduce((acc, t) => acc + Math.abs(t.amount), 0) || 48620;
@@ -54,17 +67,54 @@ export function TransactionsTable() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
+          {search && (
+            <button
+              type="button"
+              onClick={() => setSearch("")}
+              style={{
+                background: "none",
+                border: "none",
+                color: "#8a94a6",
+                cursor: "pointer",
+                padding: "0 6px",
+                fontSize: "14px",
+                lineHeight: 1,
+              }}
+              title="Clear search"
+            >
+              ×
+            </button>
+          )}
         </div>
         <div>
           <select value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)}>
             <option>All types</option>
             <option>Ticket purchase</option>
             <option>Prize payout</option>
+            <option>Jackpot contribution</option>
+            <option>Refund</option>
+            <option>Promotional credit</option>
           </select>
-          <select>
+          <select value={dateFilter} onChange={(e) => setDateFilter(e.target.value)}>
+            <option>All time</option>
             <option>Today</option>
             <option>Last 7 days</option>
           </select>
+          {isFiltered && (
+            <button
+              type="button"
+              onClick={resetFilters}
+              style={{
+                background: "rgba(235, 87, 87, 0.15)",
+                border: "1px solid rgba(235, 87, 87, 0.3)",
+                color: "#ff7675",
+                cursor: "pointer",
+              }}
+              title="Reset all filters"
+            >
+              ✕ Clear filters
+            </button>
+          )}
         </div>
       </div>
       <div className="transaction-summary">

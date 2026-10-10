@@ -6,6 +6,7 @@ import type { AdminAction } from "../shared/types";
 export function PlayersTable({ openAction }: { openAction: (action: AdminAction) => void }) {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("All account statuses");
+  const [tierFilter, setTierFilter] = useState("All tiers");
   const [playersList, setPlayersList] = useState<PlayerModel[]>([]);
 
   useEffect(() => {
@@ -35,10 +36,22 @@ export function PlayersTable({ openAction }: { openAction: (action: AdminAction)
       ])
     : defaultPlayers;
 
+  const isFiltered = search.trim() !== "" || statusFilter !== "All account statuses" || tierFilter !== "All tiers";
+
+  const resetFilters = () => {
+    setSearch("");
+    setStatusFilter("All account statuses");
+    setTierFilter("All tiers");
+  };
+
   const filtered = rawRows.filter((p) => {
-    const matchSearch = p[0].toLowerCase().includes(search.toLowerCase()) || p[1].toLowerCase().includes(search.toLowerCase());
+    const matchSearch =
+      p[0].toLowerCase().includes(search.toLowerCase()) ||
+      p[1].toLowerCase().includes(search.toLowerCase()) ||
+      p[2].toLowerCase().includes(search.toLowerCase());
     const matchStatus = statusFilter === "All account statuses" || p[8] === statusFilter;
-    return matchSearch && matchStatus;
+    const matchTier = tierFilter === "All tiers" || p[2] === tierFilter;
+    return matchSearch && matchStatus && matchTier;
   });
 
   return (
@@ -51,6 +64,24 @@ export function PlayersTable({ openAction }: { openAction: (action: AdminAction)
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
+          {search && (
+            <button
+              type="button"
+              onClick={() => setSearch("")}
+              style={{
+                background: "none",
+                border: "none",
+                color: "#8a94a6",
+                cursor: "pointer",
+                padding: "0 6px",
+                fontSize: "14px",
+                lineHeight: 1,
+              }}
+              title="Clear search"
+            >
+              ×
+            </button>
+          )}
         </div>
         <div>
           <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
@@ -58,7 +89,27 @@ export function PlayersTable({ openAction }: { openAction: (action: AdminAction)
             <option>Active</option>
             <option>Restricted</option>
           </select>
-          <button>Advanced filters</button>
+          <select value={tierFilter} onChange={(e) => setTierFilter(e.target.value)}>
+            <option>All tiers</option>
+            <option>Standard</option>
+            <option>VIP</option>
+            <option>Restricted</option>
+          </select>
+          {isFiltered && (
+            <button
+              type="button"
+              onClick={resetFilters}
+              style={{
+                background: "rgba(235, 87, 87, 0.15)",
+                border: "1px solid rgba(235, 87, 87, 0.3)",
+                color: "#ff7675",
+                cursor: "pointer",
+              }}
+              title="Reset all filters"
+            >
+              ✕ Clear filters
+            </button>
+          )}
         </div>
       </div>
       <div className="responsive-table">
