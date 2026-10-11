@@ -49,13 +49,26 @@ export default function BasepokerHoldemTablesView() {
   useEffect(() => {
     refreshWallet();
     refreshUser();
+
+    const handleWalletUpdate = (e: Event) => {
+      const custom = e as CustomEvent<{ balance: number }>;
+      if (typeof custom.detail?.balance === "number") {
+        setWallet(custom.detail.balance);
+      }
+    };
+    window.addEventListener("wallet_balance_updated", handleWalletUpdate);
+
     const unsub = apiClient.sync.subscribe((event) => {
       if (event.entity === "wallet") {
         refreshWallet();
         refreshUser();
       }
     });
-    return unsub;
+
+    return () => {
+      window.removeEventListener("wallet_balance_updated", handleWalletUpdate);
+      unsub();
+    };
   }, [refreshWallet, refreshUser]);
 
   const handleAuthSuccess = (user: PlayerModel, newWallet: number) => {
@@ -195,6 +208,11 @@ export default function BasepokerHoldemTablesView() {
           tableName: activeTable.name,
           detail: `Cashed out ${cashedOutStack} chips`,
         })
+        .then((res) => {
+          if (res?.success && typeof res.balance === "number") {
+            setWallet(res.balance);
+          }
+        })
         .catch(() => {});
     }
     const remaining = openTableCodes.filter((c) => c !== activeTableCode);
@@ -300,6 +318,7 @@ export default function BasepokerHoldemTablesView() {
                 userName={currentUser?.displayName || currentUser?.username || "Hero"}
                 embedded={true}
                 isUserBlocked={isCurrentUserBlocked}
+                onWalletChange={(newBal) => setWallet(newBal)}
               />
             </div>
           );

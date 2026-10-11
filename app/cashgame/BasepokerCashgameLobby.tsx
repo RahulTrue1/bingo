@@ -110,6 +110,14 @@ export default function BasepokerCashgameLobby() {
     refreshWallet();
     refreshUser();
 
+    const handleWalletUpdate = (e: Event) => {
+      const custom = e as CustomEvent<{ balance: number }>;
+      if (typeof custom.detail?.balance === "number") {
+        setWallet(custom.detail.balance);
+      }
+    };
+    window.addEventListener("wallet_balance_updated", handleWalletUpdate);
+
     const handleStorage = () => syncTables();
     window.addEventListener("basepoker_tables_updated", handleStorage);
     window.addEventListener("storage", handleStorage);
@@ -123,6 +131,7 @@ export default function BasepokerCashgameLobby() {
 
     return () => {
       clearTimeout(t);
+      window.removeEventListener("wallet_balance_updated", handleWalletUpdate);
       window.removeEventListener("basepoker_tables_updated", handleStorage);
       window.removeEventListener("storage", handleStorage);
       unsub();

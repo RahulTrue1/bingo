@@ -105,6 +105,14 @@ export default function Home({ initialMode = "player" }: { initialMode?: AppMode
     refreshWallet();
     refreshUser();
 
+    const handleWalletUpdate = (e: Event) => {
+      const custom = e as CustomEvent<{ balance: number }>;
+      if (typeof custom.detail?.balance === "number") {
+        setWallet(custom.detail.balance);
+      }
+    };
+    window.addEventListener("wallet_balance_updated", handleWalletUpdate);
+
     // 1. Real-time Server-Sent Events (SSE) listener
     const unsubscribe = apiClient.sync.subscribe((event) => {
       const myUsername = (currentUser?.username || apiClient.auth.getStoredUsername() || "").toLowerCase();
@@ -158,6 +166,7 @@ export default function Home({ initialMode = "player" }: { initialMode?: AppMode
     }, 3500);
 
     return () => {
+      window.removeEventListener("wallet_balance_updated", handleWalletUpdate);
       unsubscribe();
       window.clearInterval(pollTimer);
     };

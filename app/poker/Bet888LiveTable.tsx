@@ -30,6 +30,7 @@ interface Bet888LiveTableProps {
   onDeductBuyIn?: (amount: number) => void;
   onCreditCashOut?: (amount: number) => void;
   isUserBlocked?: boolean;
+  onWalletChange?: (newBalance: number) => void;
 }
 
 // Web Audio sound synthesizer for instant zero-dependency sound effects
@@ -273,7 +274,27 @@ export function Bet888LiveTable({
   onDeductBuyIn,
   onCreditCashOut,
   isUserBlocked = false,
+  onWalletChange,
 }: Bet888LiveTableProps) {
+  // Live reactive wallet state
+  const [currentWallet, setCurrentWallet] = useState<number>(walletBalance);
+  useEffect(() => {
+    setCurrentWallet(walletBalance);
+  }, [walletBalance]);
+
+  const notifyWalletChange = useCallback((newBalance: number, delta: number, type: string) => {
+    const rounded = Math.round(newBalance * 100) / 100;
+    setCurrentWallet(rounded);
+    onWalletChange?.(rounded);
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(
+        new CustomEvent("wallet_balance_updated", {
+          detail: { balance: rounded, delta, username: userName, type },
+        })
+      );
+    }
+  }, [onWalletChange, userName]);
+
   // Initialize unique game session for this table
   const initialDataRef = useRef<ReturnType<typeof initializeTableState> | null>(null);
   if (!initialDataRef.current) {
@@ -439,6 +460,9 @@ export function Bet888LiveTable({
     if (winner.isHero) {
       audio.playWin();
       if (currentPot > 0) {
+        const optimisticBalance = Math.round((currentWallet + currentPot) * 100) / 100;
+        notifyWalletChange(optimisticBalance, currentPot, "Poker Win");
+
         apiClient.wallet
           .pokerTransaction({
             username: userName,
@@ -448,12 +472,17 @@ export function Bet888LiveTable({
             handNo,
             detail: "Won by all folds",
           })
+          .then((res) => {
+            if (res?.success && typeof res.balance === "number") {
+              notifyWalletChange(res.balance, currentPot, "Poker Win");
+            }
+          })
           .catch(() => {});
       }
     } else {
       audio.playChip();
     }
-  }, [userName, table.name, handNo]);
+  }, [userName, table.name, handNo, currentWallet, notifyWalletChange]);
 
   // Evaluate showdown between remaining active players
   const evaluateShowdown = useCallback(
@@ -515,6 +544,9 @@ export function Bet888LiveTable({
       if (best.player.isHero) {
         audio.playWin();
         if (currentPot > 0) {
+          const optimisticBalance = Math.round((currentWallet + currentPot) * 100) / 100;
+          notifyWalletChange(optimisticBalance, currentPot, "Poker Win");
+
           apiClient.wallet
             .pokerTransaction({
               username: userName,
@@ -524,13 +556,18 @@ export function Bet888LiveTable({
               handNo,
               detail: best.result.name,
             })
+            .then((res) => {
+              if (res?.success && typeof res.balance === "number") {
+                notifyWalletChange(res.balance, currentPot, "Poker Win");
+              }
+            })
             .catch(() => {});
         }
       } else {
         audio.playChip();
       }
     },
-    [triggerWinByFold, userName, table.name, handNo]
+    [triggerWinByFold, userName, table.name, handNo, currentWallet, notifyWalletChange]
   );
 
   const advanceStreet = useCallback(() => {
@@ -700,6 +737,9 @@ export function Bet888LiveTable({
       const toCall = Math.min(hero.stack, currentBet - hero.bet);
       audio.playChip();
       if (toCall > 0) {
+        const optimisticBalance = Math.max(0, Math.round((currentWallet - toCall) * 100) / 100);
+        notifyWalletChange(optimisticBalance, -toCall, "Poker Bet");
+
         apiClient.wallet
           .pokerTransaction({
             username: userName,
@@ -708,6 +748,11 @@ export function Bet888LiveTable({
             tableName: table.name,
             handNo,
             detail: `Call €${toCall}`,
+          })
+          .then((res) => {
+            if (res?.success && typeof res.balance === "number") {
+              notifyWalletChange(res.balance, -toCall, "Poker Bet");
+            }
           })
           .catch(() => {});
       }
@@ -729,6 +774,9 @@ export function Bet888LiveTable({
       const raiseVal = Math.min(hero.stack, raiseAmount);
       audio.playChip();
       if (raiseVal > 0) {
+        const optimisticBalance = Math.max(0, Math.round((currentWallet - raiseVal) * 100) / 100);
+        notifyWalletChange(optimisticBalance, -raiseVal, "Poker Bet");
+
         apiClient.wallet
           .pokerTransaction({
             username: userName,
@@ -737,6 +785,11 @@ export function Bet888LiveTable({
             tableName: table.name,
             handNo,
             detail: `Raise €${raiseVal}`,
+          })
+          .then((res) => {
+            if (res?.success && typeof res.balance === "number") {
+              notifyWalletChange(res.balance, -raiseVal, "Poker Bet");
+            }
           })
           .catch(() => {});
       }
@@ -759,6 +812,9 @@ export function Bet888LiveTable({
       const allInVal = hero.stack;
       audio.playChip();
       if (allInVal > 0) {
+        const optimisticBalance = Math.max(0, Math.round((currentWallet - allInVal) * 100) / 100);
+        notifyWalletChange(optimisticBalance, -allInVal, "Poker Bet");
+
         apiClient.wallet
           .pokerTransaction({
             username: userName,
@@ -767,6 +823,11 @@ export function Bet888LiveTable({
             tableName: table.name,
             handNo,
             detail: `All-in €${allInVal}`,
+          })
+          .then((res) => {
+            if (res?.success && typeof res.balance === "number") {
+              notifyWalletChange(res.balance, -allInVal, "Poker Bet");
+            }
           })
           .catch(() => {});
       }
@@ -1369,7 +1430,7 @@ export function Bet888LiveTable({
             <div className="drawer-body">
               <div className="drawer-wallet-box">
                 <span className="lbl">WALLET BALANCE</span>
-                <span className="val">€{walletBalance.toLocaleString()}</span>
+                <span className="val">€{currentWallet.toLocaleString()}</span>
               </div>
 
               {table.isPrivate && table.inviteCode && (

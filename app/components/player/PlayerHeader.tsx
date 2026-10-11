@@ -61,8 +61,26 @@ export function PlayerHeader({
 }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [historyModalOpen, setHistoryModalOpen] = useState(false);
+  const [liveWallet, setLiveWallet] = useState<number | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
   const handleOpenAuth = onOpenAuth || openAuthModal;
+
+  useEffect(() => {
+    setLiveWallet(null);
+  }, [wallet]);
+
+  useEffect(() => {
+    const onUpdate = (e: Event) => {
+      const ce = e as CustomEvent<{ balance: number }>;
+      if (typeof ce.detail?.balance === "number") {
+        setLiveWallet(ce.detail.balance);
+      }
+    };
+    window.addEventListener("wallet_balance_updated", onUpdate);
+    return () => window.removeEventListener("wallet_balance_updated", onUpdate);
+  }, []);
+
+  const activeWalletAmount = liveWallet ?? wallet;
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
@@ -178,7 +196,7 @@ export function PlayerHeader({
 
         <div className="wallet">
           <small>WALLET</small>
-          <strong>{walletDisplay || money(wallet)}</strong>
+          <strong>{walletDisplay || money(activeWalletAmount)}</strong>
         </div>
 
         {/* User icon with tooltip dropdown containing all moved options */}
@@ -215,7 +233,7 @@ export function PlayerHeader({
               {/* Wallet info */}
               <div className="tooltip-wallet-row">
                 <span className="tooltip-wallet-label">Balance</span>
-                <strong className="tooltip-wallet-amount">{walletDisplay || money(wallet)}</strong>
+                <strong className="tooltip-wallet-amount">{walletDisplay || money(activeWalletAmount)}</strong>
               </div>
 
               <div className="tooltip-divider" />

@@ -508,22 +508,38 @@ export const apiClient = {
       }>(`/wallet${q}`);
     },
     async deposit(amount: number, username?: string) {
-      return request<{ success: boolean; balance: number; message: string }>("/wallet/deposit", {
+      const res = await request<{ success: boolean; balance: number; message: string }>("/wallet/deposit", {
         method: "POST",
         body: JSON.stringify({
           amount,
           username: username || getStoredSessionUser() || undefined,
         }),
       });
+      if (res?.success && typeof res.balance === "number" && typeof window !== "undefined") {
+        window.dispatchEvent(
+          new CustomEvent("wallet_balance_updated", {
+            detail: { balance: res.balance },
+          })
+        );
+      }
+      return res;
     },
     async withdraw(amount: number, username?: string) {
-      return request<{ success: boolean; balance: number; message: string }>("/wallet/withdraw", {
+      const res = await request<{ success: boolean; balance: number; message: string }>("/wallet/withdraw", {
         method: "POST",
         body: JSON.stringify({
           amount,
           username: username || getStoredSessionUser() || undefined,
         }),
       });
+      if (res?.success && typeof res.balance === "number" && typeof window !== "undefined") {
+        window.dispatchEvent(
+          new CustomEvent("wallet_balance_updated", {
+            detail: { balance: res.balance },
+          })
+        );
+      }
+      return res;
     },
     async pokerTransaction(data: {
       username?: string;
@@ -534,7 +550,7 @@ export const apiClient = {
       detail?: string;
     }) {
       const effectiveUser = data.username || getStoredSessionUser();
-      return request<{
+      const res = await request<{
         success: boolean;
         balance: number;
         transaction: WalletTransaction;
@@ -546,6 +562,19 @@ export const apiClient = {
           username: effectiveUser || undefined,
         }),
       });
+      if (res?.success && typeof res.balance === "number" && typeof window !== "undefined") {
+        window.dispatchEvent(
+          new CustomEvent("wallet_balance_updated", {
+            detail: {
+              balance: res.balance,
+              username: effectiveUser,
+              type: data.type,
+              amount: data.amount,
+            },
+          })
+        );
+      }
+      return res;
     },
     async transactions(options?: string | { type?: string; player?: string; search?: string; all?: boolean; limit?: number }) {
       let q = "";
