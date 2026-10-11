@@ -3516,6 +3516,12 @@
   gap: 20px;
   flex-wrap: wrap;
   z-index: 20;
+  transition: opacity 0.3s ease;
+}
+
+.bet888-table-actionbar.is-showdown {
+  pointer-events: none;
+  opacity: 0.45;
 }
 
 .action-buttons-group {

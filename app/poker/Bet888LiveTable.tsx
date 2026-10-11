@@ -958,28 +958,7 @@ export function Bet888LiveTable({
                 </div>
               </div>
 
-              {/* CELEBRATION WINNER BANNER OVERLAY AT SHOWDOWN */}
-              {stage === "showdown" && winnerInfo && (
-                <div className="table-center-winner-banner">
-                  <div className="winner-banner-badge">🏆 HAND #{handNo} COMPLETED</div>
-                  <div className="winner-banner-headline">
-                    {winnerInfo.isHero ? "🎉 YOU WON!" : `👑 ${winnerInfo.winnerName} WINS!`}
-                  </div>
-                  <div className="winner-banner-pot">
-                    <span className="pot-chip-icon">🪙</span>
-                    <span>+{winnerInfo.potWon.toLocaleString()}</span>
-                  </div>
-                  <div className="winner-banner-hand">
-                    {winnerInfo.wonByFold ? "All opponents folded" : winnerInfo.handRankName}
-                  </div>
-                  <button
-                    className="winner-next-hand-btn"
-                    onClick={handleDealNextHand}
-                  >
-                    Deal Next Hand ⏭ {nextHandCountdown > 0 ? `(${nextHandCountdown}s)` : ""}
-                  </button>
-                </div>
-              )}
+              {/* Winner spotlight is displayed directly on the winning seat (Image 3) */}
 
               {/* SEATS DISTRIBUTED AROUND THE TABLE (Super-ellipse) */}
               <div className="bet888-seats-layer">
@@ -1244,7 +1223,7 @@ export function Bet888LiveTable({
       </main>
 
       {/* ================= 3. BOTTOM ACTION BAR ================= */}
-      <footer className="bet888-table-actionbar">
+      <footer className={`bet888-table-actionbar ${stage === "showdown" ? "is-showdown" : ""}`}>
         {isUserBlocked && (
           <div
             style={{
@@ -1281,106 +1260,101 @@ export function Bet888LiveTable({
             ⏸ Table Paused: Live play has been temporarily paused by the poker room supervisor.
           </div>
         )}
-        {stage === "showdown" ? (
-          <div className="showdown-actionbar-notice">
-            <span>Hand complete · Winner: <b>{winnerInfo?.winnerName}</b> ({winnerInfo?.wonByFold ? "Opponents folded" : winnerInfo?.handRankName})</span>
-            <button className="action-btn next-hand-quick-btn" onClick={handleDealNextHand}>
-              Deal Next Hand ⏭ {nextHandCountdown > 0 ? `(${nextHandCountdown}s)` : ""}
+
+        {/* Action Buttons: FOLD (black), CHECK/CALL (gold outline), BET/RAISE (red), ALL-IN (green) */}
+        <div className="action-buttons-group">
+          <button
+            className="action-btn fold-btn"
+            onClick={() => handleHeroAction("fold")}
+            disabled={isUserBlocked || isTablePaused || hero.folded || activeSeat !== 0 || stage === "showdown"}
+          >
+            FOLD
+          </button>
+
+          {canCheck ? (
+            <button
+              className="action-btn check-btn"
+              onClick={() => handleHeroAction("check")}
+              disabled={isUserBlocked || isTablePaused || hero.folded || activeSeat !== 0 || stage === "showdown"}
+            >
+              CHECK
             </button>
+          ) : (
+            <button
+              className="action-btn call-btn"
+              onClick={() => handleHeroAction("call")}
+              disabled={isUserBlocked || isTablePaused || hero.folded || activeSeat !== 0 || hero.stack === 0 || stage === "showdown"}
+            >
+              CALL {toCall.toLocaleString()}
+            </button>
+          )}
+
+          <button
+            className="action-btn bet-btn"
+            onClick={() => handleHeroAction("raise")}
+            disabled={isUserBlocked || isTablePaused || hero.folded || activeSeat !== 0 || hero.stack <= toCall || stage === "showdown"}
+          >
+            {currentBet === 0 ? "BET" : "RAISE"} {raiseAmount.toLocaleString()}
+          </button>
+
+          <button
+            className="action-btn allin-btn"
+            onClick={() => handleHeroAction("allin")}
+            disabled={isUserBlocked || isTablePaused || hero.folded || activeSeat !== 0 || hero.stack === 0 || stage === "showdown"}
+          >
+            ALL-IN {hero.stack.toLocaleString()}
+          </button>
+        </div>
+
+        {/* Bet Sizing Slider with -, +, Amount, ½ POT and POT presets */}
+        <div className="bet-slider-group">
+          <button
+            className="slider-step-btn"
+            onClick={() => setRaiseAmount((prev) => Math.max(table.bb, prev - table.bb))}
+            disabled={stage === "showdown"}
+          >
+            −
+          </button>
+
+          <div className="slider-range-box">
+            <input
+              type="range"
+              min={Math.max(table.bb, toCall + table.bb)}
+              max={hero.stack}
+              step={table.bb}
+              value={raiseAmount}
+              onChange={(e) => setRaiseAmount(Number(e.target.value))}
+              disabled={stage === "showdown"}
+            />
+            <span className="slider-amount-indicator">
+              🪙 {raiseAmount.toLocaleString()}
+            </span>
           </div>
-        ) : (
-          <>
-            {/* Action Buttons: FOLD (black), CHECK/CALL (gold outline), BET/RAISE (red), ALL-IN (green) */}
-            <div className="action-buttons-group">
-              <button
-                className="action-btn fold-btn"
-                onClick={() => handleHeroAction("fold")}
-                disabled={isUserBlocked || isTablePaused || hero.folded || activeSeat !== 0}
-              >
-                FOLD
-              </button>
 
-              {canCheck ? (
-                <button
-                  className="action-btn check-btn"
-                  onClick={() => handleHeroAction("check")}
-                  disabled={isUserBlocked || isTablePaused || hero.folded || activeSeat !== 0}
-                >
-                  CHECK
-                </button>
-              ) : (
-                <button
-                  className="action-btn call-btn"
-                  onClick={() => handleHeroAction("call")}
-                  disabled={isUserBlocked || isTablePaused || hero.folded || activeSeat !== 0 || hero.stack === 0}
-                >
-                  CALL {toCall.toLocaleString()}
-                </button>
-              )}
+          <button
+            className="slider-step-btn"
+            onClick={() => setRaiseAmount((prev) => Math.min(hero.stack, prev + table.bb))}
+            disabled={stage === "showdown"}
+          >
+            +
+          </button>
 
-              <button
-                className="action-btn bet-btn"
-                onClick={() => handleHeroAction("raise")}
-                disabled={isUserBlocked || isTablePaused || hero.folded || activeSeat !== 0 || hero.stack <= toCall}
-              >
-                {currentBet === 0 ? "BET" : "RAISE"} {raiseAmount.toLocaleString()}
-              </button>
+          <button
+            className="slider-preset-chip"
+            onClick={() => setRaiseAmount(Math.min(hero.stack, Math.max(table.bb, Math.floor(pot / 2))))}
+            disabled={stage === "showdown"}
+          >
+            ½ POT
+          </button>
 
-              <button
-                className="action-btn allin-btn"
-                onClick={() => handleHeroAction("allin")}
-                disabled={isUserBlocked || isTablePaused || hero.folded || activeSeat !== 0 || hero.stack === 0}
-              >
-                ALL-IN {hero.stack.toLocaleString()}
-              </button>
-            </div>
-
-            {/* Bet Sizing Slider with -, +, Amount, ½ POT and POT presets */}
-            <div className="bet-slider-group">
-              <button
-                className="slider-step-btn"
-                onClick={() => setRaiseAmount((prev) => Math.max(table.bb, prev - table.bb))}
-              >
-                −
-              </button>
-
-              <div className="slider-range-box">
-                <input
-                  type="range"
-                  min={Math.max(table.bb, toCall + table.bb)}
-                  max={hero.stack}
-                  step={table.bb}
-                  value={raiseAmount}
-                  onChange={(e) => setRaiseAmount(Number(e.target.value))}
-                />
-                <span className="slider-amount-indicator">
-                  🪙 {raiseAmount.toLocaleString()}
-                </span>
-              </div>
-
-              <button
-                className="slider-step-btn"
-                onClick={() => setRaiseAmount((prev) => Math.min(hero.stack, prev + table.bb))}
-              >
-                +
-              </button>
-
-              <button
-                className="slider-preset-chip"
-                onClick={() => setRaiseAmount(Math.min(hero.stack, Math.max(table.bb, Math.floor(pot / 2))))}
-              >
-                ½ POT
-              </button>
-
-              <button
-                className="slider-preset-chip"
-                onClick={() => setRaiseAmount(Math.min(hero.stack, Math.max(table.bb, pot)))}
-              >
-                POT
-              </button>
-            </div>
-          </>
-        )}
+          <button
+            className="slider-preset-chip"
+            onClick={() => setRaiseAmount(Math.min(hero.stack, Math.max(table.bb, pot)))}
+            disabled={stage === "showdown"}
+          >
+            POT
+          </button>
+        </div>
       </footer>
 
       {/* ================= 4. TABLE MENU DRAWER ================= */}
