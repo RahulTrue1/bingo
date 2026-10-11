@@ -5,6 +5,8 @@ import "./poker.css";
 import { Bet888TableSummary, CardModel } from "./poker-types";
 import { bestHand, buildDeck, cardStr, parseCard, shuffle, VARIANTS } from "./poker-engine";
 import { Gear, SpeakerHigh, SpeakerSimpleSlash, ChatCircleDots, List } from "@phosphor-icons/react";
+import { apiClient, type WalletTransaction } from "../api-client";
+import { subscribeLivePokerCommand } from "./poker-tables-store";
 
 interface TableSeatPlayer {
   seatNo: number;
@@ -27,6 +29,7 @@ interface Bet888LiveTableProps {
   embedded?: boolean;
   onDeductBuyIn?: (amount: number) => void;
   onCreditCashOut?: (amount: number) => void;
+  isUserBlocked?: boolean;
 }
 
 // Web Audio sound synthesizer for instant zero-dependency sound effects
@@ -169,6 +172,98 @@ export interface HandWinnerInfo {
   wonByFold?: boolean;
 }
 
+function initializeTableState(table: Bet888TableSummary, walletBalance: number, userName: string) {
+  // Deterministic seed based on table ID to give each table unique cards and state
+  const str = `${table.id || "table"}-${table.name || "cash"}`;
+  let seed = 0;
+  for (let i = 0; i < str.length; i++) {
+    seed = (seed * 31 + str.charCodeAt(i)) & 0xffffffff;
+  }
+  const absSeed = Math.abs(seed);
+  const handNo = 2000 + (absSeed % 7000);
+
+  // Pseudo-random generator seeded with table ID
+  let s = absSeed || 123456789;
+  const rng = () => {
+    s = (s * 1664525 + 1013904223) & 0xffffffff;
+    return (s >>> 0) / 4294967296;
+  };
+
+  const deck = shuffle(buildDeck(false), rng);
+
+  // 5 staged community cards
+  const staged: CardModel[] = [
+    deck.pop() || { r: 14, s: 0 },
+    deck.pop() || { r: 13, s: 1 },
+    deck.pop() || { r: 12, s: 0 },
+    deck.pop() || { r: 10, s: 2 },
+    deck.pop() || { r: 7, s: 1 },
+  ];
+
+  const board: CardModel[] = staged.slice(0, 3);
+
+  const bb = table.bb || 2;
+  const sb = table.sb || 1;
+  const pot = Math.round((sb + bb) * (2 + (absSeed % 3)));
+  const currentBet = bb;
+
+  const minBuyIn = table.minBuyIn || bb * 20;
+  const heroInitialStack =
+    walletBalance > 0
+      ? Math.min(walletBalance, Math.max(minBuyIn, bb * 100))
+      : Math.max(minBuyIn, bb * 100);
+
+  const heroCards: CardModel[] = [
+    deck.pop() || { r: 14, s: 0 },
+    deck.pop() || { r: 11, s: 1 },
+  ];
+
+  const players: TableSeatPlayer[] = [];
+  players.push({
+    seatNo: 0,
+    name: userName,
+    avatarColor: "#B08A3E",
+    isHero: true,
+    stack: heroInitialStack,
+    bet: 0,
+    folded: false,
+    allIn: false,
+    cards: heroCards,
+    lastAction: "",
+  });
+
+  const maxSeats = table.maxSeats || 6;
+  const botCount = Math.min(maxSeats - 1, 5);
+  const botOffset = absSeed % BOT_POOL.length;
+
+  for (let i = 0; i < botCount; i++) {
+    const bot = BOT_POOL[(botOffset + i) % BOT_POOL.length];
+    const c1 = deck.pop() || { r: 10 + (i % 4), s: (i % 4) as any };
+    const c2 = deck.pop() || { r: 8 + (i % 4), s: ((i + 1) % 4) as any };
+    players.push({
+      seatNo: i + 1,
+      name: bot.name,
+      avatarColor: bot.color,
+      isHero: false,
+      stack: Math.floor(minBuyIn * (2 + (i + 1) * 0.7)),
+      bet: i === 0 ? currentBet : 0,
+      folded: i === 3,
+      allIn: false,
+      cards: [c1, c2],
+      lastAction: i === 0 ? `BET ${currentBet}` : i === 3 ? "FOLD" : "CALL",
+    });
+  }
+
+  return {
+    handNo,
+    staged,
+    board,
+    pot,
+    currentBet,
+    players,
+  };
+}
+
 export function Bet888LiveTable({
   table,
   onLeaveTable,
@@ -177,21 +272,26 @@ export function Bet888LiveTable({
   embedded = false,
   onDeductBuyIn,
   onCreditCashOut,
+  isUserBlocked = false,
 }: Bet888LiveTableProps) {
+  // Initialize unique game session for this table
+  const initialDataRef = useRef<ReturnType<typeof initializeTableState> | null>(null);
+  if (!initialDataRef.current) {
+    initialDataRef.current = initializeTableState(table, walletBalance, userName);
+  }
+  const init = initialDataRef.current;
+
   // Game session & state
-  const [handNo, setHandNo] = useState(2487);
+  const [handNo, setHandNo] = useState(init.handNo);
   const [stage, setStage] = useState<"preflop" | "flop" | "turn" | "river" | "showdown">("flop");
-  const [board, setBoard] = useState<CardModel[]>([
-    { r: 14, s: 0 }, // A♠
-    { r: 13, s: 1 }, // K♥
-    { r: 12, s: 0 }, // Q♠
-  ]);
-  const [pot, setPot] = useState(2450);
-  const [currentBet, setCurrentBet] = useState(500);
+  const [board, setBoard] = useState<CardModel[]>(init.board);
+  const [pot, setPot] = useState(init.pot);
+  const [currentBet, setCurrentBet] = useState(init.currentBet);
   const [activeSeat, setActiveSeat] = useState<number>(0); // 0 is Hero
   const [actionTimeLeft, setActionTimeLeft] = useState(20);
   const [heroHandName, setHeroHandName] = useState("One pair");
   const [soundMuted, setSoundMuted] = useState(false);
+  const [isTablePaused, setIsTablePaused] = useState(table.status === "paused");
   const [menuOpen, setMenuOpen] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
   const [chatOpen, setChatOpen] = useState(false);
@@ -204,61 +304,13 @@ export function Bet888LiveTable({
   // Winner & Showdown state
   const [winnerInfo, setWinnerInfo] = useState<HandWinnerInfo | null>(null);
   const [nextHandCountdown, setNextHandCountdown] = useState<number>(0);
-  const stagedCommunityRef = useRef<CardModel[]>([
-    { r: 14, s: 0 }, // A♠
-    { r: 13, s: 1 }, // K♥
-    { r: 12, s: 0 }, // Q♠
-    { r: 10, s: 2 }, // 10♦
-    { r: 7, s: 1 },  // 7♥
-  ]);
+  const stagedCommunityRef = useRef<CardModel[]>(init.staged);
 
   // Bet Slider state
-  const [raiseAmount, setRaiseAmount] = useState(1000);
+  const [raiseAmount, setRaiseAmount] = useState(Math.max(table.bb, init.currentBet * 2));
 
   // Players seated
-  const [players, setPlayers] = useState<TableSeatPlayer[]>(() => {
-    const list: TableSeatPlayer[] = [];
-    // Hero seat 0
-    list.push({
-      seatNo: 0,
-      name: userName,
-      avatarColor: "#B08A3E",
-      isHero: true,
-      stack: 15420,
-      bet: 0,
-      folded: false,
-      allIn: false,
-      cards: [
-        { r: 11, s: 3 }, // J♣
-        { r: 11, s: 2 }, // J♦
-      ],
-      lastAction: "",
-    });
-
-    // Opponent bots based on table.maxSeats
-    const maxSeats = table.maxSeats || 6;
-    const minBuyIn = table.minBuyIn || 200;
-    const botCount = Math.min(maxSeats - 1, 5);
-    for (let i = 0; i < botCount; i++) {
-      const bot = BOT_POOL[i % BOT_POOL.length];
-      list.push({
-        seatNo: i + 1,
-        name: bot.name,
-        avatarColor: bot.color,
-        isHero: false,
-        stack: Math.floor(minBuyIn * (3 + i * 1.5)),
-        bet: i === 0 ? 500 : 0,
-        folded: i === 3,
-        allIn: false,
-        cards: [
-          { r: 10 + i, s: 1 },
-          { r: 8 + i, s: 2 },
-        ],
-        lastAction: i === 0 ? "BET 500" : i === 3 ? "FOLD" : "CALL",
-      });
-    }
-    return list;
-  });
+  const [players, setPlayers] = useState<TableSeatPlayer[]>(init.players);
 
   // Deal Next Hand with randomized deck
   const handleDealNextHand = useCallback(() => {
@@ -346,12 +398,12 @@ export function Bet888LiveTable({
 
   // Turn timer countdown ring
   useEffect(() => {
-    if (stage === "showdown") return;
+    if (stage === "showdown" || isTablePaused) return;
     const timer = setInterval(() => {
       setActionTimeLeft((prev) => {
         if (prev <= 1) {
           // Auto-check or auto-fold on expiration
-          if (activeSeat === 0) {
+          if (activeSeat === 0 && !isUserBlocked && !isTablePaused) {
             handleHeroAction(currentBet === 0 ? "check" : "fold");
           }
           return 20;
@@ -360,7 +412,7 @@ export function Bet888LiveTable({
       });
     }, 1000);
     return () => clearInterval(timer);
-  }, [activeSeat, currentBet, stage]);
+  }, [activeSeat, currentBet, stage, isTablePaused, isUserBlocked]);
 
   // Trigger win by fold when all other players fold
   const triggerWinByFold = useCallback((winner: TableSeatPlayer, currentPot: number) => {
@@ -386,10 +438,22 @@ export function Bet888LiveTable({
 
     if (winner.isHero) {
       audio.playWin();
+      if (currentPot > 0) {
+        apiClient.wallet
+          .pokerTransaction({
+            username: userName,
+            type: "Poker Win",
+            amount: currentPot,
+            tableName: table.name,
+            handNo,
+            detail: "Won by all folds",
+          })
+          .catch(() => {});
+      }
     } else {
       audio.playChip();
     }
-  }, []);
+  }, [userName, table.name, handNo]);
 
   // Evaluate showdown between remaining active players
   const evaluateShowdown = useCallback(
@@ -450,11 +514,23 @@ export function Bet888LiveTable({
 
       if (best.player.isHero) {
         audio.playWin();
+        if (currentPot > 0) {
+          apiClient.wallet
+            .pokerTransaction({
+              username: userName,
+              type: "Poker Win",
+              amount: currentPot,
+              tableName: table.name,
+              handNo,
+              detail: best.result.name,
+            })
+            .catch(() => {});
+        }
       } else {
         audio.playChip();
       }
     },
-    [triggerWinByFold]
+    [triggerWinByFold, userName, table.name, handNo]
   );
 
   const advanceStreet = useCallback(() => {
@@ -478,6 +554,31 @@ export function Bet888LiveTable({
     setActiveSeat(0);
     setActionTimeLeft(20);
   }, [stage, players, pot, evaluateShowdown]);
+
+  // Listen for Live Commands from Admin Backoffice
+  useEffect(() => {
+    const unsub = subscribeLivePokerCommand((cmd) => {
+      const match =
+        !cmd.tableId ||
+        cmd.tableId === "all" ||
+        cmd.tableId === table.id ||
+        (table.inviteCode && cmd.tableId === table.inviteCode);
+      if (!match) return;
+
+      if (cmd.action === "pause") {
+        setIsTablePaused(true);
+      } else if (cmd.action === "resume") {
+        setIsTablePaused(false);
+      } else if (cmd.action === "next_street") {
+        advanceStreet();
+      } else if (cmd.action === "reset_hand") {
+        handleDealNextHand();
+      } else if (cmd.action === "set_pot" && typeof cmd.pot === "number") {
+        setPot(cmd.pot);
+      }
+    });
+    return unsub;
+  }, [table.id, table.inviteCode, advanceStreet, handleDealNextHand]);
 
   const advanceTurn = useCallback(() => {
     if (stage === "showdown") return;
@@ -598,6 +699,18 @@ export function Bet888LiveTable({
     } else if (action === "call") {
       const toCall = Math.min(hero.stack, currentBet - hero.bet);
       audio.playChip();
+      if (toCall > 0) {
+        apiClient.wallet
+          .pokerTransaction({
+            username: userName,
+            type: "Poker Bet",
+            amount: toCall,
+            tableName: table.name,
+            handNo,
+            detail: `Call €${toCall}`,
+          })
+          .catch(() => {});
+      }
       setPlayers((prev) =>
         prev.map((p) =>
           p.isHero
@@ -615,6 +728,18 @@ export function Bet888LiveTable({
     } else if (action === "raise") {
       const raiseVal = Math.min(hero.stack, raiseAmount);
       audio.playChip();
+      if (raiseVal > 0) {
+        apiClient.wallet
+          .pokerTransaction({
+            username: userName,
+            type: "Poker Bet",
+            amount: raiseVal,
+            tableName: table.name,
+            handNo,
+            detail: `Raise €${raiseVal}`,
+          })
+          .catch(() => {});
+      }
       setPlayers((prev) =>
         prev.map((p) =>
           p.isHero
@@ -633,6 +758,18 @@ export function Bet888LiveTable({
     } else if (action === "allin") {
       const allInVal = hero.stack;
       audio.playChip();
+      if (allInVal > 0) {
+        apiClient.wallet
+          .pokerTransaction({
+            username: userName,
+            type: "Poker Bet",
+            amount: allInVal,
+            tableName: table.name,
+            handNo,
+            detail: `All-in €${allInVal}`,
+          })
+          .catch(() => {});
+      }
       setPlayers((prev) =>
         prev.map((p) =>
           p.isHero
@@ -851,7 +988,7 @@ export function Bet888LiveTable({
                   // Geometric angle: Hero is at bottom-center (Seat 0)
                   const angle = (Math.PI / 2) + ((idx / n) * 2 * Math.PI);
                   const x = 50 + 41 * Math.cos(angle);
-                  const y = 50 + 34 * Math.sin(angle);
+                  const y = p.isHero ? 79.5 : (50 + 33 * Math.sin(angle));
 
                   const isTurn = activeSeat === p.seatNo && stage !== "showdown";
                   const isWinner = stage === "showdown" && winnerInfo?.winnerSeatNo === p.seatNo;
@@ -1108,6 +1245,42 @@ export function Bet888LiveTable({
 
       {/* ================= 3. BOTTOM ACTION BAR ================= */}
       <footer className="bet888-table-actionbar">
+        {isUserBlocked && (
+          <div
+            style={{
+              background: "linear-gradient(135deg, rgba(220, 38, 38, 0.95), rgba(185, 28, 28, 0.95))",
+              color: "#fff",
+              padding: "7px 16px",
+              borderRadius: 8,
+              fontSize: 12,
+              fontWeight: 800,
+              textAlign: "center",
+              marginBottom: 8,
+              width: "100%",
+              boxShadow: "0 4px 15px rgba(0,0,0,0.5)",
+            }}
+          >
+            🚫 Gaming Restricted: Your poker privileges have been restricted by the administrator. Real-money actions are disabled.
+          </div>
+        )}
+        {isTablePaused && !isUserBlocked && (
+          <div
+            style={{
+              background: "linear-gradient(135deg, rgba(217, 119, 6, 0.95), rgba(180, 83, 9, 0.95))",
+              color: "#fff",
+              padding: "7px 16px",
+              borderRadius: 8,
+              fontSize: 12,
+              fontWeight: 800,
+              textAlign: "center",
+              marginBottom: 8,
+              width: "100%",
+              boxShadow: "0 4px 15px rgba(0,0,0,0.5)",
+            }}
+          >
+            ⏸ Table Paused: Live play has been temporarily paused by the poker room supervisor.
+          </div>
+        )}
         {stage === "showdown" ? (
           <div className="showdown-actionbar-notice">
             <span>Hand complete · Winner: <b>{winnerInfo?.winnerName}</b> ({winnerInfo?.wonByFold ? "Opponents folded" : winnerInfo?.handRankName})</span>
@@ -1122,7 +1295,7 @@ export function Bet888LiveTable({
               <button
                 className="action-btn fold-btn"
                 onClick={() => handleHeroAction("fold")}
-                disabled={hero.folded || activeSeat !== 0}
+                disabled={isUserBlocked || isTablePaused || hero.folded || activeSeat !== 0}
               >
                 FOLD
               </button>
@@ -1131,7 +1304,7 @@ export function Bet888LiveTable({
                 <button
                   className="action-btn check-btn"
                   onClick={() => handleHeroAction("check")}
-                  disabled={hero.folded || activeSeat !== 0}
+                  disabled={isUserBlocked || isTablePaused || hero.folded || activeSeat !== 0}
                 >
                   CHECK
                 </button>
@@ -1139,7 +1312,7 @@ export function Bet888LiveTable({
                 <button
                   className="action-btn call-btn"
                   onClick={() => handleHeroAction("call")}
-                  disabled={hero.folded || activeSeat !== 0 || hero.stack === 0}
+                  disabled={isUserBlocked || isTablePaused || hero.folded || activeSeat !== 0 || hero.stack === 0}
                 >
                   CALL {toCall.toLocaleString()}
                 </button>
@@ -1148,7 +1321,7 @@ export function Bet888LiveTable({
               <button
                 className="action-btn bet-btn"
                 onClick={() => handleHeroAction("raise")}
-                disabled={hero.folded || activeSeat !== 0 || hero.stack <= toCall}
+                disabled={isUserBlocked || isTablePaused || hero.folded || activeSeat !== 0 || hero.stack <= toCall}
               >
                 {currentBet === 0 ? "BET" : "RAISE"} {raiseAmount.toLocaleString()}
               </button>
@@ -1156,7 +1329,7 @@ export function Bet888LiveTable({
               <button
                 className="action-btn allin-btn"
                 onClick={() => handleHeroAction("allin")}
-                disabled={hero.folded || activeSeat !== 0 || hero.stack === 0}
+                disabled={isUserBlocked || isTablePaused || hero.folded || activeSeat !== 0 || hero.stack === 0}
               >
                 ALL-IN {hero.stack.toLocaleString()}
               </button>

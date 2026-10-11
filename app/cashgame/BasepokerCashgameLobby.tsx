@@ -52,6 +52,16 @@ export default function BasepokerCashgameLobby() {
   const [wallet, setWallet] = useState(10000);
   const [currentUser, setCurrentUser] = useState<PlayerModel | null>(null);
   const [authModalOpen, setAuthModalOpen] = useState(false);
+  const [blockedAlert, setBlockedAlert] = useState<string | null>(null);
+
+  const isCurrentUserBlocked = useMemo(() => {
+    if (!currentUser) return false;
+    return (
+      currentUser.status === "Restricted" ||
+      currentUser.status === "Suspended" ||
+      (currentUser as any).pokerAccess === false
+    );
+  }, [currentUser]);
 
   const refreshWallet = useCallback((targetUsername?: string) => {
     const user = targetUsername || currentUser?.username || apiClient.auth.getStoredUsername();
@@ -83,20 +93,29 @@ export default function BasepokerCashgameLobby() {
     refreshWallet();
   };
 
-  // Load tables, user, and wallet on mount
+  // Load tables, user, and wallet on mount, and subscribe to table updates
   useEffect(() => {
-    const list = getStoredPokerTables();
-    setTables(list);
-    if (list.length > 0) {
-      setSelectedTableId(list[0].id);
-    }
+    const syncTables = () => {
+      const list = getStoredPokerTables();
+      setTables(list);
+      if (list.length > 0 && !list.some((t) => t.id === selectedTableId)) {
+        setSelectedTableId(list[0].id);
+      }
+    };
+
+    syncTables();
     setMounted(false);
     const t = setTimeout(() => setMounted(true), 10);
 
     refreshWallet();
     refreshUser();
+
+    const handleStorage = () => syncTables();
+    window.addEventListener("basepoker_tables_updated", handleStorage);
+    window.addEventListener("storage", handleStorage);
+
     const unsub = apiClient.sync.subscribe((event) => {
-      if (event.entity === "wallet") {
+      if (event.entity === "wallet" || event.entity === "players") {
         refreshWallet();
         refreshUser();
       }
@@ -104,9 +123,11 @@ export default function BasepokerCashgameLobby() {
 
     return () => {
       clearTimeout(t);
+      window.removeEventListener("basepoker_tables_updated", handleStorage);
+      window.removeEventListener("storage", handleStorage);
       unsub();
     };
-  }, [refreshWallet, refreshUser]);
+  }, [refreshWallet, refreshUser, selectedTableId]);
 
   // Filtered Tables
   const filteredTables = useMemo(() => {
@@ -134,6 +155,12 @@ export default function BasepokerCashgameLobby() {
 
   // Open Table in `/holdem/tables?code=...`
   const handleOpenTable = (tableId: string) => {
+    if (isCurrentUserBlocked) {
+      setBlockedAlert(
+        "🚫 Account Restricted: Your poker gaming privileges have been restricted by the administrator. Contact support for assistance."
+      );
+      return;
+    }
     const target = tables.find((t) => t.id === tableId);
     const code = target?.inviteCode || target?.id || tableId;
     router.push(`/holdem/tables?code=${encodeURIComponent(code)}`);
@@ -142,6 +169,12 @@ export default function BasepokerCashgameLobby() {
   // Join by Invite Code
   const handleJoinByCode = (e: React.FormEvent) => {
     e.preventDefault();
+    if (isCurrentUserBlocked) {
+      setBlockedAlert(
+        "🚫 Account Restricted: Your poker gaming privileges have been restricted by the administrator."
+      );
+      return;
+    }
     const clean = inviteCodeInput.trim().toUpperCase();
     if (!clean) return;
 
@@ -620,6 +653,61 @@ export default function BasepokerCashgameLobby() {
           </div>
         )}
       </main>
+
+      {/* ================= BLOCKED ACCOUNT ALERT MODAL ================= */}
+      {blockedAlert && (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(0,0,0,0.8)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 99999,
+            padding: 20,
+          }}
+          onClick={() => setBlockedAlert(null)}
+        >
+          <div
+            style={{
+              background: "#181432",
+              border: "1px solid rgba(239, 68, 68, 0.4)",
+              borderRadius: 16,
+              maxWidth: 440,
+              width: "100%",
+              padding: 24,
+              boxShadow: "0 20px 50px rgba(0,0,0,0.6)",
+              textAlign: "center",
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div style={{ fontSize: 44, marginBottom: 12 }}>🚫</div>
+            <h3 style={{ color: "#fff", margin: "0 0 8px", fontSize: 18, fontWeight: 800 }}>
+              Account Access Restricted
+            </h3>
+            <p style={{ color: "#a5a2bb", fontSize: 13, lineHeight: 1.5, margin: "0 0 20px" }}>
+              {blockedAlert}
+            </p>
+            <button
+              type="button"
+              onClick={() => setBlockedAlert(null)}
+              style={{
+                background: "linear-gradient(135deg, #ef4444, #dc2626)",
+                color: "#fff",
+                border: "none",
+                borderRadius: 8,
+                padding: "10px 24px",
+                fontWeight: 700,
+                fontSize: 13,
+                cursor: "pointer",
+              }}
+            >
+              Understood
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* ================= AUTH MODAL (LOGIN / SIGNUP) ================= */}
       <AuthModal

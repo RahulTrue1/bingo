@@ -1152,4 +1152,136 @@ test("Room filtering logic correctly filters by search term, variant, and status
   });
 });
 
+test("Poker gameplay wallet deduction, win credit, and multi-player ledger flow", async () => {
+  // 1. Get initial balance for Ari.R
+  const initRes = await fetch(`${BASE_URL}/wallet?username=Ari.R`);
+  assert.equal(initRes.status, 200);
+  const initJson = await initRes.json();
+  const startBal = initJson.balance;
+
+  // 2. Gameplay bet deduction
+  const betRes = await fetch(`${BASE_URL}/wallet/poker-transaction`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      username: "Ari.R",
+      type: "Poker Bet",
+      amount: 50,
+      tableName: "Prishtina 2/5",
+      handNo: 101,
+      detail: "Call €50",
+    }),
+  });
+  assert.equal(betRes.status, 200);
+  const betJson = await betRes.json();
+  assert.equal(betJson.success, true);
+  assert.equal(betJson.balance, startBal - 50);
+  assert.equal(betJson.transaction.type, "Poker Bet");
+  assert.equal(betJson.transaction.amount, -50);
+
+  // 3. Gameplay win credit
+  const winRes = await fetch(`${BASE_URL}/wallet/poker-transaction`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      username: "Ari.R",
+      type: "Poker Win",
+      amount: 250,
+      tableName: "Prishtina 2/5",
+      handNo: 101,
+      detail: "Flush to King",
+    }),
+  });
+  assert.equal(winRes.status, 200);
+  const winJson = await winRes.json();
+  assert.equal(winJson.success, true);
+  assert.equal(winJson.balance, startBal - 50 + 250);
+  assert.equal(winJson.transaction.type, "Poker Win");
+  assert.equal(winJson.transaction.amount, 250);
+
+  // 4. Player-filtered transaction history (only for Ari.R)
+  const playerTxsRes = await fetch(`${BASE_URL}/wallet/transactions?player=Ari.R`);
+  assert.equal(playerTxsRes.status, 200);
+  const playerTxsJson = await playerTxsRes.json();
+  assert.ok(playerTxsJson.transactions.length >= 2);
+  playerTxsJson.transactions.forEach((tx) => {
+    assert.equal(tx.player.toLowerCase(), "ari.r");
+  });
+
+  // 5. Admin multi-player transactions (all=true returns all players)
+  const allTxsRes = await fetch(`${BASE_URL}/wallet/transactions?all=true`);
+  assert.equal(allTxsRes.status, 200);
+  const allTxsJson = await allTxsRes.json();
+  assert.ok(allTxsJson.transactions.length > playerTxsJson.transactions.length);
+});
+
+test("Admin player management: block, suspend, unblock, and fund credit reflection", async () => {
+  // 1. Register a test player
+  const testUser = `BlockTest_${Date.now()}`;
+  const regRes = await fetch(`${BASE_URL}/auth/signup`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      username: testUser,
+      password: "pass12345Test",
+      bonus: 100,
+    }),
+  });
+  assert.equal(regRes.status, 201);
+  const regJson = await regRes.json();
+  const playerId = regJson.user.id;
+
+  // 2. Initial status is Active
+  assert.equal(regJson.user.status, "Active");
+
+  // 3. Admin Blocks the player
+  const blockRes = await fetch(`${BASE_URL}/admin/players/${playerId}/action`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ action: "Block" }),
+  });
+  assert.equal(blockRes.status, 200);
+  const blockJson = await blockRes.json();
+  assert.equal(blockJson.success, true);
+  assert.equal(blockJson.player.status, "Restricted");
+
+  // Verify fetch profile shows Restricted
+  const getBlocked = await fetch(`${BASE_URL}/admin/players/${playerId}`);
+  const getBlockedJson = await getBlocked.json();
+  assert.equal(getBlockedJson.player.status, "Restricted");
+
+  // 4. Admin Suspends the player
+  const suspRes = await fetch(`${BASE_URL}/admin/players/${playerId}/action`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ action: "Suspend" }),
+  });
+  assert.equal(suspRes.status, 200);
+  const suspJson = await suspRes.json();
+  assert.equal(suspJson.player.status, "Suspended");
+
+  // 5. Admin Activates / Unblocks the player
+  const unblockRes = await fetch(`${BASE_URL}/admin/players/${playerId}/action`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ action: "Activate" }),
+  });
+  assert.equal(unblockRes.status, 200);
+  const unblockJson = await unblockRes.json();
+  assert.equal(unblockJson.player.status, "Active");
+
+  // 6. Admin Credits funds to player wallet
+  const creditRes = await fetch(`${BASE_URL}/admin/players/${playerId}/add-funds`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ amount: 500, reason: "Admin poker chips" }),
+  });
+  assert.equal(creditRes.status, 200);
+  const creditJson = await creditRes.json();
+  assert.equal(creditJson.success, true);
+  assert.equal(creditJson.amount, 500);
+  assert.equal(creditJson.player.balance, 100 + 500);
+});
+
+
 

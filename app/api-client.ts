@@ -525,8 +525,42 @@ export const apiClient = {
         }),
       });
     },
-    async transactions(type?: string) {
-      const q = type ? `?type=${encodeURIComponent(type)}` : "";
+    async pokerTransaction(data: {
+      username?: string;
+      type: "Poker Bet" | "Poker Win" | "Poker Buy-in" | "Poker Cashout";
+      amount: number;
+      tableName?: string;
+      handNo?: number;
+      detail?: string;
+    }) {
+      const effectiveUser = data.username || getStoredSessionUser();
+      return request<{
+        success: boolean;
+        balance: number;
+        transaction: WalletTransaction;
+        message: string;
+      }>("/wallet/poker-transaction", {
+        method: "POST",
+        body: JSON.stringify({
+          ...data,
+          username: effectiveUser || undefined,
+        }),
+      });
+    },
+    async transactions(options?: string | { type?: string; player?: string; search?: string; all?: boolean; limit?: number }) {
+      let q = "";
+      if (typeof options === "string") {
+        q = options ? `?type=${encodeURIComponent(options)}` : "";
+      } else if (options) {
+        const params = new URLSearchParams();
+        if (options.type) params.set("type", options.type);
+        if (options.player) params.set("player", options.player);
+        if (options.search) params.set("search", options.search);
+        if (options.all) params.set("all", "true");
+        if (options.limit) params.set("limit", String(options.limit));
+        const qs = params.toString();
+        q = qs ? `?${qs}` : "";
+      }
       const res = await request<{ success: boolean; count: number; transactions: WalletTransaction[] }>(`/wallet/transactions${q}`);
       return res?.transactions ?? [];
     },
