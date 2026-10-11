@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
 import {
   BasepokerTableItem,
+  INITIAL_BASEPOKER_TABLES,
   getStoredPokerTables,
   findPokerTable,
 } from "../../poker/poker-tables-store";
@@ -19,9 +20,31 @@ export default function BasepokerHoldemTablesView() {
   const router = useRouter();
 
   const codeParam = searchParams.get("code") || "";
-  const [allTables, setAllTables] = useState<BasepokerTableItem[]>([]);
-  const [activeTableCode, setActiveTableCode] = useState<string>(codeParam);
-  const [openTableCodes, setOpenTableCodes] = useState<string[]>([]);
+  const [allTables, setAllTables] = useState<BasepokerTableItem[]>(() => {
+    if (typeof window !== "undefined") {
+      return getStoredPokerTables();
+    }
+    return INITIAL_BASEPOKER_TABLES;
+  });
+
+  const [activeTableCode, setActiveTableCode] = useState<string>(() => {
+    if (codeParam) return codeParam;
+    if (typeof window !== "undefined") {
+      const list = getStoredPokerTables();
+      if (list.length > 0) return list[0].inviteCode || list[0].id;
+    }
+    return "micro-001-002";
+  });
+
+  const [openTableCodes, setOpenTableCodes] = useState<string[]>(() => {
+    const initial =
+      codeParam ||
+      (typeof window !== "undefined"
+        ? getStoredPokerTables()[0]?.inviteCode || getStoredPokerTables()[0]?.id
+        : "micro-001-002") ||
+      "micro-001-002";
+    return [initial];
+  });
   const [showAddTableModal, setShowAddTableModal] = useState(false);
 
   // Unified Player Wallet & User State (matching Bingo)
@@ -93,7 +116,17 @@ export default function BasepokerHoldemTablesView() {
     );
   }, [currentUser]);
 
-  // Load tables on mount and listen to store updates (table create/delete from backoffice)
+  // Synchronize when codeParam in URL changes
+  useEffect(() => {
+    if (!codeParam) return;
+    setActiveTableCode(codeParam);
+    setOpenTableCodes((prev) => {
+      const alreadyOpen = prev.some((c) => c.toLowerCase() === codeParam.toLowerCase());
+      return alreadyOpen ? prev : [...prev, codeParam];
+    });
+  }, [codeParam]);
+
+  // Listen to store updates (table create/delete from backoffice)
   useEffect(() => {
     const syncTables = () => {
       const list = getStoredPokerTables();
@@ -101,52 +134,53 @@ export default function BasepokerHoldemTablesView() {
 
       // Clean up openTableCodes if tables were deleted in backoffice
       setOpenTableCodes((prev) => {
-        const validCodes = prev.filter((c) => list.some((t) => t.id === c || t.inviteCode === c));
+        const validCodes = prev.filter((c) =>
+          list.some(
+            (t) =>
+              t.id.toLowerCase() === c.toLowerCase() ||
+              (t.inviteCode && t.inviteCode.toLowerCase() === c.toLowerCase())
+          )
+        );
         if (validCodes.length === 0 && list.length > 0) {
-          const firstCode = list[0].inviteCode || list[0].id;
-          setActiveTableCode(firstCode);
-          return [firstCode];
+          return [list[0].inviteCode || list[0].id];
         }
         return validCodes.length > 0 ? validCodes : prev;
       });
     };
 
-    syncTables();
-
-    let initialCode = codeParam;
-    const currentList = getStoredPokerTables();
-    if (!initialCode && currentList.length > 0) {
-      initialCode = currentList[0].inviteCode || currentList[0].id;
-    }
-
-    if (initialCode) {
-      setActiveTableCode(initialCode);
-      setOpenTableCodes((prev) => (prev.includes(initialCode) ? prev : [initialCode]));
-    }
-
-    const handleUpdate = () => {
-      syncTables();
-    };
-
-    window.addEventListener("basepoker_tables_updated", handleUpdate);
-    window.addEventListener("storage", handleUpdate);
+    window.addEventListener("basepoker_tables_updated", syncTables);
+    window.addEventListener("storage", syncTables);
 
     return () => {
-      window.removeEventListener("basepoker_tables_updated", handleUpdate);
-      window.removeEventListener("storage", handleUpdate);
+      window.removeEventListener("basepoker_tables_updated", syncTables);
+      window.removeEventListener("storage", syncTables);
     };
-  }, [codeParam]);
+  }, []);
+
+  // Compute guaranteed effective active table code (never blank / out of sync)
+  const effectiveActiveCode = useMemo(() => {
+    if (openTableCodes.length === 0) return activeTableCode;
+    const found = openTableCodes.find(
+      (c) => c.toLowerCase() === (activeTableCode || "").toLowerCase()
+    );
+    return found || openTableCodes[0];
+  }, [openTableCodes, activeTableCode]);
 
   // Resolve current active table
   const activeTable = useMemo<BasepokerTableItem>(() => {
-    if (activeTableCode) {
-      const match = findPokerTable(activeTableCode);
+    if (effectiveActiveCode) {
+      const match =
+        allTables.find(
+          (t) =>
+            t.id.toLowerCase() === effectiveActiveCode.toLowerCase() ||
+            (t.inviteCode && t.inviteCode.toLowerCase() === effectiveActiveCode.toLowerCase())
+        ) || findPokerTable(effectiveActiveCode);
       if (match) return match;
     }
     if (allTables.length > 0) return allTables[0];
 
     // Fallback default table if store is empty
-    return {
+    return INITIAL_BASEPOKER_TABLES[0] || {
       id: "tbl-fallback",
       name: "Hold'em Cash 5/10",
       feeType: "RAKE",
@@ -162,7 +196,7 @@ export default function BasepokerHoldemTablesView() {
       theme: "green",
       tier: "medium",
     };
-  }, [activeTableCode, allTables]);
+  }, [effectiveActiveCode, allTables]);
 
   // Switch to another open table tab
   const handleSelectTab = (code: string) => {
@@ -173,23 +207,23 @@ export default function BasepokerHoldemTablesView() {
   // Close a table tab
   const handleCloseTab = (e: React.MouseEvent, codeToClose: string) => {
     e.stopPropagation();
-    const remaining = openTableCodes.filter((c) => c !== codeToClose);
+    const remaining = openTableCodes.filter(
+      (c) => c.toLowerCase() !== codeToClose.toLowerCase()
+    );
     if (remaining.length === 0) {
       router.push("/cashgame");
       return;
     }
     setOpenTableCodes(remaining);
-    if (activeTableCode === codeToClose) {
-      const nextActive = remaining[0];
-      setActiveTableCode(nextActive);
-      router.replace(`/holdem/tables?code=${encodeURIComponent(nextActive)}`);
-    }
+    const nextActive = remaining[0];
+    setActiveTableCode(nextActive);
+    router.replace(`/holdem/tables?code=${encodeURIComponent(nextActive)}`);
   };
 
   // Open additional table from "+ Add Table"
   const handleAddTableSelect = (table: BasepokerTableItem) => {
     const code = table.inviteCode || table.id;
-    if (!openTableCodes.includes(code)) {
+    if (!openTableCodes.some((c) => c.toLowerCase() === code.toLowerCase())) {
       setOpenTableCodes((prev) => [...prev, code]);
     }
     setActiveTableCode(code);
@@ -257,8 +291,13 @@ export default function BasepokerHoldemTablesView() {
           {/* Multi-Table Tabs */}
           <div className="bp-tabs-strip">
             {openTableCodes.map((code) => {
-              const tbl = findPokerTable(code);
-              const isActive = activeTableCode === code;
+              const tbl =
+                allTables.find(
+                  (t) =>
+                    t.id.toLowerCase() === code.toLowerCase() ||
+                    (t.inviteCode && t.inviteCode.toLowerCase() === code.toLowerCase())
+                ) || findPokerTable(code);
+              const isActive = code.toLowerCase() === effectiveActiveCode.toLowerCase();
               return (
                 <div
                   key={code}
@@ -298,8 +337,15 @@ export default function BasepokerHoldemTablesView() {
       {/* ================= LIVE STADIUM TABLE VIEW (MULTI-TABLE CONCURRENT) ================= */}
       <div className="bp-table-workspace" style={{ display: "flex", flex: 1, position: "relative", overflow: "hidden", width: "100%", height: "100%" }}>
         {openTableCodes.map((code) => {
-          const tbl = allTables.find((t) => (t.inviteCode || t.id) === code) || findPokerTable(code) || activeTable;
-          const isVisible = code === activeTableCode;
+          const tbl =
+            allTables.find(
+              (t) =>
+                t.id.toLowerCase() === code.toLowerCase() ||
+                (t.inviteCode && t.inviteCode.toLowerCase() === code.toLowerCase())
+            ) ||
+            findPokerTable(code) ||
+            activeTable;
+          const isVisible = code.toLowerCase() === effectiveActiveCode.toLowerCase();
           return (
             <div
               key={code}
