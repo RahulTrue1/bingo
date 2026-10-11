@@ -319,11 +319,6 @@ export default function BasepokerCashgameLobby() {
                 Join
               </button>
             </form>
-
-            {/* Create Table CTA */}
-            <button className="bp-create-table-btn" onClick={() => setShowCreateModal(true)}>
-              + Create Table
-            </button>
           </div>
         </div>
 
@@ -633,113 +628,6 @@ export default function BasepokerCashgameLobby() {
         currentUser={currentUser}
         onAuthSuccess={handleAuthSuccess}
       />
-
-      {/* ================= CREATE TABLE MODAL ================= */}
-      {showCreateModal && (
-        <div className="bp-modal-backdrop" onClick={() => setShowCreateModal(false)}>
-          <div className="bp-modal" onClick={(e) => e.stopPropagation()}>
-            <div className="bp-modal-header">
-              <h3>Create Live Poker Table</h3>
-              <button className="bp-modal-close" onClick={() => setShowCreateModal(false)}>
-                ×
-              </button>
-            </div>
-
-            <form onSubmit={handleCreateTableSubmit} className="bp-modal-body">
-              <label className="bp-modal-field">
-                Table Name
-                <input
-                  type="text"
-                  placeholder="e.g. Pristina High Stakes"
-                  value={createForm.name}
-                  onChange={(e) => setCreateForm((f) => ({ ...f, name: e.target.value }))}
-                  required
-                />
-              </label>
-
-              <div className="bp-modal-grid-2">
-                <label className="bp-modal-field">
-                  Small Blind (€)
-                  <input
-                    type="number"
-                    min={0.01}
-                    step={0.01}
-                    value={createForm.sb}
-                    onChange={(e) => {
-                      const sb = Number(e.target.value);
-                      setCreateForm((f) => ({ ...f, sb, bb: sb * 2 }));
-                    }}
-                  />
-                </label>
-
-                <label className="bp-modal-field">
-                  Big Blind (€)
-                  <input
-                    type="number"
-                    min={0.02}
-                    step={0.02}
-                    value={createForm.bb}
-                    onChange={(e) => setCreateForm((f) => ({ ...f, bb: Number(e.target.value) }))}
-                  />
-                </label>
-              </div>
-
-              <div className="bp-modal-grid-2">
-                <label className="bp-modal-field">
-                  Seats Capacity
-                  <select
-                    value={createForm.seats}
-                    onChange={(e) => setCreateForm((f) => ({ ...f, seats: Number(e.target.value) }))}
-                  >
-                    <option value={2}>2 Players (Heads-Up)</option>
-                    <option value={6}>6 Players (6-Max)</option>
-                    <option value={9}>9 Players (Full Ring)</option>
-                  </select>
-                </label>
-
-                <label className="bp-modal-field">
-                  Commission Model
-                  <select
-                    value={createForm.feeType}
-                    onChange={(e) =>
-                      setCreateForm((f) => ({
-                        ...f,
-                        feeType: e.target.value as "RAKE" | "HAND_FEE" | "TABLE_FEE",
-                      }))
-                    }
-                  >
-                    <option value="RAKE">1. 5% Pot Rake (Standard with Cap)</option>
-                    <option value="HAND_FEE">2. Hand Fee (€2 fixed per hand)</option>
-                    <option value="TABLE_FEE">3. Table Fee (€20 fixed per 30 min)</option>
-                  </select>
-                </label>
-              </div>
-
-              <label className="bp-modal-checkbox">
-                <input
-                  type="checkbox"
-                  checked={createForm.isPrivate}
-                  onChange={(e) => setCreateForm((f) => ({ ...f, isPrivate: e.target.checked }))}
-                />
-                <span>Private Table (Requires 6-character Invite Code to Join)</span>
-              </label>
-
-              <div className="bp-modal-footer">
-                <button
-                  type="button"
-                  className="bp-btn-cancel"
-                  onClick={() => setShowCreateModal(false)}
-                >
-                  Cancel
-                </button>
-                <button type="submit" className="bp-btn-submit">
-                  + Create Table
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
 
       {/* ================= INLINE STYLES ================= */}
       <style jsx>{`

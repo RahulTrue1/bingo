@@ -303,33 +303,6 @@ export function PlayerHeader({
 
                   <div className="tooltip-divider" />
 
-                  {/* Operator Backoffice */}
-                  <div className="tooltip-nav-section">
-                    <div className="tooltip-section-title">OPERATOR BACKOFFICE</div>
-                    <Link
-                      href="/poker-backoffice"
-                      className="tooltip-item"
-                      onClick={() => setMenuOpen(false)}
-                      role="menuitem"
-                    >
-                      <ShieldCheck size={18} weight="fill" className="tooltip-icon" />
-                      <span className="tooltip-item-label">Poker Backoffice</span>
-                      <span className="tooltip-badge">Admin</span>
-                    </Link>
-                    <Link
-                      href="/backoffice"
-                      className="tooltip-item"
-                      onClick={() => setMenuOpen(false)}
-                      role="menuitem"
-                    >
-                      <ShieldCheck size={18} weight="bold" className="tooltip-icon" />
-                      <span className="tooltip-item-label">Bingo Backoffice</span>
-                      <span className="tooltip-badge">Admin</span>
-                    </Link>
-                  </div>
-
-                  <div className="tooltip-divider" />
-
                   {/* Switch Game */}
                   <div className="tooltip-nav-section">
                     <div className="tooltip-section-title">SWITCH GAME</div>
