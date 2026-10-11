@@ -314,21 +314,23 @@ export function describe(h: HandEvalResult): string {
   }
 }
 
-export function bestHand(hole: CardModel[], board: CardModel[], variant: VariantDef): HandEvalResult {
-  const sd = !!variant.shortDeck;
+export function bestHand(hole: CardModel[], board: CardModel[] = [], variant?: VariantDef): HandEvalResult {
+  const v = variant || VARIANTS.NLH;
+  const sd = !!v?.shortDeck;
+  const b = Array.isArray(board) ? board : [];
   let best: HandEvalResult | null = null;
   let cands: CardModel[][];
-  if (variant.eval === 'omaha') {
+  if (v?.eval === 'omaha') {
     cands = [];
     const hs = combos(hole, 2);
-    const bs = combos(board, 3);
+    const bs = combos(b, 3);
     for (const h of hs) {
-      for (const b of bs) {
-        cands.push(h.concat(b));
+      for (const bb of bs) {
+        cands.push(h.concat(bb));
       }
     }
   } else {
-    cands = combos(hole.concat(board), 5);
+    cands = combos(hole.concat(b), 5);
   }
 
   for (const c of cands) {
@@ -339,7 +341,7 @@ export function bestHand(hole: CardModel[], board: CardModel[], variant: Variant
     }
   }
   if (!best) {
-    best = eval5(hole.slice(0, 5), sd);
+    best = eval5(hole.concat(b).slice(0, 5), sd);
   }
   best.name = describe(best);
   return best;

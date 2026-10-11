@@ -9,8 +9,10 @@ import {
   ClockCounterClockwise,
   Diamond,
   DiamondsFour,
+  Fire,
   GearSix,
   Gift,
+  Lightning,
   PokerChip,
   ShieldCheck,
   Ticket,
@@ -36,6 +38,8 @@ export function PlayerHeader({
   pokerSweepsCur,
   onPokerSweepsCurChange,
   walletDisplay,
+  activePokerTab = "holdem",
+  onPokerTabChange,
 }: {
   view?: PlayerView;
   setView?: (view: PlayerView) => void;
@@ -51,6 +55,8 @@ export function PlayerHeader({
   pokerSweepsCur?: string;
   onPokerSweepsCurChange?: (cur: string) => void;
   walletDisplay?: string;
+  activePokerTab?: "holdem" | "plo" | "spin" | "aof" | "tournaments";
+  onPokerTabChange?: (tab: "holdem" | "plo" | "spin" | "aof" | "tournaments") => void;
 }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -119,23 +125,13 @@ export function PlayerHeader({
         >
           Bingo
         </button>
-        {currentApp === "poker" ? (
-          <button
-            className={`main-nav-link ${isPokerActive ? "active" : ""}`}
-            onClick={() => onPokerViewChange?.("lobby")}
-            title="TIG Poker Lobby"
-          >
-            Poker
-          </button>
-        ) : (
-          <Link
-            href="/poker"
-            className="main-nav-link"
-            title="TIG Poker Lobby"
-          >
-            Poker
-          </Link>
-        )}
+        <Link
+          href="/cashgame"
+          className={`main-nav-link ${currentApp === "poker" ? "active" : ""}`}
+          title="Basepoker Cash Game Live"
+        >
+        Poker
+        </Link>
       </nav>
 
       <div className="header-actions">
@@ -226,61 +222,82 @@ export function PlayerHeader({
               {currentApp === "poker" ? (
                 <>
                   <div className="tooltip-nav-section">
-                    <div className="tooltip-section-title">POKER NAVIGATION</div>
+                    <div className="tooltip-section-title">POKER GAME MODES</div>
                     <button
-                      className={`tooltip-item ${pokerActiveView === "lobby" ? "active" : ""}`}
+                      className={`tooltip-item ${activePokerTab === "holdem" ? "active" : ""}`}
                       onClick={() => {
-                        onPokerViewChange?.("lobby");
+                        if (onPokerTabChange) {
+                          onPokerTabChange("holdem");
+                        } else if (typeof window !== "undefined") {
+                          window.location.href = "/cashgame";
+                        }
                         setMenuOpen(false);
                       }}
                       role="menuitem"
                     >
                       <Cards size={18} weight="fill" className="tooltip-icon" />
-                      <span className="tooltip-item-label">Poker Lobby</span>
+                      <span className="tooltip-item-label">Hold&apos;em</span>
+                      <span className="tooltip-badge" style={{ background: "#ef4444", color: "#fff" }}>Live</span>
                     </button>
                     <button
-                      className={`tooltip-item ${pokerActiveView === "history" ? "active" : ""}`}
+                      className={`tooltip-item ${activePokerTab === "plo" ? "active" : ""}`}
                       onClick={() => {
-                        onPokerViewChange?.("history");
+                        if (onPokerTabChange) {
+                          onPokerTabChange("plo");
+                        } else if (typeof window !== "undefined") {
+                          window.location.href = "/cashgame";
+                        }
                         setMenuOpen(false);
                       }}
                       role="menuitem"
                     >
-                      <ClockCounterClockwise size={18} weight="bold" className="tooltip-icon" />
-                      <span className="tooltip-item-label">Betting History</span>
+                      <DiamondsFour size={18} weight="fill" className="tooltip-icon" />
+                      <span className="tooltip-item-label">PLO (Omaha)</span>
                     </button>
                     <button
-                      className={`tooltip-item ${pokerActiveView === "wallet" ? "active" : ""}`}
+                      className={`tooltip-item ${activePokerTab === "spin" ? "active" : ""}`}
                       onClick={() => {
-                        onPokerViewChange?.("wallet");
+                        if (onPokerTabChange) {
+                          onPokerTabChange("spin");
+                        } else if (typeof window !== "undefined") {
+                          window.location.href = "/cashgame";
+                        }
                         setMenuOpen(false);
                       }}
                       role="menuitem"
                     >
-                      <PokerChip size={18} weight="fill" className="tooltip-icon" />
-                      <span className="tooltip-item-label">Wallet &amp; Chips</span>
+                      <Lightning size={18} weight="fill" className="tooltip-icon" />
+                      <span className="tooltip-item-label">Spin &amp; Cash</span>
                     </button>
                     <button
-                      className={`tooltip-item ${pokerActiveView === "live" ? "active" : ""}`}
+                      className={`tooltip-item ${activePokerTab === "aof" ? "active" : ""}`}
                       onClick={() => {
-                        onPokerViewChange?.("live");
+                        if (onPokerTabChange) {
+                          onPokerTabChange("aof");
+                        } else if (typeof window !== "undefined") {
+                          window.location.href = "/cashgame";
+                        }
+                        setMenuOpen(false);
+                      }}
+                      role="menuitem"
+                    >
+                      <Fire size={18} weight="fill" className="tooltip-icon" />
+                      <span className="tooltip-item-label">All In or Fold</span>
+                    </button>
+                    <button
+                      className={`tooltip-item ${activePokerTab === "tournaments" ? "active" : ""}`}
+                      onClick={() => {
+                        if (onPokerTabChange) {
+                          onPokerTabChange("tournaments");
+                        } else if (typeof window !== "undefined") {
+                          window.location.href = "/cashgame";
+                        }
                         setMenuOpen(false);
                       }}
                       role="menuitem"
                     >
                       <Trophy size={18} weight="fill" className="tooltip-icon" />
-                      <span className="tooltip-item-label">Live Events</span>
-                    </button>
-                    <button
-                      className={`tooltip-item ${pokerActiveView === "settings" ? "active" : ""}`}
-                      onClick={() => {
-                        onPokerViewChange?.("settings");
-                        setMenuOpen(false);
-                      }}
-                      role="menuitem"
-                    >
-                      <GearSix size={18} weight="fill" className="tooltip-icon" />
-                      <span className="tooltip-item-label">Customise</span>
+                      <span className="tooltip-item-label">Tournaments</span>
                     </button>
                   </div>
 
@@ -325,6 +342,15 @@ export function PlayerHeader({
                       <DiamondsFour size={18} weight="fill" className="tooltip-icon" />
                       <span className="tooltip-item-label">Play Bingo</span>
                     </Link>
+                    <a
+                      href="http://14.96.241.250:8005"
+                      className="tooltip-item"
+                      onClick={() => setMenuOpen(false)}
+                      role="menuitem"
+                    >
+                      <Cards size={18} weight="fill" className="tooltip-icon" />
+                      <span className="tooltip-item-label">Games Portal</span>
+                    </a>
                   </div>
                 </>
               ) : (
@@ -423,7 +449,7 @@ export function PlayerHeader({
                   <div className="tooltip-nav-section">
                     <div className="tooltip-section-title">SWITCH GAME</div>
                     <Link
-                      href="/poker"
+                      href="/cashgame"
                       className="tooltip-item"
                       onClick={() => setMenuOpen(false)}
                       role="menuitem"

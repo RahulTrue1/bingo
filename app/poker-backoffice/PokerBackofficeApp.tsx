@@ -1,54 +1,41 @@
 "use client";
 
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import Link from "next/link";
 import { Icon } from "../components/shared/Icon";
 import { Logo } from "../components/shared/Logo";
-import { VARIANTS } from "../poker/poker-engine";
-import { VariantCode } from "../poker/poker-types";
-
-const ROLES = ["Admin", "Risk", "Finance", "Support"];
-const US_STATES = [
-  "AL", "AZ", "CA", "CO", "CT", "FL", "GA", "ID", "IL", "IN",
-  "LA", "MA", "MI", "MN", "MT", "NJ", "NV", "NY", "OH", "PA",
-  "TN", "TX", "VA", "WA",
-];
+import {
+  BasepokerTableItem,
+  StakeTier,
+  getStoredPokerTables,
+  createAndStorePokerTable,
+  togglePokerTableStatus,
+  deletePokerTable,
+  resetPokerTables,
+  PokerCommissionSettings,
+  getStoredCommissionSettings,
+  saveStoredCommissionSettings,
+  DEFAULT_COMMISSION_SETTINGS,
+  BackofficePokerPlayer,
+  getStoredPokerPlayers,
+  togglePlayerPokerAccess,
+} from "../poker/poker-tables-store";
 
 export const pokerAdminNav = [
   ["dashboard", "Overview & KPIs", "⌂"],
-  ["tables", "Tables & Games", "▦"],
-  ["rake", "Rake & Margins", "%"],
-  ["tournaments", "Tournaments", "♜"],
-  ["jackpots", "Jackpot Spin & BBJ", "✦"],
-  ["players", "Player 360 & Bans", "♙"],
-  ["live", "Live Room Monitor", "●"],
-  ["integrity", "Integrity & Alerts", "⚠"],
-  ["disputes", "Disputes & Adjustments", "⚖"],
-  ["finance", "Finance & Redemptions", "⇄"],
-  ["promotions", "Promos & Rakeback", "★"],
-  ["brand", "Brand & Geo-States", "🌐"],
-  ["clubs", "Private Clubs", "♠"],
-  ["audit", "Admin & Audit Log", "📋"],
-  ["ai", "AI Operations Assistant", "🤖"],
+  ["live", "Live Table Control", "●"],
+  ["tables", "Tables & Fleet", "▦"],
+  ["players", "Player 360 & Access", "♙"],
+  ["rules", "Commission Rules", "%"],
 ];
 
 export function pokerAdminSubtitle(module: string) {
   const subtitles: Record<string, string> = {
-    dashboard: "Real-time poker liquidity, rake revenues, active tables, and player engagement.",
-    tables: "Configure cash table blinds, ante levels, action clocks, and game variant parameters.",
-    rake: "Control rake percentage, pot caps, 'no flop no drop' rules, and player rakeback.",
-    tournaments: "Manage scheduled MTTs, mystery bounties, satellite packages, and blind structures.",
-    jackpots: "Adjust Jackpot Spin multiplier weights, RTP calculations, and progressive bad-beat seeds.",
-    players: "Player KYC verification, VIP tiering, stake restrictions, and collision keep-apart pairs.",
-    live: "Monitor real-time table occupancy, table status, and broadcast server-wide table alerts.",
-    integrity: "Automated decision-speed tracking, chip-dumping detection, and soft-play review queue.",
-    disputes: "Hand replay lookup with cryptographic shuffle proof, and maker-checker balance adjustments.",
-    finance: "Cash-game rake reports, tournament P&L overlay, and Sweeps Coin redemptions queue.",
-    promotions: "Pay owed player rakeback, drop tournament tickets, and manage campaign leaderboards.",
-    brand: "Theme skins, brand labels, default language, and US state-by-state sweepstakes geoblocking.",
-    clubs: "Oversee private club tables, invite codes, member limits, and club fee models.",
-    audit: "Immutable chronological audit log tracing every operational and financial change.",
-    ai: "Ask natural language questions about your poker operation with real-time session data.",
+    dashboard: "Real-time poker liquidity, commission revenue breakdown across 3 models, and active tables.",
+    live: "Monitor active ring tables and intervene in real time with automated street runouts and clock control.",
+    tables: "Live table fleet management, real-time table creation, pause/resume, and table deletion.",
+    players: "Player directory, VIP tiering, and dynamic 'Poker Online' access permission controls.",
+    rules: "Configure operator rake percentage, caps, fixed hand fees, and timed table fee rules.",
   };
   return subtitles[module] ?? "Manage and configure poker operations across the platform.";
 }
@@ -57,1905 +44,1407 @@ export default function PokerBackofficeApp() {
   const [mounted, setMounted] = useState(false);
   const [module, setModule] = useState("dashboard");
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [tables, setTables] = useState<BasepokerTableItem[]>([]);
+  const [players, setPlayers] = useState<BackofficePokerPlayer[]>([]);
+  const [commissionRules, setCommissionRules] = useState<PokerCommissionSettings>(DEFAULT_COMMISSION_SETTINGS);
+  const [toast, setToast] = useState<{ message: string; type: "success" | "info" | "warning" } | null>(null);
 
-  // Persistent Poker State (same storage key as PokerApp for unified syncing)
-  const [state, setState] = useState(() => {
-    return {
-      wallet: { USD: 100000, GC: 2500000, SC: 50000 } as Record<string, number>,
-      tickets: [] as any[],
-      tx: [] as any[],
-      hands: [] as any[],
-      tourneys: [] as any[],
-      ops: {
-        handsDealt: 0,
-        byVariant: {} as Record<string, number>,
-        rake: { USD: 0, GC: 0, SC: 0 } as Record<string, number>,
-        fees: { USD: 0, GC: 0, SC: 0 } as Record<string, number>,
-        tourneysRun: 0,
-      },
-      decisions: [] as number[],
-      settings: {
-        skin: "tig",
-        fourColor: true,
-        brand: "TIG Poker",
-        mode: "real",
-        sweepsCur: "SC",
-        rakePct: 5,
-        rakeCapBB: 3,
-        timeBank: 20,
-        speed: 1,
-        nextDelay: 2200,
-      },
-      bo: {
-        section: "overview",
-        role: "Admin",
-        audit: [] as any[],
-        adjustments: [] as any[],
-        redemptions: [] as any[],
-        clubs: [] as any[],
-        alerts: {} as Record<string, string>,
-        broadcast: "",
-        geoState: "NY",
-        blockedStates: ["CT", "LA", "MI", "MT", "NJ", "TN", "WA"],
-        frozen: false,
-        withdrawHold: false,
-        limits: { maxBuyInBB: 100, maxTables: 4, lossLimit: 0 },
-        nfnd: true,
-        rakeback: 20,
-        rakebackPaid: 0,
-        toggles: { straddle: false, rit: true, rabbit: false, anon: false, autoOpen: true, waitlist: true, disconnect: true, chat: true },
-        spin: [[2, 8203], [3, 1100], [5, 500], [10, 162], [100, 33], [1000, 2]],
-        mtt: {} as Record<string, any>,
-        rakeByVariant: {} as Record<string, Record<string, number>>,
-        bans: [] as string[],
-        apart: [["RiverRat", "ColdDeck"]],
-        vip: "Silver",
-        note: "",
-        lobbyOrder: "stakes",
-        lang: "en",
-        jackpot: { badBeat: 250000, highHand: 50000 },
-      },
-    };
-  });
+  // Table Search & Filters
+  const [tableSearch, setTableSearch] = useState("");
+  const [stakeFilter, setStakeFilter] = useState<string>("all");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+
+  // Player Search & Filters
+  const [playerSearch, setPlayerSearch] = useState("");
+  const [accessFilter, setAccessFilter] = useState<string>("all");
+
+  // Create Table Modal State
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [formName, setFormName] = useState("Gjakova 5/10");
+  const [formSb, setFormSb] = useState(5);
+  const [formBb, setFormBb] = useState(10);
+  const [formMinBuy, setFormMinBuy] = useState(200);
+  const [formMaxBuy, setFormMaxBuy] = useState(2000);
+  const [formMaxSeats, setFormMaxSeats] = useState(6);
+  const [formFeeType, setFormFeeType] = useState<"RAKE" | "HAND_FEE" | "TABLE_FEE">("RAKE");
+  const [formIsPrivate, setFormIsPrivate] = useState(false);
+  const [formInviteCode, setFormInviteCode] = useState("");
+
+  // Commission Rules Form State
+  const [rulesForm, setRulesForm] = useState<PokerCommissionSettings>(DEFAULT_COMMISSION_SETTINGS);
+
+  // Live Game Control State (Matching Bingo LiveControl)
+  const [selectedTableId, setSelectedTableId] = useState<string>("");
+  const [liveStreet, setLiveStreet] = useState<"preflop" | "flop" | "turn" | "river" | "showdown">("flop");
+  const [livePot, setLivePot] = useState<number>(145);
+  const [actionSpeed, setActionSpeed] = useState("Normal · 15 sec");
+  const [liveCommunityCards, setLiveCommunityCards] = useState<string[]>(["A♠", "K♥", "Q♦"]);
+
+  // Toast Helper
+  const showToast = useCallback((message: string, type: "success" | "info" | "warning" = "success") => {
+    setToast({ message, type });
+    setTimeout(() => {
+      setToast(null);
+    }, 3200);
+  }, []);
+
+  // Sync Data on Mount & Events
+  const refreshData = useCallback(() => {
+    const loadedTables = getStoredPokerTables();
+    const loadedPlayers = getStoredPokerPlayers();
+    const loadedRules = getStoredCommissionSettings();
+    setTables(loadedTables);
+    setPlayers(loadedPlayers);
+    setCommissionRules(loadedRules);
+    setRulesForm(loadedRules);
+    if (loadedTables.length > 0 && !selectedTableId) {
+      setSelectedTableId(loadedTables[0].id);
+    }
+  }, [selectedTableId]);
 
   useEffect(() => {
-    try {
-      const raw = localStorage.getItem("tig_poker_demo_v1");
-      if (raw) {
-        const loaded = JSON.parse(raw);
-        setState((prev) => ({
-          ...prev,
-          ...loaded,
-          settings: { ...prev.settings, ...(loaded.settings || {}) },
-          ops: { ...prev.ops, ...(loaded.ops || {}) },
-          bo: { ...prev.bo, ...(loaded.bo || {}) },
-        }));
-      }
-    } catch (_) {}
     setMounted(true);
-  }, []);
+    refreshData();
 
-  const saveState = useCallback((updater: (prev: typeof state) => typeof state) => {
-    setState((prev) => {
-      const next = updater(prev);
-      try {
-        localStorage.setItem("tig_poker_demo_v1", JSON.stringify(next));
-      } catch (_) {}
-      return next;
+    const handleStorageUpdate = () => {
+      refreshData();
+    };
+
+    window.addEventListener("basepoker_tables_updated", handleStorageUpdate);
+    window.addEventListener("basepoker_players_updated", handleStorageUpdate);
+    window.addEventListener("basepoker_commission_updated", handleStorageUpdate);
+    window.addEventListener("storage", handleStorageUpdate);
+
+    return () => {
+      window.removeEventListener("basepoker_tables_updated", handleStorageUpdate);
+      window.removeEventListener("basepoker_players_updated", handleStorageUpdate);
+      window.removeEventListener("basepoker_commission_updated", handleStorageUpdate);
+      window.removeEventListener("storage", handleStorageUpdate);
+    };
+  }, [refreshData]);
+
+  // Derived KPI calculations
+  const kpis = useMemo(() => {
+    const activeTables = tables.filter((t) => t.status === "playing");
+    const totalSeated = tables.reduce((acc, t) => acc + (t.seatsOccupied || 0), 0);
+    const turnover = tables.reduce((acc, t) => acc + (t.avgPot || t.bb * 8) * (t.handsPerHour || 50), 0);
+
+    // Revenue Model 1: Rake 5%
+    const rakeTables = tables.filter((t) => t.feeType === "RAKE");
+    const rakeRevenue = rakeTables.reduce(
+      (acc, t) => acc + (t.avgPot || t.bb * 8) * (t.handsPerHour || 50) * (commissionRules.rakePercent / 100),
+      0
+    );
+
+    // Revenue Model 2: Hand Fee
+    const handTables = tables.filter((t) => t.feeType === "HAND_FEE");
+    const handFeeRevenue = handTables.reduce(
+      (acc, t) => acc + (t.handsPerHour || 50) * commissionRules.handFeeEur * 4,
+      0
+    );
+
+    // Revenue Model 3: Table Fee
+    const tableFeeTables = tables.filter((t) => t.feeType === "TABLE_FEE");
+    const tableFeeRevenue = tableFeeTables.reduce(
+      (acc, t) => acc + (commissionRules.tableFeeEur * 2) * (t.seatsOccupied || 1),
+      0
+    );
+
+    const privateTables = tables.filter((t) => t.isPrivate);
+    const totalCommission = rakeRevenue + handFeeRevenue + tableFeeRevenue;
+
+    return {
+      activeTablesCount: activeTables.length,
+      totalTablesCount: tables.length,
+      totalSeated,
+      turnover,
+      totalCommission,
+      rakeTablesCount: rakeTables.length,
+      rakeRevenue,
+      handTablesCount: handTables.length,
+      handFeeRevenue,
+      tableFeeTablesCount: tableFeeTables.length,
+      tableFeeRevenue,
+      privateTablesCount: privateTables.length,
+    };
+  }, [tables, commissionRules]);
+
+  // Selected Table in Live Game Control
+  const selectedTable = useMemo(() => {
+    return tables.find((t) => t.id === selectedTableId) || tables[0] || null;
+  }, [tables, selectedTableId]);
+
+  // Filtered Tables
+  const filteredTables = useMemo(() => {
+    return tables.filter((t) => {
+      if (stakeFilter !== "all" && t.tier !== stakeFilter) return false;
+      if (statusFilter === "active" && t.status !== "playing") return false;
+      if (statusFilter === "paused" && t.status !== "paused") return false;
+      if (statusFilter === "private" && !t.isPrivate) return false;
+      if (tableSearch) {
+        const q = tableSearch.toLowerCase();
+        return (
+          t.name.toLowerCase().includes(q) ||
+          t.id.toLowerCase().includes(q) ||
+          (t.inviteCode && t.inviteCode.toLowerCase().includes(q))
+        );
+      }
+      return true;
     });
-  }, []);
+  }, [tables, stakeFilter, statusFilter, tableSearch]);
 
-  const showToast = useCallback((msg: string) => {
-    setToastMessage(msg);
-    setTimeout(() => setToastMessage(null), 3000);
-  }, []);
+  // Filtered Players
+  const filteredPlayers = useMemo(() => {
+    return players.filter((p) => {
+      if (accessFilter === "enabled" && !p.pokerAccess) return false;
+      if (accessFilter === "restricted" && p.pokerAccess) return false;
+      if (playerSearch) {
+        const q = playerSearch.toLowerCase();
+        return (
+          p.name.toLowerCase().includes(q) ||
+          p.username.toLowerCase().includes(q) ||
+          p.id.toLowerCase().includes(q)
+        );
+      }
+      return true;
+    });
+  }, [players, accessFilter, playerSearch]);
 
-  const audit = useCallback(
-    (action: string, detail?: string) => {
-      saveState((prev) => ({
-        ...prev,
-        bo: {
-          ...prev.bo,
-          audit: [
-            { ts: Date.now(), role: prev.bo.role, action, detail },
-            ...prev.bo.audit,
-          ].slice(0, 400),
-        },
-      }));
-    },
-    [saveState]
-  );
-
-  const money = useCallback((v: number, c = "USD") => {
-    if (c === "USD") {
-      return (
-        (v < 0 ? "-" : "") +
-        "$" +
-        (Math.abs(v) / 100).toLocaleString("en-US", {
-          minimumFractionDigits: 2,
-          maximumFractionDigits: 2,
-        })
-      );
-    }
-    if (c === "SC") {
-      return (v / 100).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " SC";
-    }
-    return Math.round(v).toLocaleString("en-US") + " GC";
-  }, []);
-
-  const spinRTP = (t: number[][]) => {
-    const tot = t.reduce((a, [, w]) => a + w, 0);
-    const e = t.reduce((a, [m, w]) => a + m * w, 0) / (tot || 1);
-    return { tot, e, rtp: (e / 3) * 100 };
+  // Table Control Handlers
+  const handleToggleTable = (id: string, name: string) => {
+    const updated = togglePokerTableStatus(id);
+    setTables(updated);
+    const tbl = updated.find((t) => t.id === id);
+    const isNowPlaying = tbl?.status === "playing";
+    showToast(
+      `Table "${name}" ${isNowPlaying ? "resumed (Active in Lobby)" : "paused (Suspended from Lobby)"}`,
+      isNowPlaying ? "success" : "warning"
+    );
   };
+
+  const handleDeleteTable = (id: string, name: string) => {
+    if (confirm(`Are you sure you want to delete table "${name}"? It will be removed from all lobbies.`)) {
+      const updated = deletePokerTable(id);
+      setTables(updated);
+      showToast(`Table "${name}" successfully deleted`, "info");
+    }
+  };
+
+  const handleResetFleet = () => {
+    if (confirm("Reset table fleet to default BET888 5-tier specification tables?")) {
+      const updated = resetPokerTables();
+      setTables(updated);
+      showToast("Table fleet reset to default BET888 specification", "success");
+    }
+  };
+
+  const handleCreateTableSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!formName.trim()) {
+      alert("Please provide a table name");
+      return;
+    }
+
+    let feeLabel = "RAKE 5%";
+    if (formFeeType === "HAND_FEE") feeLabel = `€${commissionRules.handFeeEur.toFixed(2)} / HAND`;
+    if (formFeeType === "TABLE_FEE") feeLabel = `€${commissionRules.tableFeeEur.toFixed(2)} / 30MIN`;
+
+    const newTable = createAndStorePokerTable({
+      name: formName.trim(),
+      sb: Number(formSb),
+      bb: Number(formBb),
+      minBuyIn: Number(formMinBuy),
+      maxBuyIn: Number(formMaxBuy),
+      maxSeats: Number(formMaxSeats),
+      feeType: formFeeType,
+      feeLabel,
+      isPrivate: formIsPrivate,
+      inviteCode: formInviteCode.trim() || undefined,
+    });
+
+    const refreshed = getStoredPokerTables();
+    setTables(refreshed);
+    setShowCreateModal(false);
+    showToast(`Table "${newTable.name}" created and deployed to live cashgame lobby!`, "success");
+  };
+
+  // Player Control Handler
+  const handleTogglePlayer = (id: string, name: string) => {
+    const updated = togglePlayerPokerAccess(id);
+    setPlayers(updated);
+    const p = updated.find((item) => item.id === id);
+    const statusText = p?.pokerAccess ? "ACTIVE (Can Join Tables)" : "RESTRICTED (Blocked from Cash Games)";
+    showToast(`Player "${name}" Poker Online access updated: ${statusText}`, p?.pokerAccess ? "success" : "warning");
+  };
+
+  // Commission Rules Handler
+  const handleSaveCommissionRules = (e: React.FormEvent) => {
+    e.preventDefault();
+    saveStoredCommissionSettings(rulesForm);
+    setCommissionRules(rulesForm);
+    showToast(`Commission rules saved: ${rulesForm.rakePercent}% Rake (Cap €${rulesForm.rakeCapEur}), Hand fee €${rulesForm.handFeeEur}`, "success");
+  };
+
+  // Live Game Control Actions (Matching Bingo LiveControl)
+  const handleDealNextStreet = () => {
+    if (liveStreet === "preflop") {
+      setLiveStreet("flop");
+      setLiveCommunityCards(["A♠", "K♥", "Q♦"]);
+      setLivePot((prev) => prev + 60);
+      showToast("Flop dealt: A♠ K♥ Q♦");
+    } else if (liveStreet === "flop") {
+      setLiveStreet("turn");
+      setLiveCommunityCards(["A♠", "K♥", "Q♦", "J♣"]);
+      setLivePot((prev) => prev + 120);
+      showToast("Turn dealt: J♣");
+    } else if (liveStreet === "turn") {
+      setLiveStreet("river");
+      setLiveCommunityCards(["A♠", "K♥", "Q♦", "J♣", "10♠"]);
+      setLivePot((prev) => prev + 240);
+      showToast("River dealt: 10♠ (Board Royal Flush possible!)");
+    } else if (liveStreet === "river") {
+      setLiveStreet("showdown");
+      showToast("Showdown reached! Hand awarded to Player 1 (Royal Flush).");
+    } else {
+      setLiveStreet("preflop");
+      setLiveCommunityCards([]);
+      setLivePot(selectedTable ? selectedTable.bb * 3 : 30);
+      showToast("New hand dealt pre-flop.");
+    }
+  };
+
+  const handleResetHand = () => {
+    setLiveStreet("preflop");
+    setLiveCommunityCards([]);
+    setLivePot(selectedTable ? selectedTable.bb * 3 : 30);
+    showToast(`Hand restarted pre-flop for ${selectedTable?.name || "Table"}.`);
+  };
+
+  if (!mounted) {
+    return (
+      <div className="admin-shell" style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "100vh", color: "#6b59df", fontWeight: 700 }}>
+        ♠ Loading Trueigtech Poker Operations Console...
+      </div>
+    );
+  }
 
   const currentLabel = pokerAdminNav.find(([key]) => key === module)?.[1] ?? "Overview";
 
-  if (!mounted) return null;
-
   return (
     <div className="admin-shell">
-      <div className="admin-app">
-      {/* Toast */}
-      {toastMessage && (
+      {/* Toast Notification */}
+      {toast && (
         <div
           style={{
             position: "fixed",
             top: 24,
-            left: "50%",
-            transform: "translateX(-50%)",
-            background: "#1e1442",
-            border: "1px solid #7868ff",
+            right: 24,
+            zIndex: 9999,
+            background: toast.type === "success" ? "#15a982" : toast.type === "warning" ? "#c08c1c" : "#6e59e8",
             color: "#fff",
-            padding: "10px 24px",
+            padding: "12px 20px",
             borderRadius: 8,
-            zIndex: 99999,
             fontWeight: 700,
-            boxShadow: "0 10px 30px rgba(0,0,0,0.5)",
+            fontSize: 13,
+            boxShadow: "0 10px 25px rgba(0,0,0,0.2)",
+            display: "flex",
+            alignItems: "center",
+            gap: 10,
           }}
         >
-          {toastMessage}
+          <span>●</span>
+          <span>{toast.message}</span>
         </div>
       )}
 
-      {/* Sidebar */}
-      <aside className={`admin-sidebar ${sidebarOpen ? "open" : ""}`}>
-        <div className="admin-logo">
-          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/logo.svg" alt="" style={{ width: 28, height: 28, borderRadius: "50%", background: "#fff", flexShrink: 0 }} />
-            <div>
-              <b style={{ color: "#fff", fontSize: 13, letterSpacing: 1 }}>TRUEIGTECH</b>
-              <small style={{ color: "#7868ff", display: "block", fontSize: 9, fontWeight: 800 }}>POKER OPERATIONS</small>
-            </div>
+      <div className="admin-app">
+        {/* ================= BINGO MATCHING SIDEBAR ================= */}
+        <aside className={`admin-sidebar ${sidebarOpen ? "open" : ""}`}>
+          <div className="admin-logo">
+            <Logo dark />
+            <button onClick={() => setSidebarOpen(false)}>×</button>
           </div>
-          <button onClick={() => setSidebarOpen(false)}>×</button>
-        </div>
 
-        <nav>
-          {pokerAdminNav.map(([key, label, glyph]) => (
+          <nav>
+            {pokerAdminNav.map(([key, label, glyph]) => (
+              <button
+                key={key}
+                className={module === key ? "active" : ""}
+                onClick={() => {
+                  setModule(key);
+                  setSidebarOpen(false);
+                }}
+              >
+                <Icon>{glyph}</Icon>
+                <span>{label}</span>
+                {key === "tables" && <i className="nav-badge">{tables.length}</i>}
+                {key === "live" && (
+                  <i className="nav-badge">{tables.filter((t) => t.status === "playing").length}</i>
+                )}
+                {key === "players" && <i className="nav-badge muted">{players.length}</i>}
+              </button>
+            ))}
+          </nav>
+
+          <div style={{ padding: "0 14px 14px" }}>
             <button
-              key={key}
-              className={module === key ? "active" : ""}
-              onClick={() => {
-                setModule(key);
-                setSidebarOpen(false);
-              }}
+              className="outline-button"
+              style={{ width: "100%", fontSize: 11, background: "rgba(255,255,255,0.06)", color: "#a9a8bd", borderColor: "rgba(255,255,255,0.1)" }}
+              onClick={handleResetFleet}
+              title="Reset tables to default BET888 5-tier specification"
             >
-              <Icon>{glyph}</Icon>
-              <span>{label}</span>
-              {key === "live" && <i className="nav-badge">Live</i>}
-              {key === "integrity" && state.bo.alerts && Object.keys(state.bo.alerts).length > 0 && (
-                <i className="nav-badge muted">Alert</i>
-              )}
+              ↺ Reset Default Fleet
             </button>
-          ))}
-        </nav>
-
-        <div className="sidebar-user">
-          <span>{state.bo.role.slice(0, 2).toUpperCase()}</span>
-          <div>
-            <b>John Dawson</b>
-            <small>{state.bo.role} Role</small>
-          </div>
-          <Link href="/poker" title="Go to Poker Platform" style={{ color: "#27d7ad", fontSize: 12 }}>
-            Lobby →
-          </Link>
-        </div>
-      </aside>
-
-      {/* Backdrop for mobile/tablet drawer */}
-      {sidebarOpen && (
-        <div
-          className="admin-sidebar-backdrop"
-          onClick={() => setSidebarOpen(false)}
-        />
-      )}
-
-      {/* Main Admin Section */}
-      <section className="admin-main">
-        {/* Header */}
-        <header className="admin-header">
-          <div>
-            <button className="mobile-menu" onClick={() => setSidebarOpen(true)}>
-              ☰
-            </button>
-            <span>Trueigtech Operations / Poker /</span>
-            <b>{currentLabel}</b>
           </div>
 
-          <div className="admin-header-actions">
-            <div className="environment">
-              <i /> Certified RNG
-            </div>
-            <select
-              style={{
-                background: "#f0edff",
-                border: "1px solid #dcd7fa",
-                borderRadius: 8,
-                padding: "6px 12px",
-                fontSize: 12,
-                fontWeight: 700,
-                color: "#5943e9",
-              }}
-              value={state.bo.role}
-              onChange={(e) => {
-                const r = e.target.value;
-                saveState((prev) => ({
-                  ...prev,
-                  bo: { ...prev.bo, role: r },
-                }));
-                audit("Role switched", r);
-                showToast(`Role switched to ${r}`);
-              }}
-            >
-              {ROLES.map((r) => (
-                <option key={r} value={r}>
-                  {r} Role
-                </option>
-              ))}
-            </select>
-            <Link href="/poker" className="admin-primary" style={{ textDecoration: "none", display: "inline-flex" }}>
-              ♠ View Poker Lobby
-            </Link>
-          </div>
-        </header>
-
-        {/* Content */}
-        <div className="admin-content">
-          <div className="admin-page-title">
+          <div className="sidebar-user">
+            <span>OP</span>
             <div>
-              <span className="section-kicker">TRUEIGTECH POKER OPERATIONS</span>
-              <h1>{currentLabel}</h1>
-              <p>{pokerAdminSubtitle(module)}</p>
+              <b>Poker Operator</b>
+              <small>Super Admin</small>
             </div>
-            <div className="admin-title-actions">
-              <button
-                className="outline-button"
-                onClick={() => {
-                  audit("Report exported", currentLabel);
-                  showToast(`${currentLabel} data exported to CSV.`);
-                }}
-              >
-                ↓ Export Report
-              </button>
-              <button
-                className="admin-primary"
-                onClick={() => {
-                  audit("Manual Sync Triggered", currentLabel);
-                  showToast("Operator settings synced across active tables.");
-                }}
-              >
-                Sync Platform
-              </button>
-            </div>
+            <button>•••</button>
           </div>
+        </aside>
 
-          {/* Module 1: Dashboard / Overview */}
-          {module === "dashboard" && (
+        {/* ================= BINGO MATCHING MAIN SECTION ================= */}
+        <section className="admin-main">
+          {/* Main Top Header */}
+          <header className="admin-header">
             <div>
-              <div className="metric-grid">
-                <div className="metric-card">
-                  <div className="metric-card-main">
-                    <div className="metric-icon metric-1">♠</div>
-                    <div>
-                      <small>Hands Dealt</small>
-                      <strong>{state.ops.handsDealt.toLocaleString()}</strong>
-                      <span>All active rooms</span>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="metric-card">
-                  <div className="metric-card-main">
-                    <div className="metric-icon metric-2">$</div>
-                    <div>
-                      <small>Cash Rake</small>
-                      <strong>{money(state.ops.rake.USD || 0, "USD")}</strong>
-                      <span className="neutral-change">{money(state.ops.rake.SC || 0, "SC")}</span>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="metric-card">
-                  <div className="metric-card-main">
-                    <div className="metric-icon metric-3">♜</div>
-                    <div>
-                      <small>Tournament Fees</small>
-                      <strong>{money(state.ops.fees.USD || 0, "USD")}</strong>
-                      <span className="neutral-change">{money(state.ops.fees.SC || 0, "SC")}</span>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="metric-card">
-                  <div className="metric-card-main">
-                    <div className="metric-icon metric-4">✦</div>
-                    <div>
-                      <small>Tourneys Run</small>
-                      <strong>{state.ops.tourneysRun}</strong>
-                      <span>MTT, SNG, Spins</span>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="metric-card">
-                  <div className="metric-card-main">
-                    <div className="metric-icon metric-5">●</div>
-                    <div>
-                      <small>Active Variants</small>
-                      <strong>6</strong>
-                      <span>NLH, PLO, SD, FLH</span>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="metric-card">
-                  <div className="metric-card-main">
-                    <div className="metric-icon metric-1">%</div>
-                    <div>
-                      <small>Current Rake Rule</small>
-                      <strong>{state.settings.rakePct}%</strong>
-                      <span>Cap {state.settings.rakeCapBB}bb</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="dashboard-grid">
-                <div className="admin-card revenue-chart">
-                  <div className="card-title">
-                    <div>
-                      <h2>Hands Dealt by Variant</h2>
-                      <p>Real-time game popularity and table allocation</p>
-                    </div>
-                  </div>
-                  <div className="variant-bars" style={{ marginTop: 16 }}>
-                    {Object.values(VARIANTS).map((v) => {
-                      const count = state.ops.byVariant[v.code] || 0;
-                      const max = Math.max(1, ...Object.values(state.ops.byVariant));
-                      const pct = Math.round((count / max) * 100);
-                      return (
-                        <div key={v.code} className="variant-row">
-                          <div className="variant-label">
-                            <span className="variant-code-pill">{v.code}</span>
-                            <span className="variant-name">{v.name}</span>
-                          </div>
-                          <div className="variant-track">
-                            <div
-                              className="variant-fill"
-                              style={{ width: `${Math.max(count > 0 ? 8 : 0, pct)}%` }}
-                            />
-                          </div>
-                          <div className="variant-count">
-                            <strong>{count.toLocaleString()}</strong>
-                            <small>hands</small>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                <div className="admin-card live-ops">
-                  <div className="card-title">
-                    <div>
-                      <h2>Integrity &amp; Operational Alerts</h2>
-                      <p>Pending reviews requiring supervisor action</p>
-                    </div>
-                  </div>
-                  <div className="alert-card-list" style={{ marginTop: 14 }}>
-                    <div className="alert-card-row">
-                      <div className="alert-info">
-                        <span
-                          className={`alert-dot ${
-                            state.bo.redemptions.filter((r: any) => r.status === "Pending").length
-                              ? "gold"
-                              : "good"
-                          }`}
-                        />
-                        <div>
-                          <b>Redemption Requests</b>
-                          <small>Sweeps Coin withdrawals queue</small>
-                        </div>
-                      </div>
-                      <div className="alert-meta">
-                        {state.bo.redemptions.filter((r: any) => r.status === "Pending").length ? (
-                          <span className="tag gold">
-                            {state.bo.redemptions.filter((r: any) => r.status === "Pending").length} Pending
-                          </span>
-                        ) : (
-                          <span className="tag good">All Settled</span>
-                        )}
-                        <button className="alert-action-btn" onClick={() => setModule("finance")}>
-                          View →
-                        </button>
-                      </div>
-                    </div>
-
-                    <div className="alert-card-row">
-                      <div className="alert-info">
-                        <span
-                          className={`alert-dot ${
-                            state.bo.adjustments.filter((a: any) => a.status === "Pending").length
-                              ? "gold"
-                              : "good"
-                          }`}
-                        />
-                        <div>
-                          <b>Maker-Checker Adjustments</b>
-                          <small>Manual overrides awaiting 2nd review</small>
-                        </div>
-                      </div>
-                      <div className="alert-meta">
-                        {state.bo.adjustments.filter((a: any) => a.status === "Pending").length ? (
-                          <span className="tag gold">
-                            {state.bo.adjustments.filter((a: any) => a.status === "Pending").length} Awaiting
-                          </span>
-                        ) : (
-                          <span className="tag good">None</span>
-                        )}
-                        <button className="alert-action-btn" onClick={() => setModule("disputes")}>
-                          View →
-                        </button>
-                      </div>
-                    </div>
-
-                    <div className="alert-card-row">
-                      <div className="alert-info">
-                        <span className={`alert-dot ${state.bo.frozen ? "bad" : "good"}`} />
-                        <div>
-                          <b>Account Freeze Status</b>
-                          <small>Emergency circuit breaker &amp; risk control</small>
-                        </div>
-                      </div>
-                      <div className="alert-meta">
-                        {state.bo.frozen ? (
-                          <span className="tag bad">Frozen</span>
-                        ) : (
-                          <span className="tag good">Normal</span>
-                        )}
-                        <button className="alert-action-btn" onClick={() => setModule("players")}>
-                          Controls →
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
+              <button className="mobile-menu" onClick={() => setSidebarOpen(true)}>☰</button>
+              <span>Trueigtech Operations /</span>
+              <b>{currentLabel}</b>
             </div>
-          )}
 
-          {/* Module 2: Tables & Games */}
-          {module === "tables" && (
-            <div className="admin-card" style={{ padding: 24 }}>
-              <div className="card-title">
-                <div>
-                  <h2>Global Table Defaults &amp; Feature Flags</h2>
-                  <p>Settings applied to new cash games, speed blitz, and private tables</p>
-                </div>
-              </div>
-              <div className="form" style={{ marginTop: 16 }}>
-                <label className="field">
-                  Action Clock (Seconds)
-                  <input
-                    type="number"
-                    min={5}
-                    max={60}
-                    value={state.settings.timeBank}
-                    onChange={(e) =>
-                      saveState((prev) => ({
-                        ...prev,
-                        settings: { ...prev.settings, timeBank: +e.target.value },
-                      }))
-                    }
-                  />
-                </label>
+            <div className="admin-header-actions">
+              <span className="environment">
+                <i /> Live Engine Active
+              </span>
+              <Link href="/cashgame" className="admin-primary" style={{ textDecoration: "none" }}>
+                ♠ View Player Lobby
+              </Link>
+              <Link href="/backoffice" className="outline-button" style={{ textDecoration: "none" }}>
+                ▦ Bingo Admin
+              </Link>
+            </div>
+          </header>
 
-                <label className="field">
-                  Maximum Buy-in (Big Blinds)
-                  <input
-                    type="number"
-                    min={40}
-                    max={250}
-                    value={state.bo.limits.maxBuyInBB}
-                    onChange={(e) =>
-                      saveState((prev) => ({
-                        ...prev,
-                        bo: {
-                          ...prev.bo,
-                          limits: { ...prev.bo.limits, maxBuyInBB: +e.target.value },
-                        },
-                      }))
-                    }
-                  />
-                </label>
-
-                <label className="field">
-                  Max Tables per Player
-                  <input
-                    type="number"
-                    min={1}
-                    max={24}
-                    value={state.bo.limits.maxTables}
-                    onChange={(e) =>
-                      saveState((prev) => ({
-                        ...prev,
-                        bo: {
-                          ...prev.bo,
-                          limits: { ...prev.bo.limits, maxTables: +e.target.value },
-                        },
-                      }))
-                    }
-                  />
-                </label>
-
-                <label className="field">
-                  Simulation Speed Multiplier
-                  <select
-                    value={String(state.settings.speed)}
-                    onChange={(e) =>
-                      saveState((prev) => ({
-                        ...prev,
-                        settings: { ...prev.settings, speed: +e.target.value },
-                      }))
-                    }
-                  >
-                    <option value="0.7">Relaxed (0.7x)</option>
-                    <option value="1">Normal (1.0x)</option>
-                    <option value="1.6">Fast (1.6x)</option>
-                    <option value="2.5">Very Fast (2.5x)</option>
-                  </select>
-                </label>
+          {/* Content Area */}
+          <div className="admin-content">
+            <div className="admin-page-title">
+              <div>
+                <span className="section-kicker">TRUEIGTECH POKER OPERATIONS</span>
+                <h1>{currentLabel}</h1>
+                <p>{pokerAdminSubtitle(module)}</p>
               </div>
 
-              <h3 style={{ marginTop: 24, marginBottom: 12 }}>Game Engine Variants Catalogue</h3>
-              <div className="tblwrap">
-                <table className="tbl">
-                  <thead>
-                    <tr>
-                      <th>Code</th>
-                      <th>Game Variant</th>
-                      <th>Hole Cards</th>
-                      <th>Evaluator Type</th>
-                      <th>Betting Limit</th>
-                      <th>Special Rules</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {Object.values(VARIANTS).map((v) => (
-                      <tr key={v.code}>
-                        <td>
-                          <b>{v.code}</b>
-                        </td>
-                        <td>{v.name}</td>
-                        <td>{v.hole} cards</td>
-                        <td>{v.eval === "omaha" ? "Exact 2 Hole + 3 Board" : "Best 5 of 7"}</td>
-                        <td>{v.limit === "NL" ? "No-Limit" : v.limit === "PL" ? "Pot-Limit" : "Fixed-Limit"}</td>
-                        <td>
-                          {v.hilo ? <span className="tag gold">Hi-Lo 8/b Split</span> : null}
-                          {v.shortDeck ? <span className="tag good">36 Cards (Flush beats Full House)</span> : null}
-                          {!v.hilo && !v.shortDeck ? "Standard High" : null}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-
-              <div style={{ marginTop: 20 }}>
-                <button
-                  className="admin-primary"
-                  onClick={() => {
-                    audit("Table settings saved", `Clock: ${state.settings.timeBank}s, MaxBB: ${state.bo.limits.maxBuyInBB}`);
-                    showToast("Table configuration saved successfully.");
-                  }}
-                >
-                  Save Table Settings
+              <div className="admin-title-actions">
+                <button className="outline-button" onClick={() => showToast(`${currentLabel} data exported to CSV.`)}>
+                  ↓ Export
+                </button>
+                {module === "tables" && (
+                  <button className="admin-primary" onClick={() => setShowCreateModal(true)}>
+                    + Create Table
+                  </button>
+                )}
+                <button className="outline-button" onClick={refreshData} title="Sync latest state">
+                  ↻ Sync
                 </button>
               </div>
             </div>
-          )}
 
-          {/* Module 3: Rake & Margins */}
-          {module === "rake" && (
-            <div className="admin-card" style={{ padding: 24 }}>
-              <div className="card-title">
-                <div>
-                  <h2>Cash Game Rake Rules &amp; House Margin</h2>
-                  <p>Configured percentage, pot caps, and player rakeback distribution</p>
-                </div>
-              </div>
-              <div className="form" style={{ marginTop: 16 }}>
-                <label className="field">
-                  Rake Percentage (%)
-                  <input
-                    type="number"
-                    min={0}
-                    max={10}
-                    step={0.5}
-                    value={state.settings.rakePct}
-                    onChange={(e) =>
-                      saveState((prev) => ({
-                        ...prev,
-                        settings: { ...prev.settings, rakePct: +e.target.value },
-                      }))
-                    }
-                  />
-                </label>
-
-                <label className="field">
-                  Rake Cap (Big Blinds)
-                  <input
-                    type="number"
-                    min={0}
-                    max={10}
-                    step={0.5}
-                    value={state.settings.rakeCapBB}
-                    onChange={(e) =>
-                      saveState((prev) => ({
-                        ...prev,
-                        settings: { ...prev.settings, rakeCapBB: +e.target.value },
-                      }))
-                    }
-                  />
-                </label>
-
-                <label className="field">
-                  Player Rakeback (%)
-                  <input
-                    type="number"
-                    min={0}
-                    max={60}
-                    value={state.bo.rakeback}
-                    onChange={(e) =>
-                      saveState((prev) => ({
-                        ...prev,
-                        bo: { ...prev.bo, rakeback: +e.target.value },
-                      }))
-                    }
-                  />
-                </label>
-
-                <label className="field">
-                  Pre-flop Policy
-                  <div style={{ marginTop: 6 }}>
-                    <label style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer" }}>
-                      <input
-                        type="checkbox"
-                        checked={state.bo.nfnd}
-                        onChange={(e) =>
-                          saveState((prev) => ({
-                            ...prev,
-                            bo: { ...prev.bo, nfnd: e.target.checked },
-                          }))
-                        }
-                      />
-                      <b>No Flop, No Drop (No rake if hand ends pre-flop)</b>
-                    </label>
+            {/* ========================================================================= */}
+            {/* MODULE 1: DASHBOARD / OVERVIEW & KPIS (FIGURE 10.2)                       */}
+            {/* ========================================================================= */}
+            {module === "dashboard" && (
+              <div>
+                {/* 5 Core Metric Cards (Bingo Admin Metric Grid) */}
+                <div className="metric-grid">
+                  <div className="metric-card">
+                    <button type="button" className="metric-card-main" onClick={() => setModule("tables")}>
+                      <span className="metric-icon metric-1">▦</span>
+                      <div>
+                        <small>ACTIVE TABLES</small>
+                        <strong>{kpis.activeTablesCount} / {kpis.totalTablesCount}</strong>
+                        <span>5 stake tiers <i>live</i></span>
+                      </div>
+                    </button>
                   </div>
-                </label>
-              </div>
 
-              <div style={{ marginTop: 22 }}>
-                <button
-                  className="admin-primary"
-                  onClick={() => {
-                    audit("Rake rules updated", `${state.settings.rakePct}% cap ${state.settings.rakeCapBB}bb`);
-                    showToast("Rake policy applied across all cash rooms.");
-                  }}
-                >
-                  Apply Rake Rules
-                </button>
-              </div>
-            </div>
-          )}
+                  <div className="metric-card">
+                    <button type="button" className="metric-card-main" onClick={() => setModule("live")}>
+                      <span className="metric-icon metric-2">●</span>
+                      <div>
+                        <small>SEATED PLAYERS</small>
+                        <strong>{kpis.totalSeated}</strong>
+                        <span>Live ring seats</span>
+                      </div>
+                    </button>
+                  </div>
 
-          {/* Module 4: Tournaments */}
-          {module === "tournaments" && (
-            <div className="admin-card" style={{ padding: 24 }}>
-              <div className="card-title">
-                <div>
-                  <h2>Multi-Table Tournament (MTT) Schedule</h2>
-                  <p>Guarantees, entry fees, start times, and satellite reward packages</p>
-                </div>
-              </div>
-              <div className="tblwrap" style={{ marginTop: 14 }}>
-                <table className="tbl">
-                  <thead>
-                    <tr>
-                      <th>Event Name</th>
-                      <th>Game</th>
-                      <th>Buy-in</th>
-                      <th>Fee</th>
-                      <th>Field</th>
-                      <th>Start Stack</th>
-                      <th>Special Format</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td><b>Daily Mystery Bounty</b></td>
-                      <td>No-Limit Hold&apos;em</td>
-                      <td>$20.00</td>
-                      <td>$2.00</td>
-                      <td>180 players</td>
-                      <td>5,000</td>
-                      <td><span className="tag gold">Mystery Envelopes (Top 10% pool)</span></td>
-                    </tr>
-                    <tr>
-                      <td><b>Road to the Live Main Event</b></td>
-                      <td>No-Limit Hold&apos;em</td>
-                      <td>$50.00</td>
-                      <td>$5.00</td>
-                      <td>140 players</td>
-                      <td>5,000</td>
-                      <td><span className="tag gold">Direct Live Satellite Package</span></td>
-                    </tr>
-                    <tr>
-                      <td><b>PLO Turbo</b></td>
-                      <td>Pot-Limit Omaha</td>
-                      <td>$10.00</td>
-                      <td>$1.00</td>
-                      <td>120 players</td>
-                      <td>5,000</td>
-                      <td>Turbo Blinds</td>
-                    </tr>
-                    <tr>
-                      <td><b>Short Deck Sunday</b></td>
-                      <td>Short Deck 6+</td>
-                      <td>$20.00</td>
-                      <td>$2.00</td>
-                      <td>90 players</td>
-                      <td>5,000</td>
-                      <td>Ante Only</td>
-                    </tr>
-                    <tr>
-                      <td><b>Sunday Freeroll</b></td>
-                      <td>No-Limit Hold&apos;em</td>
-                      <td>Free</td>
-                      <td>$0.00</td>
-                      <td>300 players</td>
-                      <td>3,000</td>
-                      <td><span className="tag good">$500 Added Pool</span></td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          )}
-
-          {/* Module 5: Jackpot Spins & BBJ */}
-          {module === "jackpots" && (
-            <div className="admin-card" style={{ padding: 24 }}>
-              <div className="card-title">
-                <div>
-                  <h2>Jackpot Spin Multiplier Odds &amp; Return to Player (RTP)</h2>
-                  <p>Weights configured out of 10,000 basis points for hyper 3-player spins</p>
-                </div>
-              </div>
-              {(() => {
-                const rtpData = spinRTP(state.bo.spin);
-                return (
-                  <div>
-                    <div className="tblwrap" style={{ marginTop: 14 }}>
-                      <table className="tbl">
-                        <thead>
-                          <tr>
-                            <th>Multiplier</th>
-                            <th>Weight (out of 10,000)</th>
-                            <th>Calculated Probability</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {state.bo.spin.map(([mult, weight], idx) => (
-                            <tr key={idx}>
-                              <td><b>{mult}×</b></td>
-                              <td>{weight}</td>
-                              <td>{((weight / (rtpData.tot || 1)) * 100).toFixed(2)}%</td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                    <div style={{ marginTop: 16, fontSize: 14 }}>
-                      <b>Expected Multiplier:</b> {rtpData.e.toFixed(4)}× · <b>Target RTP:</b>{" "}
-                      <span className={rtpData.rtp <= 100 ? "pos" : "neg"}>{rtpData.rtp.toFixed(2)}%</span>
+                  <div className="metric-card">
+                    <div className="metric-card-main">
+                      <span className="metric-icon metric-3">⇄</span>
+                      <div>
+                        <small>24H POT TURNOVER</small>
+                        <strong>€{kpis.turnover.toLocaleString(undefined, { maximumFractionDigits: 0 })}</strong>
+                        <span>Cash action volume</span>
+                      </div>
                     </div>
                   </div>
-                );
-              })()}
-            </div>
-          )}
 
-          {/* Module 6: Players 360 & Bans */}
-          {module === "players" && (
-            <div className="admin-card" style={{ padding: 24 }}>
-              <div className="card-title">
-                <div>
-                  <h2>Player 360 &amp; Responsible Gaming Enforcement</h2>
-                  <p>Manage account freeze, VIP tier, game restrictions, and keep-apart pairs</p>
+                  <div className="metric-card">
+                    <button type="button" className="metric-card-main" onClick={() => setModule("rules")}>
+                      <span className="metric-icon metric-4">%</span>
+                      <div>
+                        <small>NET COMMISSION</small>
+                        <strong>€{kpis.totalCommission.toFixed(2)}</strong>
+                        <span>Across 3 models</span>
+                      </div>
+                    </button>
+                  </div>
+
+                  <div className="metric-card">
+                    <div className="metric-card-main">
+                      <span className="metric-icon metric-5">♠</span>
+                      <div>
+                        <small>PRIVATE TABLES</small>
+                        <strong>{kpis.privateTablesCount}</strong>
+                        <span>6-digit PIN clubs</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="metric-card">
+                    <button type="button" className="metric-card-main" onClick={() => setModule("players")}>
+                      <span className="metric-icon metric-1">♙</span>
+                      <div>
+                        <small>POKER PLAYERS</small>
+                        <strong>{players.filter((p) => p.pokerAccess).length} / {players.length}</strong>
+                        <span>Online permitted</span>
+                      </div>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Figure 10.2: 4 Revenue Models Breakdown & Live Table Quick Glance */}
+                <div className="dashboard-grid">
+                  {/* Left: 4 Commission Models Breakdown */}
+                  <div className="admin-card revenue-chart">
+                    <div className="card-title">
+                      <div>
+                        <h2>Figure 10.2 — Revenue & 3 Commission Models Breakdown</h2>
+                        <p>Dynamic engine telemetry calculated from active ring tables</p>
+                      </div>
+                      <button className="table-link" onClick={() => setModule("rules")}>
+                        Configure Rules &rarr;
+                      </button>
+                    </div>
+
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginTop: 16 }}>
+                      {/* Model 1 */}
+                      <div style={{ background: "#f8f9fc", border: "1px solid #e5e7ed", borderRadius: 10, padding: 14 }}>
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+                          <span style={{ fontSize: 10, fontWeight: 800, color: "#15a982", background: "#eaf8f4", padding: "2px 6px", borderRadius: 4 }}>
+                            MODEL 1: POT RAKE
+                          </span>
+                          <b style={{ color: "#15a982", fontSize: 11 }}>ACTIVE</b>
+                        </div>
+                        <strong style={{ fontSize: 13, color: "#1e202c", display: "block" }}>Standard Pot Rake (5%)</strong>
+                        <p style={{ fontSize: 11, color: "#77758b", margin: "4px 0 10px", lineHeight: 1.4 }}>
+                          5% deducted from pots reaching the flop, capped at €{commissionRules.rakeCapEur.toFixed(2)}. "No Flop No Drop" policy.
+                        </p>
+                        <div style={{ borderTop: "1px solid #eef0f3", paddingTop: 8, fontSize: 11, display: "flex", justifyContent: "space-between" }}>
+                          <span>Commission Collected:</span>
+                          <b style={{ color: "#6e59e8" }}>€{kpis.rakeRevenue.toFixed(2)}</b>
+                        </div>
+                      </div>
+
+                      {/* Model 2 */}
+                      <div style={{ background: "#f8f9fc", border: "1px solid #e5e7ed", borderRadius: 10, padding: 14 }}>
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+                          <span style={{ fontSize: 10, fontWeight: 800, color: "#428de3", background: "#eaf3ff", padding: "2px 6px", borderRadius: 4 }}>
+                            MODEL 2: FIXED HAND FEE
+                          </span>
+                          <b style={{ color: "#428de3", fontSize: 11 }}>ACTIVE</b>
+                        </div>
+                        <strong style={{ fontSize: 13, color: "#1e202c", display: "block" }}>€{commissionRules.handFeeEur.toFixed(2)} / Hand Fee</strong>
+                        <p style={{ fontSize: 11, color: "#77758b", margin: "4px 0 10px", lineHeight: 1.4 }}>
+                          Flat fee charged per dealt hand into dealer tray regardless of pot volume (e.g. Mitrovica 10/20).
+                        </p>
+                        <div style={{ borderTop: "1px solid #eef0f3", paddingTop: 8, fontSize: 11, display: "flex", justifyContent: "space-between" }}>
+                          <span>Commission Collected:</span>
+                          <b style={{ color: "#6e59e8" }}>€{kpis.handFeeRevenue.toFixed(2)}</b>
+                        </div>
+                      </div>
+
+                      {/* Model 3 */}
+                      <div style={{ background: "#f8f9fc", border: "1px solid #e5e7ed", borderRadius: 10, padding: 14 }}>
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+                          <span style={{ fontSize: 10, fontWeight: 800, color: "#e46559", background: "#fff0ef", padding: "2px 6px", borderRadius: 4 }}>
+                            MODEL 3: TIMED TABLE FEE
+                          </span>
+                          <b style={{ color: "#e46559", fontSize: 11 }}>ACTIVE</b>
+                        </div>
+                        <strong style={{ fontSize: 13, color: "#1e202c", display: "block" }}>€{commissionRules.tableFeeEur.toFixed(2)} / 30 Min Rental</strong>
+                        <p style={{ fontSize: 11, color: "#77758b", margin: "4px 0 10px", lineHeight: 1.4 }}>
+                          Periodic seat rental fee deducted from active chip stacks every 30 minutes (e.g. Peja VIP 25/50).
+                        </p>
+                        <div style={{ borderTop: "1px solid #eef0f3", paddingTop: 8, fontSize: 11, display: "flex", justifyContent: "space-between" }}>
+                          <span>Commission Collected:</span>
+                          <b style={{ color: "#6e59e8" }}>€{kpis.tableFeeRevenue.toFixed(2)}</b>
+                        </div>
+                      </div>
+
+                      {/* Private Tables */}
+                      <div style={{ background: "#f8f9fc", border: "1px solid #e5e7ed", borderRadius: 10, padding: 14 }}>
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+                          <span style={{ fontSize: 10, fontWeight: 800, color: "#a05bcd", background: "#f7edff", padding: "2px 6px", borderRadius: 4 }}>
+                            PRIVATE CLUBS
+                          </span>
+                          <b style={{ color: "#a05bcd", fontSize: 11 }}>ACTIVE</b>
+                        </div>
+                        <strong style={{ fontSize: 13, color: "#1e202c", display: "block" }}>Private Friends Club Tables</strong>
+                        <p style={{ fontSize: 11, color: "#77758b", margin: "4px 0 10px", lineHeight: 1.4 }}>
+                          Private tables with 6-character PIN code. Friends-only access, 5% operator rake share.
+                        </p>
+                        <div style={{ borderTop: "1px solid #eef0f3", paddingTop: 8, fontSize: 11, display: "flex", justifyContent: "space-between" }}>
+                          <span>Active Private Clubs:</span>
+                          <b style={{ color: "#6e59e8" }}>{kpis.privateTablesCount} Tables</b>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Right: Live Room Quick Glance */}
+                  <div className="admin-card live-ops">
+                    <div className="card-title">
+                      <div>
+                        <h2>Live Table Quick Glance</h2>
+                        <p>Real-time status across top tables</p>
+                      </div>
+                      <button className="table-link" onClick={() => setModule("tables")}>
+                        All tables &rarr;
+                      </button>
+                    </div>
+
+                    <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                      {tables.slice(0, 5).map((t) => (
+                        <div
+                          key={t.id}
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "space-between",
+                            padding: "10px 12px",
+                            background: "#f9fafb",
+                            border: "1px solid #edf0f5",
+                            borderRadius: 8,
+                          }}
+                        >
+                          <div>
+                            <b style={{ fontSize: 12, color: "#1e202c" }}>{t.name}</b>
+                            <div style={{ fontSize: 10, color: "#838697" }}>
+                              €{t.sb}/€{t.bb} &bull; {t.seatsOccupied}/{t.maxSeats} seated &bull; {t.feeLabel}
+                            </div>
+                          </div>
+
+                          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                            <button
+                              className="outline-button"
+                              style={{ padding: "4px 8px", fontSize: 10 }}
+                              onClick={() => handleToggleTable(t.id, t.name)}
+                            >
+                              {t.status === "playing" ? "Pause" : "Resume"}
+                            </button>
+                            <Link
+                              href={`/holdem/tables?code=${t.id}`}
+                              className="admin-primary"
+                              style={{ padding: "4px 8px", fontSize: 10, textDecoration: "none" }}
+                            >
+                              Felt &rarr;
+                            </Link>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
                 </div>
               </div>
-              <div className="form" style={{ marginTop: 16 }}>
-                <label className="field">
-                  Account Status
-                  <div style={{ marginTop: 6 }}>
-                    <label style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer" }}>
-                      <input
-                        type="checkbox"
-                        checked={state.bo.frozen}
+            )}
+
+            {/* ========================================================================= */}
+            {/* MODULE 2: LIVE TABLE CONTROL (MATCHING BINGO LIVECONTROL)                 */}
+            {/* ========================================================================= */}
+            {module === "live" && selectedTable && (
+              <div className="control-grid">
+                {/* Left Section: Live Control Cockpit */}
+                <section className="admin-card control-stage">
+                  <div className="live-control-overview">
+                    <div className="card-title">
+                      <div>
+                        <h2>Live Table Control Stage</h2>
+                        <p>{tables.filter((t) => t.status === "playing").length} tables currently live in lobby</p>
+                      </div>
+                    </div>
+
+                    {/* Table Selection Pills (Bingo live-game-list) */}
+                    <div className="live-game-list">
+                      {tables.map((t) => (
+                        <button
+                          type="button"
+                          key={t.id}
+                          className={`live-game-item ${selectedTableId === t.id ? "active" : ""}`}
+                          onClick={() => {
+                            setSelectedTableId(t.id);
+                            showToast(`${t.name} selected in live control.`);
+                          }}
+                        >
+                          <span className="live-game-item-name">{t.name}</span>
+                          <small>€{t.sb}/€{t.bb} &bull; {t.seatsOccupied}/{t.maxSeats} Seated</small>
+                          <strong>{t.status === "playing" ? "LIVE" : "PAUSED"}</strong>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Stage Head */}
+                  <div className="control-stage-head">
+                    <div>
+                      <span className={`status ${selectedTable.status === "playing" ? "status-live" : "status-starting-soon"}`}>
+                        <i />{selectedTable.status === "playing" ? "live" : "paused"}
+                      </span>
+                      <h2>{selectedTable.name} · {selectedTable.id}</h2>
+                      <p>
+                        Controller: Auto Live Dealer &bull; Stage: {liveStreet.toUpperCase()} &bull; {selectedTable.feeLabel} &bull; {selectedTable.isPrivate ? `Private PIN: ${selectedTable.inviteCode}` : "Public Table"}
+                      </p>
+                    </div>
+
+                    <div>
+                      <select
+                        value={actionSpeed}
                         onChange={(e) => {
-                          const frozen = e.target.checked;
-                          saveState((prev) => ({
-                            ...prev,
-                            bo: { ...prev.bo, frozen },
-                          }));
-                          audit("Player Freeze Toggled", String(frozen));
-                          showToast(frozen ? "Account frozen: all table joins blocked." : "Account restored.");
+                          setActionSpeed(e.target.value);
+                          showToast(`Action clock speed changed to ${e.target.value}.`);
                         }}
-                      />
-                      <b style={{ color: state.bo.frozen ? "#ff725e" : "#27d7ad" }}>
-                        {state.bo.frozen ? "Account Frozen (Seating Blocked)" : "Account Active & Cleared"}
-                      </b>
-                    </label>
+                      >
+                        <option>Fast · 10 sec</option>
+                        <option>Normal · 15 sec</option>
+                        <option>Slow · 25 sec</option>
+                        <option>Blitz · 5 sec</option>
+                      </select>
+                      <button
+                        className="danger-button"
+                        onClick={() => {
+                          handleToggleTable(selectedTable.id, selectedTable.name);
+                        }}
+                      >
+                        {selectedTable.status === "playing" ? "Stop table" : "Start table"}
+                      </button>
+                    </div>
                   </div>
-                </label>
 
-                <label className="field">
-                  VIP Loyalty Level
-                  <select
-                    value={state.bo.vip}
-                    onChange={(e) => {
-                      const v = e.target.value;
-                      saveState((prev) => ({
-                        ...prev,
-                        bo: { ...prev.bo, vip: v },
-                      }));
-                      audit("VIP Tier Updated", v);
-                      showToast(`VIP Tier updated to ${v}`);
+                  {/* Big Live Table Cockpit (operator-caller) */}
+                  <div className="operator-caller">
+                    <div className={selectedTable.status !== "playing" ? "paused" : ""}>
+                      <small>CURRENT POT</small>
+                      <strong>€{livePot}</strong>
+                      <span>{liveStreet.toUpperCase()}</span>
+                    </div>
+
+                    <div className="operator-stats">
+                      <span>
+                        <small>BLINDS</small>
+                        <b>€{selectedTable.sb} / €{selectedTable.bb}</b>
+                      </span>
+                      <span>
+                        <small>SEATED PLAYERS</small>
+                        <b>{selectedTable.seatsOccupied} / {selectedTable.maxSeats}</b>
+                      </span>
+                      <span>
+                        <small>COMMISSION MODEL</small>
+                        <b>{selectedTable.feeType}</b>
+                      </span>
+                      <span>
+                        <small>EST. OPERATOR RAKE</small>
+                        <b>€{(livePot * 0.05).toFixed(2)}</b>
+                      </span>
+                      <span>
+                        <small>AVG POT VOLUME</small>
+                        <b>€{selectedTable.avgPot || selectedTable.bb * 8}</b>
+                      </span>
+                      <span>
+                        <small>HANDS PER HOUR</small>
+                        <b>{selectedTable.handsPerHour || 60} h/hr</b>
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Live Operator Control Actions (operator-controls) */}
+                  <div className="operator-controls">
+                    <button
+                      className={selectedTable.status === "paused" ? "resume" : ""}
+                      onClick={() => handleToggleTable(selectedTable.id, selectedTable.name)}
+                    >
+                      {selectedTable.status === "paused" ? "▶ Resume Table" : "Ⅱ Pause Table"}
+                    </button>
+                    <button onClick={handleDealNextStreet}>
+                      Deal Next Street ({liveStreet === "preflop" ? "Flop" : liveStreet === "flop" ? "Turn" : liveStreet === "turn" ? "River" : "Showdown"}) →
+                    </button>
+                    <button onClick={handleResetHand}>
+                      Re-deal New Hand
+                    </button>
+                    <Link
+                      href={`/holdem/tables?code=${selectedTable.id}`}
+                      className="full-outline"
+                      style={{ display: "inline-flex", width: "auto", textDecoration: "none" }}
+                    >
+                      Live Stadium Felt &rarr;
+                    </Link>
+                  </div>
+
+                  {/* Seated Players Roster */}
+                  <div className="player-list">
+                    <div className="card-title">
+                      <div>
+                        <h2>Seated Table Players ({selectedTable.seatsOccupied} / {selectedTable.maxSeats})</h2>
+                        <p>Live active chip stacks and table positions</p>
+                      </div>
+                    </div>
+
+                    {Array.from({ length: selectedTable.seatsOccupied }).map((_, idx) => (
+                      <div key={idx}>
+                        <span>{idx === 0 ? "P1" : `P${idx + 1}`}</span>
+                        <b>
+                          {idx === 0 ? "Player 1 (Hero)" : idx === 1 ? "Arben Shark" : idx === 2 ? "Dardan HighRoller" : `Table Seat ${idx + 1}`}
+                          <small style={{ color: "#9497a6", fontSize: 10 }}>Seat #{idx + 1} &bull; In Hand</small>
+                        </b>
+                        <strong style={{ color: "#15a982", fontSize: 12 }}>
+                          €{selectedTable.bb * (idx === 0 ? 100 : idx === 1 ? 180 : 75)} Chips
+                        </strong>
+                      </div>
+                    ))}
+                  </div>
+                </section>
+
+                {/* Right Section: Live Community Board & Telemetry */}
+                <aside className="admin-card claim-review">
+                  <div className="card-title">
+                    <div>
+                      <h2>Live Board Community</h2>
+                      <p>Runout and pot distribution</p>
+                    </div>
+                  </div>
+
+                  <div style={{ background: "#0b1220", borderRadius: 8, padding: 14, marginTop: 12, border: "1px solid #1a253a" }}>
+                    <small style={{ color: "#94a3b8", fontSize: 10, fontWeight: 700, letterSpacing: 0.5, display: "block", marginBottom: 8 }}>
+                      BOARD CARDS ({liveStreet.toUpperCase()}):
+                    </small>
+                    <div style={{ display: "flex", gap: 6 }}>
+                      {liveCommunityCards.length > 0 ? (
+                        liveCommunityCards.map((c, i) => (
+                          <div
+                            key={i}
+                            style={{
+                              background: "#fff",
+                              color: c.includes("♥") || c.includes("♦") ? "#e11d48" : "#0f172a",
+                              fontWeight: 800,
+                              fontSize: 14,
+                              width: 38,
+                              height: 52,
+                              borderRadius: 5,
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              boxShadow: "0 2px 5px rgba(0,0,0,0.3)",
+                            }}
+                          >
+                            {c}
+                          </div>
+                        ))
+                      ) : (
+                        <span style={{ color: "#64748b", fontSize: 11, fontStyle: "italic" }}>
+                          Pre-flop &bull; Awaiting Flop
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="claim-card">
+                    <div>
+                      <span className="claim-player">♠</span>
+                      <div>
+                        <b>POT DYNAMICS</b>
+                        <small>5% Rake cap enforced</small>
+                      </div>
+                    </div>
+                    <div style={{ marginTop: 10, fontSize: 11, display: "flex", flexDirection: "column", gap: 6 }}>
+                      <div style={{ display: "flex", justifyContent: "space-between" }}>
+                        <span>Current Pot:</span>
+                        <b>€{livePot}</b>
+                      </div>
+                      <div style={{ display: "flex", justifyContent: "space-between" }}>
+                        <span>Net Rake Deduction:</span>
+                        <b style={{ color: "#15a982" }}>€{Math.min(livePot * 0.05, commissionRules.rakeCapEur).toFixed(2)}</b>
+                      </div>
+                      <div style={{ display: "flex", justifyContent: "space-between" }}>
+                        <span>Main Pot for Winner:</span>
+                        <b style={{ color: "#6e59e8" }}>€{(livePot - Math.min(livePot * 0.05, commissionRules.rakeCapEur)).toFixed(2)}</b>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div style={{ marginTop: 16 }}>
+                    <Link
+                      href={`/holdem/tables?code=${selectedTable.id}`}
+                      className="full-outline"
+                      style={{ display: "block", textAlign: "center", textDecoration: "none" }}
+                    >
+                      Open Live Table on Felt &rarr;
+                    </Link>
+                  </div>
+                </aside>
+              </div>
+            )}
+
+            {/* ========================================================================= */}
+            {/* MODULE 3: TABLES & FLEET MANAGEMENT (FIGURE 10.3)                         */}
+            {/* ========================================================================= */}
+            {module === "tables" && (
+              <div>
+                {/* Filters toolbar */}
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, marginBottom: 16 }}>
+                  <input
+                    type="text"
+                    placeholder="Search table name, ID, or PIN..."
+                    value={tableSearch}
+                    onChange={(e) => setTableSearch(e.target.value)}
+                    style={{
+                      padding: "8px 12px",
+                      borderRadius: 6,
+                      border: "1px solid #dcdfe6",
+                      fontSize: 12,
+                      width: 280,
+                      outline: "none",
                     }}
-                  >
-                    {["Bronze", "Silver", "Gold", "Platinum", "Black"].map((tier) => (
-                      <option key={tier} value={tier}>
-                        {tier} Tier
-                      </option>
-                    ))}
-                  </select>
-                </label>
+                  />
 
-                <label className="field">
-                  Withdrawal Hold Policy
-                  <div style={{ marginTop: 6 }}>
-                    <label style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer" }}>
-                      <input
-                        type="checkbox"
-                        checked={state.bo.withdrawHold}
-                        onChange={(e) => {
-                          const hold = e.target.checked;
-                          saveState((prev) => ({
-                            ...prev,
-                            bo: { ...prev.bo, withdrawHold: hold },
-                          }));
-                          audit("Withdrawal Hold Toggled", String(hold));
-                          showToast(hold ? "Withdrawals placed on security hold." : "Withdrawal hold released.");
-                        }}
-                      />
-                      <b>Security Hold on Redemptions &amp; Withdrawals</b>
-                    </label>
+                  <div style={{ display: "flex", gap: 10 }}>
+                    <select
+                      value={stakeFilter}
+                      onChange={(e) => setStakeFilter(e.target.value)}
+                      style={{ padding: "8px 12px", borderRadius: 6, border: "1px solid #dcdfe6", fontSize: 12, outline: "none" }}
+                    >
+                      <option value="all">All Stake Tiers</option>
+                      <option value="micro">Micro Stakes</option>
+                      <option value="low">Low Stakes</option>
+                      <option value="medium">Medium Stakes</option>
+                      <option value="high">High Stakes</option>
+                      <option value="vip">VIP Stakes</option>
+                    </select>
+
+                    <select
+                      value={statusFilter}
+                      onChange={(e) => setStatusFilter(e.target.value)}
+                      style={{ padding: "8px 12px", borderRadius: 6, border: "1px solid #dcdfe6", fontSize: 12, outline: "none" }}
+                    >
+                      <option value="all">All Statuses</option>
+                      <option value="active">Active Only</option>
+                      <option value="paused">Paused Only</option>
+                      <option value="private">Private Tables</option>
+                    </select>
+
+                    <button className="admin-primary" onClick={() => setShowCreateModal(true)}>
+                      + Create Table
+                    </button>
                   </div>
-                </label>
-              </div>
-            </div>
-          )}
-
-          {/* Module 7: Live Room Monitor */}
-          {module === "live" && (
-            <div className="admin-card" style={{ padding: 24 }}>
-              <div className="card-title">
-                <div>
-                  <h2>Live Table Spectator &amp; System Broadcast</h2>
-                  <p>Send high-priority notifications to all seated players at the start of next hand</p>
                 </div>
-              </div>
-              <div className="row" style={{ marginTop: 14 }}>
-                <input
-                  id="liveBcInput"
-                  style={{ flex: 1 }}
-                  placeholder="e.g. Server maintenance in 30 minutes. All pots will be automatically refunded."
-                  defaultValue={state.bo.broadcast}
-                />
-                <button
-                  className="admin-primary"
-                  onClick={() => {
-                    const msg = (document.getElementById("liveBcInput") as HTMLInputElement)?.value.trim() || "";
-                    saveState((prev) => ({
-                      ...prev,
-                      bo: { ...prev.bo, broadcast: msg },
-                    }));
-                    audit("Table Broadcast", msg);
-                    showToast(msg ? "Broadcast queued for next deal." : "Broadcast cleared.");
-                  }}
-                >
-                  Send Announcement
-                </button>
-              </div>
-            </div>
-          )}
 
-          {/* Module 8: Integrity & Collusion */}
-          {module === "integrity" && (
-            <div className="admin-card" style={{ padding: 24 }}>
-              <div className="card-title">
-                <div>
-                  <h2>Integrity Alerts Queue &amp; Collusion Flags</h2>
-                  <p>Automated heuristic signals detecting timing anomalies and soft play</p>
-                </div>
-              </div>
-              <div className="tblwrap" style={{ marginTop: 14 }}>
-                <table className="tbl">
-                  <thead>
-                    <tr>
-                      <th>Severity</th>
-                      <th>Triggered Alert</th>
-                      <th>Signal Evidence</th>
-                      <th>Status</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td><span className="tag bad">High</span></td>
-                      <td><b>Possible Soft-Play Collusion</b></td>
-                      <td>RiverRat and ColdDeck shared 34 tables and never raised each other post-flop.</td>
-                      <td>Under Review</td>
-                    </tr>
-                    <tr>
-                      <td><span className="tag gold">Medium</span></td>
-                      <td><b>Fast Decision Speed Profiling</b></td>
-                      <td>Decision latency average under 650ms across 40+ consecutive betting rounds.</td>
-                      <td>Monitoring</td>
-                    </tr>
-                    <tr>
-                      <td><span className="tag gold">Medium</span></td>
-                      <td><b>Shared Device Fingerprint</b></td>
-                      <td>Two active sessions detected with matching browser hardware signatures.</td>
-                      <td>Verified</td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          )}
+                {/* Table list in Bingo admin-card */}
+                <div className="admin-card" style={{ padding: 0, overflow: "hidden" }}>
+                  <div style={{ padding: "16px 20px", borderBottom: "1px solid #edf0f5", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    <div>
+                      <h2 style={{ fontSize: 14, margin: 0, fontWeight: 700, color: "#1e202c" }}>
+                        Figure 10.3 — Active Cash Table Fleet ({filteredTables.length} tables)
+                      </h2>
+                      <p style={{ margin: "2px 0 0", fontSize: 11, color: "#9497a6" }}>
+                        Tables currently active and synchronized with /cashgame and /holdem/tables
+                      </p>
+                    </div>
+                  </div>
 
-          {/* Module 9: Disputes & Adjustments */}
-          {module === "disputes" && (
-            <div className="admin-card" style={{ padding: 24 }}>
-              <div className="card-title">
-                <div>
-                  <h2>Maker-Checker Balance Adjustments</h2>
-                  <p>Dispute refunds require authorization by a second operator role</p>
-                </div>
-              </div>
-              <div className="form" style={{ marginTop: 14 }}>
-                <label className="field">
-                  Currency
-                  <select id="adjCur" defaultValue="USD">
-                    <option value="USD">USD (Real Money)</option>
-                    <option value="SC">SC (Sweeps Coins)</option>
-                    <option value="GC">GC (Gold Coins)</option>
-                  </select>
-                </label>
-                <label className="field">
-                  Amount
-                  <input id="adjAmt" type="number" step="0.01" defaultValue="25" />
-                </label>
-                <label className="field">
-                  Adjustment Reason
-                  <input id="adjWhy" defaultValue="Disconnect during all-in on river" />
-                </label>
-              </div>
-              <div style={{ marginTop: 16 }}>
-                <button
-                  className="admin-primary"
-                  onClick={() => {
-                    const cur = (document.getElementById("adjCur") as any)?.value || "USD";
-                    const amt = Math.round(+((document.getElementById("adjAmt") as any)?.value || 25) * (cur === "GC" ? 1 : 100));
-                    const why = (document.getElementById("adjWhy") as any)?.value || "Adjustment";
-                    saveState((prev) => ({
-                      ...prev,
-                      bo: {
-                        ...prev.bo,
-                        adjustments: [
-                          { ts: Date.now(), by: prev.bo.role, cur, amount: amt, why, status: "Pending" },
-                          ...prev.bo.adjustments,
-                        ],
-                      },
-                    }));
-                    audit("Adjustment Raised", `${money(amt, cur)} - ${why}`);
-                    showToast("Adjustment raised. Awaiting second operator approval.");
-                  }}
-                >
-                  Raise Adjustment
-                </button>
-              </div>
-
-              {state.bo.adjustments.length > 0 && (
-                <div className="tblwrap" style={{ marginTop: 20 }}>
-                  <table className="tbl">
+                  <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12 }}>
                     <thead>
-                      <tr>
-                        <th>Time</th>
-                        <th>Raised By</th>
-                        <th>Amount</th>
-                        <th>Reason</th>
-                        <th>Status</th>
-                        <th>Action</th>
+                      <tr style={{ background: "#f8f9fb", borderBottom: "1px solid #eef0f3" }}>
+                        <th style={{ textAlign: "left", padding: "10px 16px", color: "#696c7e", fontWeight: 700 }}>TABLE NAME</th>
+                        <th style={{ textAlign: "left", padding: "10px 16px", color: "#696c7e", fontWeight: 700 }}>TIER</th>
+                        <th style={{ textAlign: "left", padding: "10px 16px", color: "#696c7e", fontWeight: 700 }}>BLINDS</th>
+                        <th style={{ textAlign: "left", padding: "10px 16px", color: "#696c7e", fontWeight: 700 }}>BUY-IN</th>
+                        <th style={{ textAlign: "left", padding: "10px 16px", color: "#696c7e", fontWeight: 700 }}>SEATS</th>
+                        <th style={{ textAlign: "left", padding: "10px 16px", color: "#696c7e", fontWeight: 700 }}>COMMISSION</th>
+                        <th style={{ textAlign: "left", padding: "10px 16px", color: "#696c7e", fontWeight: 700 }}>STATUS</th>
+                        <th style={{ textAlign: "left", padding: "10px 16px", color: "#696c7e", fontWeight: 700 }}>ACTIONS</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {state.bo.adjustments.map((a: any, i: number) => (
-                        <tr key={i}>
-                          <td>{new Date(a.ts).toLocaleTimeString()}</td>
-                          <td>{a.by}</td>
-                          <td className="money">{money(a.amount, a.cur)}</td>
-                          <td>{a.why}</td>
-                          <td>
-                            <span className={`tag ${a.status === "Approved" ? "good" : a.status === "Rejected" ? "bad" : "gold"}`}>
-                              {a.status}
+                      {filteredTables.map((t) => (
+                        <tr key={t.id} style={{ borderBottom: "1px solid #f0f2f5" }}>
+                          <td style={{ padding: "12px 16px" }}>
+                            <strong style={{ color: "#1e202c", display: "block" }}>{t.name}</strong>
+                            <small style={{ color: "#9497a6", fontSize: 10 }}>
+                              {t.id} {t.isPrivate && <span style={{ color: "#a05bcd", fontWeight: 700 }}>[PIN: {t.inviteCode}]</span>}
+                            </small>
+                          </td>
+                          <td style={{ padding: "12px 16px" }}>
+                            <span style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", padding: "2px 6px", borderRadius: 4, background: "#f0edff", color: "#6e59e8" }}>
+                              {t.tier}
                             </span>
                           </td>
-                          <td>
-                            {a.status === "Pending" ? (
+                          <td style={{ padding: "12px 16px" }}>
+                            <b>€{t.sb} / €{t.bb}</b>
+                          </td>
+                          <td style={{ padding: "12px 16px" }}>
+                            €{t.minBuyIn} - €{t.maxBuyIn}
+                          </td>
+                          <td style={{ padding: "12px 16px" }}>
+                            <span>{t.seatsOccupied} / {t.maxSeats}</span>
+                          </td>
+                          <td style={{ padding: "12px 16px" }}>
+                            <span style={{ fontSize: 11, fontWeight: 700, color: t.feeType === "RAKE" ? "#15a982" : t.feeType === "HAND_FEE" ? "#428de3" : "#e46559" }}>
+                              {t.feeLabel}
+                            </span>
+                          </td>
+                          <td style={{ padding: "12px 16px" }}>
+                            <span className={`status ${t.status === "playing" ? "status-live" : "status-starting-soon"}`}>
+                              <i />{t.status === "playing" ? "live" : "paused"}
+                            </span>
+                          </td>
+                          <td style={{ padding: "12px 16px" }}>
+                            <div style={{ display: "flex", gap: 6 }}>
                               <button
-                                className="btn small primary"
-                                onClick={() => {
-                                  saveState((prev) => {
-                                    const adj = [...prev.bo.adjustments];
-                                    adj[i] = { ...adj[i], status: "Approved", approver: prev.bo.role };
-                                    const w = { ...prev.wallet, [a.cur]: (prev.wallet[a.cur] || 0) + a.amount };
-                                    return {
-                                      ...prev,
-                                      wallet: w,
-                                      bo: { ...prev.bo, adjustments: adj },
-                                    };
-                                  });
-                                  audit("Adjustment Approved", money(a.amount, a.cur));
-                                  showToast("Adjustment approved and funds credited.");
-                                }}
+                                className="outline-button"
+                                style={{ padding: "4px 8px", fontSize: 11 }}
+                                onClick={() => handleToggleTable(t.id, t.name)}
                               >
-                                Approve
+                                {t.status === "playing" ? "Pause" : "Resume"}
                               </button>
-                            ) : (
-                              <span className="muted">—</span>
-                            )}
+                              <Link
+                                href={`/holdem/tables?code=${t.id}`}
+                                className="admin-primary"
+                                style={{ padding: "4px 8px", fontSize: 11, textDecoration: "none" }}
+                              >
+                                Felt &rarr;
+                              </Link>
+                              <button
+                                className="danger-button"
+                                style={{ padding: "4px 8px", fontSize: 11 }}
+                                onClick={() => handleDeleteTable(t.id, t.name)}
+                              >
+                                Delete
+                              </button>
+                            </div>
                           </td>
                         </tr>
                       ))}
                     </tbody>
                   </table>
                 </div>
-              )}
-            </div>
-          )}
-
-          {/* Module 10: Finance & Redemptions */}
-          {module === "finance" && (
-            <div className="admin-card" style={{ padding: 24 }}>
-              <div className="card-title">
-                <div>
-                  <h2>Sweeps Coin Redemptions &amp; Financial Clearing</h2>
-                  <p>Approve player bank transfers and review rake liability</p>
-                </div>
               </div>
-              <div className="tblwrap" style={{ marginTop: 14 }}>
-                <table className="tbl">
-                  <thead>
-                    <tr>
-                      <th>Time</th>
-                      <th>Requested Amount</th>
-                      <th>Status</th>
-                      <th>Action</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {state.bo.redemptions.length ? (
-                      state.bo.redemptions.map((r: any, idx: number) => (
-                        <tr key={idx}>
-                          <td>{new Date(r.ts).toLocaleString()}</td>
-                          <td className="money">{money(r.amount, "SC")}</td>
-                          <td>
-                            <span className={`tag ${r.status === "Paid" ? "good" : "gold"}`}>{r.status}</span>
+            )}
+
+            {/* ========================================================================= */}
+            {/* MODULE 4: PLAYER 360 & POKER ONLINE ACCESS (SECTIONS 10.1 & 10.2)         */}
+            {/* ========================================================================= */}
+            {module === "players" && (
+              <div>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, marginBottom: 16 }}>
+                  <input
+                    type="text"
+                    placeholder="Search player name, username, or ID..."
+                    value={playerSearch}
+                    onChange={(e) => setPlayerSearch(e.target.value)}
+                    style={{ padding: "8px 12px", borderRadius: 6, border: "1px solid #dcdfe6", fontSize: 12, width: 280, outline: "none" }}
+                  />
+
+                  <select
+                    value={accessFilter}
+                    onChange={(e) => setAccessFilter(e.target.value)}
+                    style={{ padding: "8px 12px", borderRadius: 6, border: "1px solid #dcdfe6", fontSize: 12, outline: "none" }}
+                  >
+                    <option value="all">All Poker Access Statuses</option>
+                    <option value="enabled">Poker Online: ALLOWED</option>
+                    <option value="restricted">Poker Online: RESTRICTED</option>
+                  </select>
+                </div>
+
+                <div className="admin-card" style={{ padding: 0, overflow: "hidden" }}>
+                  <div style={{ padding: "16px 20px", borderBottom: "1px solid #edf0f5" }}>
+                    <h2 style={{ fontSize: 14, margin: 0, fontWeight: 700, color: "#1e202c" }}>
+                      Section 10.1 & 10.2 — Player 360 & Real-Time Poker Online Access
+                    </h2>
+                    <p style={{ margin: "2px 0 0", fontSize: 11, color: "#9497a6" }}>
+                      Toggle cash table joining permissions instantly per player
+                    </p>
+                  </div>
+
+                  <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12 }}>
+                    <thead>
+                      <tr style={{ background: "#f8f9fb", borderBottom: "1px solid #eef0f3" }}>
+                        <th style={{ textAlign: "left", padding: "10px 16px", color: "#696c7e", fontWeight: 700 }}>PLAYER</th>
+                        <th style={{ textAlign: "left", padding: "10px 16px", color: "#696c7e", fontWeight: 700 }}>VIP TIER</th>
+                        <th style={{ textAlign: "left", padding: "10px 16px", color: "#696c7e", fontWeight: 700 }}>BALANCE (€)</th>
+                        <th style={{ textAlign: "left", padding: "10px 16px", color: "#696c7e", fontWeight: 700 }}>HANDS PLAYED</th>
+                        <th style={{ textAlign: "left", padding: "10px 16px", color: "#696c7e", fontWeight: 700 }}>RAKE GENERATED</th>
+                        <th style={{ textAlign: "left", padding: "10px 16px", color: "#696c7e", fontWeight: 700 }}>LAST ACTIVE</th>
+                        <th style={{ textAlign: "left", padding: "10px 16px", color: "#696c7e", fontWeight: 700 }}>POKER ONLINE ACCESS</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {filteredPlayers.map((p) => (
+                        <tr key={p.id} style={{ borderBottom: "1px solid #f0f2f5" }}>
+                          <td style={{ padding: "12px 16px" }}>
+                            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                              <span style={{ fontSize: 18 }}>{p.avatar}</span>
+                              <div>
+                                <strong style={{ color: "#1e202c", display: "block" }}>{p.name}</strong>
+                                <small style={{ color: "#9497a6", fontSize: 10 }}>@{p.username} &bull; {p.country}</small>
+                              </div>
+                            </div>
                           </td>
-                          <td>
-                            {r.status === "Pending" ? (
-                              <button
-                                className="btn small primary"
-                                onClick={() => {
-                                  saveState((prev) => {
-                                    const reds = [...prev.bo.redemptions];
-                                    reds[idx] = { ...reds[idx], status: "Paid" };
-                                    return { ...prev, bo: { ...prev.bo, redemptions: reds } };
-                                  });
-                                  audit("Redemption Approved", money(r.amount, "SC"));
-                                  showToast("Redemption paid to player bank.");
-                                }}
-                              >
-                                Approve &amp; Settle
-                              </button>
-                            ) : (
-                              <span className="muted">Settled</span>
-                            )}
+                          <td style={{ padding: "12px 16px" }}>
+                            <span style={{ fontSize: 10, fontWeight: 700, padding: "2px 6px", borderRadius: 4, background: "#fef08a", color: "#854d0e" }}>
+                              {p.vipTier}
+                            </span>
+                          </td>
+                          <td style={{ padding: "12px 16px" }}>
+                            <b>€{p.balanceEur.toFixed(2)}</b>
+                          </td>
+                          <td style={{ padding: "12px 16px" }}>{p.handsPlayed}</td>
+                          <td style={{ padding: "12px 16px", color: "#15a982", fontWeight: 700 }}>€{p.rakeGeneratedEur.toFixed(2)}</td>
+                          <td style={{ padding: "12px 16px", color: "#838697" }}>{p.lastActive}</td>
+                          <td style={{ padding: "12px 16px" }}>
+                            {/* DYNAMIC POKER ACCESS SWITCH */}
+                            <button
+                              onClick={() => handleTogglePlayer(p.id, p.name)}
+                              style={{
+                                border: "none",
+                                borderRadius: 6,
+                                padding: "6px 12px",
+                                fontSize: 11,
+                                fontWeight: 800,
+                                cursor: "pointer",
+                                background: p.pokerAccess ? "#eaf8f4" : "#fff0ef",
+                                color: p.pokerAccess ? "#15a982" : "#e46559",
+                              }}
+                            >
+                              {p.pokerAccess ? "✔ POKER: YES" : "✖ POKER: NO"}
+                            </button>
                           </td>
                         </tr>
-                      ))
-                    ) : (
-                      <tr>
-                        <td colSpan={4} className="muted" style={{ textAlign: "center", padding: 20 }}>
-                          No pending redemption requests in queue.
-                        </td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          )}
-
-          {/* Module 11: Promos & Rakeback */}
-          {module === "promotions" && (
-            <div className="admin-card" style={{ padding: 24 }}>
-              <div className="card-title">
-                <div>
-                  <h2>Promotions, Rakeback &amp; Ticket Drops</h2>
-                  <p>Directly reward loyal players with cash rakeback or satellite tournament entries</p>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
               </div>
-              <div style={{ marginTop: 16 }}>
-                <button
-                  className="admin-primary"
-                  onClick={() => {
-                    saveState((prev) => ({
-                      ...prev,
-                      tickets: [
-                        {
-                          name: "Sunday Freeroll Ticket",
-                          value: 1000,
-                          cur: "USD",
-                          from: "Operator Drop",
-                          ts: Date.now(),
-                          code: "DROP-" + Math.random().toString(36).slice(2, 8).toUpperCase(),
-                        },
-                        ...prev.tickets,
-                      ],
-                    }));
-                    audit("Ticket Dropped to Player Wallet");
-                    showToast("Tournament ticket added to player wallet.");
-                  }}
-                >
-                  Drop Tournament Ticket to Player
-                </button>
-              </div>
-            </div>
-          )}
+            )}
 
-          {/* Module 12: Brand & Geo-States */}
-          {module === "brand" && (
-            <div className="admin-card" style={{ padding: 24 }}>
-              <div className="card-title">
-                <div>
-                  <h2>Sweepstakes Geoblocking &amp; Brand Settings</h2>
-                  <p>Block specific US states from sweepstakes prize redemption</p>
+            {/* ========================================================================= */}
+            {/* MODULE 5: COMMISSION RULES ENGINE (SECTION 6.4)                           */}
+            {/* ========================================================================= */}
+            {module === "rules" && (
+              <div className="admin-card" style={{ maxWidth: 840, padding: 24 }}>
+                <div className="card-title">
+                  <div>
+                    <h2>Section 6.4 — Global Commission Engine Parameters</h2>
+                    <p>Live parameters controlling rake deductions across all cash game tables</p>
+                  </div>
                 </div>
-              </div>
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(8, 1fr)", gap: 10, margin: "16px 0" }}>
-                {US_STATES.map((s) => (
-                  <label key={s} style={{ display: "flex", gap: 6, alignItems: "center", fontSize: 13, cursor: "pointer" }}>
-                    <input
-                      type="checkbox"
-                      checked={state.bo.blockedStates.includes(s)}
-                      onChange={(e) => {
-                        const checked = e.target.checked;
-                        saveState((prev) => {
-                          const list = checked
-                            ? [...prev.bo.blockedStates, s]
-                            : prev.bo.blockedStates.filter((x) => x !== s);
-                          return { ...prev, bo: { ...prev.bo, blockedStates: list } };
-                        });
-                        audit(`State ${s} block toggled`, String(checked));
-                      }}
-                    />
-                    <b>{s}</b>
-                  </label>
-                ))}
-              </div>
-              <p className="muted" style={{ fontSize: 12 }}>
-                Checked states will display geographic restriction notices for Sweepstakes games.
-              </p>
-            </div>
-          )}
 
-          {/* Module 13: Private Clubs */}
-          {module === "clubs" && (
-            <div className="admin-card" style={{ padding: 24 }}>
-              <div className="card-title">
-                <div>
-                  <h2>Private Clubs &amp; Home Game Tables</h2>
-                  <p>Overview of player-created clubs and shareable invite codes</p>
-                </div>
-              </div>
-              <div className="tblwrap" style={{ marginTop: 14 }}>
-                <table className="tbl">
-                  <thead>
-                    <tr>
-                      <th>Club Name</th>
-                      <th>Invite Code</th>
-                      <th>Game</th>
-                      <th>Seats</th>
-                      <th>Model</th>
-                      <th>Status</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {state.bo.clubs.length ? (
-                      state.bo.clubs.map((c: any, i: number) => (
-                        <tr key={i}>
-                          <td><b>{c.name}</b></td>
-                          <td><code>{c.code}</code></td>
-                          <td>{c.v}</td>
-                          <td>{c.seats}</td>
-                          <td>{c.rake ? `${c.rake}% Rake` : "Club Fee"}</td>
-                          <td><span className="tag good">{c.status}</span></td>
-                        </tr>
-                      ))
-                    ) : (
-                      <tr>
-                        <td colSpan={6} className="muted" style={{ textAlign: "center", padding: 20 }}>
-                          No private clubs currently active. Clubs created in the poker lobby will appear here.
-                        </td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          )}
+                <form onSubmit={handleSaveCommissionRules} style={{ display: "flex", flexDirection: "column", gap: 18, marginTop: 16 }}>
+                  <div style={{ background: "#f8f9fb", border: "1px solid #edf0f5", borderRadius: 8, padding: 16 }}>
+                    <b style={{ color: "#1e202c", fontSize: 13, display: "block", marginBottom: 12 }}>
+                      Model 1: Pot Rake Parameters
+                    </b>
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+                      <div>
+                        <label style={{ display: "block", fontSize: 11, fontWeight: 700, color: "#696c7e", marginBottom: 4 }}>
+                          Global Rake Rate (%)
+                        </label>
+                        <input
+                          type="number"
+                          step="0.1"
+                          value={rulesForm.rakePercent}
+                          onChange={(e) => setRulesForm({ ...rulesForm, rakePercent: Number(e.target.value) })}
+                          style={{ width: "100%", padding: "8px 12px", borderRadius: 6, border: "1px solid #dcdfe6", fontSize: 12 }}
+                          required
+                        />
+                      </div>
+                      <div>
+                        <label style={{ display: "block", fontSize: 11, fontWeight: 700, color: "#696c7e", marginBottom: 4 }}>
+                          Max Pot Rake Cap (€)
+                        </label>
+                        <input
+                          type="number"
+                          step="1"
+                          value={rulesForm.rakeCapEur}
+                          onChange={(e) => setRulesForm({ ...rulesForm, rakeCapEur: Number(e.target.value) })}
+                          style={{ width: "100%", padding: "8px 12px", borderRadius: 6, border: "1px solid #dcdfe6", fontSize: 12 }}
+                          required
+                        />
+                      </div>
+                    </div>
+                  </div>
 
-          {/* Module 14: Audit Log */}
-          {module === "audit" && (
-            <div className="admin-card" style={{ padding: 24 }}>
-              <div className="card-title">
-                <div>
-                  <h2>Regulatory Compliance Audit Log</h2>
-                  <p>Chronological record of every administrative and financial adjustment</p>
-                </div>
-              </div>
-              <div className="tblwrap" style={{ marginTop: 14 }}>
-                <table className="tbl">
-                  <thead>
-                    <tr>
-                      <th>Timestamp</th>
-                      <th>Operator Role</th>
-                      <th>Action</th>
-                      <th>Details</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {state.bo.audit.length ? (
-                      state.bo.audit.slice(0, 100).map((a: any, idx: number) => (
-                        <tr key={idx}>
-                          <td>{new Date(a.ts).toLocaleString()}</td>
-                          <td><span className="tag">{a.role}</span></td>
-                          <td><b>{a.action}</b></td>
-                          <td className="muted">{a.detail || "—"}</td>
-                        </tr>
-                      ))
-                    ) : (
-                      <tr>
-                        <td colSpan={4} className="muted" style={{ textAlign: "center", padding: 20 }}>
-                          Audit log initialized. Actions taken in the backoffice will be recorded here.
-                        </td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          )}
+                  <div style={{ background: "#f8f9fb", border: "1px solid #edf0f5", borderRadius: 8, padding: 16 }}>
+                    <b style={{ color: "#1e202c", fontSize: 13, display: "block", marginBottom: 12 }}>
+                      Model 2: Fixed Hand Fee Parameter
+                    </b>
+                    <div>
+                      <label style={{ display: "block", fontSize: 11, fontWeight: 700, color: "#696c7e", marginBottom: 4 }}>
+                        Hand Fee Deduction (€ per hand dealt)
+                      </label>
+                      <input
+                        type="number"
+                        step="0.5"
+                        value={rulesForm.handFeeEur}
+                        onChange={(e) => setRulesForm({ ...rulesForm, handFeeEur: Number(e.target.value) })}
+                        style={{ width: "100%", padding: "8px 12px", borderRadius: 6, border: "1px solid #dcdfe6", fontSize: 12 }}
+                        required
+                      />
+                    </div>
+                  </div>
 
-          {/* Module 15: AI Operations Assistant */}
-          {module === "ai" && (
-            <div className="admin-card" style={{ padding: 24 }}>
-              <div className="card-title">
-                <div>
-                  <h2>AI Poker Operations Assistant</h2>
-                  <p>Ask operational questions directly powered by live platform data</p>
-                </div>
-              </div>
-              <div className="row" style={{ marginTop: 14 }}>
-                <input
-                  id="pokerBoAiIn"
-                  style={{ flex: 1 }}
-                  placeholder="e.g. rake today, tournament fees, active alerts, most played game"
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      document.getElementById("pokerBoAiGo")?.click();
-                    }
-                  }}
-                />
-                <button
-                  id="pokerBoAiGo"
-                  className="admin-primary"
-                  onClick={() => {
-                    const q = (document.getElementById("pokerBoAiIn") as HTMLInputElement)?.value.toLowerCase() || "";
-                    const out = document.getElementById("pokerBoAiOut");
-                    if (!q || !out) return;
-                    if (q.includes("rake")) {
-                      out.innerHTML = `Total Cash Rake: <b>${['USD', 'SC', 'GC']
-                        .map((c) => money(state.ops.rake[c] || 0, c))
-                        .join(", ")}</b>. Current Rake Setting: ${state.settings.rakePct}% capped at ${state.settings.rakeCapBB}bb.`;
-                    } else if (q.includes("fee") || q.includes("tournament")) {
-                      out.innerHTML = `Total Tournament Fees: <b>${['USD', 'SC', 'GC']
-                        .map((c) => money(state.ops.fees[c] || 0, c))
-                        .join(", ")}</b> across ${state.ops.tourneysRun} tournaments.`;
-                    } else if (q.includes("hand")) {
-                      out.innerHTML = `Total Hands Dealt: <b>${state.ops.handsDealt}</b> across all active poker tables.`;
-                    } else if (q.includes("alert")) {
-                      out.innerHTML = `Integrity queue has <b>3 active monitoring flags</b>: soft-play collusion review, decision speed heuristic, and device fingerprint check.`;
-                    } else {
-                      out.innerHTML = `Poker Operations Status: Platform active with <b>${state.ops.handsDealt} hands dealt</b> and <b>${state.ops.tourneysRun} tournaments run</b>.`;
-                    }
-                  }}
-                >
-                  Query Assistant
-                </button>
-              </div>
-              <div
-                id="pokerBoAiOut"
-                style={{
-                  marginTop: 16,
-                  padding: 16,
-                  background: "#f8f9fc",
-                  border: "1px solid #e2e5ef",
-                  borderRadius: 10,
-                  fontSize: 14,
-                  minHeight: 50,
-                  color: "#1e202c",
-                }}
-              >
-                Assistant responses will appear here. Try asking about <b>rake</b>, <b>tournament fees</b>, or <b>hands dealt</b>.
-              </div>
-            </div>
-          )}
-        </div>
-      </section>
+                  <div style={{ background: "#f8f9fb", border: "1px solid #edf0f5", borderRadius: 8, padding: 16 }}>
+                    <b style={{ color: "#1e202c", fontSize: 13, display: "block", marginBottom: 12 }}>
+                      Model 3: Timed Table Fee Parameter
+                    </b>
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+                      <div>
+                        <label style={{ display: "block", fontSize: 11, fontWeight: 700, color: "#696c7e", marginBottom: 4 }}>
+                          Table Fee Amount (€)
+                        </label>
+                        <input
+                          type="number"
+                          step="1"
+                          value={rulesForm.tableFeeEur}
+                          onChange={(e) => setRulesForm({ ...rulesForm, tableFeeEur: Number(e.target.value) })}
+                          style={{ width: "100%", padding: "8px 12px", borderRadius: 6, border: "1px solid #dcdfe6", fontSize: 12 }}
+                          required
+                        />
+                      </div>
+                      <div>
+                        <label style={{ display: "block", fontSize: 11, fontWeight: 700, color: "#696c7e", marginBottom: 4 }}>
+                          Billing Frequency (Minutes)
+                        </label>
+                        <input
+                          type="number"
+                          step="5"
+                          value={rulesForm.tableFeeIntervalMin}
+                          onChange={(e) => setRulesForm({ ...rulesForm, tableFeeIntervalMin: Number(e.target.value) })}
+                          style={{ width: "100%", padding: "8px 12px", borderRadius: 6, border: "1px solid #dcdfe6", fontSize: 12 }}
+                          required
+                        />
+                      </div>
+                    </div>
+                  </div>
 
-      <style>{`
-        .admin-shell {
-          background: #f7f8fa;
-          min-height: 100vh;
-          width: 100%;
-          max-width: 100vw;
-          overflow-x: hidden;
-        }
-        .admin-app {
-          display: grid;
-          grid-template-columns: 260px minmax(0, 1fr);
-          min-height: 100vh;
-          width: 100%;
-          max-width: 100vw;
-          overflow-x: hidden;
-          background: #f7f8fa;
-        }
-        .admin-sidebar {
-          width: 260px;
-          min-width: 260px;
-          max-width: 260px;
-          position: sticky;
-          top: 0;
-          left: 0;
-          height: 100vh;
-          background: #121125;
-          color: #a9a8bd;
-          display: flex;
-          flex-direction: column;
-          z-index: 60;
-          overflow-x: hidden;
-        }
-        .admin-sidebar nav {
-          flex: 1;
-          overflow-y: auto;
-          overflow-x: hidden;
-          padding: 11px 9px;
-          scrollbar-width: thin;
-        }
-        .admin-sidebar nav button {
-          align-items: center;
-          background: transparent;
-          border: 0;
-          border-radius: 8px;
-          color: #77758b;
-          display: flex;
-          font-size: 12.5px;
-          font-weight: 700;
-          margin: 1px 0;
-          padding: 10px 12px;
-          text-align: left;
-          width: 100%;
-          cursor: pointer;
-          transition: all 0.2s ease;
-          gap: 10px;
-        }
-        .admin-sidebar nav .icon,
-        .admin-sidebar nav button > span.icon {
-          flex: 0 0 18px !important;
-          width: 18px !important;
-          min-width: 18px !important;
-          margin-right: 0 !important;
-          font-size: 15px !important;
-          text-align: center !important;
-          display: inline-flex !important;
-          align-items: center !important;
-          justify-content: center !important;
-          color: #777386;
-        }
-        .admin-sidebar nav button > span:not(.icon) {
-          flex: 1 1 auto;
-          white-space: nowrap;
-          overflow: hidden;
-          text-overflow: ellipsis;
-          font-size: 12.5px;
-          color: inherit;
-        }
-        .admin-sidebar nav button:hover {
-          background: rgba(255, 255, 255, 0.05);
-          color: #dedde5;
-        }
-        .admin-sidebar nav button.active {
-          background: linear-gradient(90deg, rgba(122, 102, 244, 0.24), rgba(122, 102, 244, 0.08));
-          color: #fff;
-        }
-        .admin-sidebar nav button.active .icon {
-          color: #9685ff !important;
-        }
-        .admin-sidebar .sidebar-user {
-          align-items: center;
-          border-top: 1px solid rgba(255, 255, 255, 0.07);
-          display: grid;
-          gap: 10px;
-          grid-template-columns: auto 1fr auto;
-          padding: 14px 16px;
-          background: rgba(0, 0, 0, 0.2);
-          flex-shrink: 0;
-        }
-        .admin-sidebar-backdrop {
-          position: fixed;
-          inset: 0;
-          background: rgba(10, 8, 25, 0.65);
-          backdrop-filter: blur(2px);
-          z-index: 55;
-        }
-        @media (max-width: 980px) {
-          .admin-app {
-            display: block !important;
-          }
-          .admin-sidebar {
-            position: fixed !important;
-            top: 0 !important;
-            bottom: 0 !important;
-            left: -280px !important;
-            width: 260px !important;
-            min-width: 260px !important;
-            max-width: 260px !important;
-            height: 100vh !important;
-            z-index: 9999 !important;
-            transition: left 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
-            box-shadow: 10px 0 35px rgba(0, 0, 0, 0.45) !important;
-          }
-          .admin-sidebar.open {
-            left: 0 !important;
-          }
-          .admin-logo > button {
-            display: block !important;
-            background: transparent;
-            border: 0;
-            color: #fff;
-            font-size: 20px;
-            cursor: pointer;
-            margin-left: auto;
-            padding: 4px 8px;
-          }
-          .mobile-menu {
-            display: inline-flex !important;
-            align-items: center;
-            justify-content: center;
-            background: transparent;
-            border: 0;
-            color: #4d5060;
-            font-size: 18px;
-            cursor: pointer;
-            margin-right: 10px;
-          }
-        }
-        .admin-main {
-          min-width: 0;
-          width: 100%;
-          max-width: 100%;
-          overflow-x: hidden;
-        }
-        .admin-content {
-          margin: 0 auto;
-          max-width: 1550px;
-          padding: 25px 28px 55px;
-          width: 100%;
-          box-sizing: border-box;
-        }
-        .admin-shell .outline-button,
-        .admin-main .outline-button,
-        .outline-button {
-          background: #fff !important;
-          border: 1px solid #dfe1e7 !important;
-          border-radius: 8px !important;
-          color: #313345 !important;
-          font-size: 12px !important;
-          font-weight: 700 !important;
-          padding: 8px 14px !important;
-          cursor: pointer;
-          transition: all 0.2s ease;
-          display: inline-flex;
-          align-items: center;
-          gap: 6px;
-        }
-        .admin-shell .outline-button:hover,
-        .admin-main .outline-button:hover,
-        .outline-button:hover {
-          background: #f8f9fb !important;
-          border-color: #cbcdd7 !important;
-          color: #1a1c29 !important;
-        }
-        .metric-grid {
-          display: grid;
-          gap: 12px;
-          grid-template-columns: repeat(auto-fit, minmax(175px, 1fr));
-        }
-        .dashboard-grid {
-          display: grid;
-          gap: 16px;
-          grid-template-columns: 1.3fr 1fr;
-          margin-top: 16px;
-        }
-        @media (max-width: 1100px) {
-          .dashboard-grid {
-            grid-template-columns: 1fr;
-          }
-        }
-        /* Variant Bars Card */
-        .variant-bars {
-          display: flex;
-          flex-direction: column;
-          gap: 14px;
-          padding: 4px 0;
-        }
-        .variant-row {
-          display: grid;
-          grid-template-columns: 190px 1fr 80px;
-          gap: 14px;
-          align-items: center;
-        }
-        .variant-label {
-          display: flex;
-          align-items: center;
-          gap: 9px;
-          min-width: 0;
-        }
-        .variant-code-pill {
-          background: #f0edff;
-          color: #5d46eb;
-          font-size: 10px;
-          font-weight: 800;
-          padding: 3px 7px;
-          border-radius: 6px;
-          letter-spacing: 0.5px;
-          font-family: 'JetBrains Mono', monospace;
-        }
-        .variant-name {
-          font-size: 12.5px;
-          font-weight: 600;
-          color: #2b2e3e;
-          white-space: nowrap;
-          overflow: hidden;
-          text-overflow: ellipsis;
-        }
-        .variant-track {
-          background: #f0eff6;
-          height: 9px;
-          border-radius: 99px;
-          overflow: hidden;
-          position: relative;
-          width: 100%;
-        }
-        .variant-fill {
-          background: linear-gradient(90deg, #7868ff, #9e8eff);
-          height: 100%;
-          border-radius: 99px;
-          transition: width 0.3s ease;
-        }
-        .variant-count {
-          display: flex;
-          align-items: baseline;
-          justify-content: flex-end;
-          gap: 4px;
-          text-align: right;
-        }
-        .variant-count strong {
-          font-size: 13.5px;
-          font-weight: 800;
-          color: #1a1c29;
-          font-family: 'Manrope', sans-serif;
-        }
-        .variant-count small {
-          font-size: 10px;
-          color: #9295a5;
-          text-transform: uppercase;
-          font-weight: 700;
-        }
-        /* Alert Card Rows */
-        .alert-card-list {
-          display: flex;
-          flex-direction: column;
-          gap: 10px;
-        }
-        .alert-card-row {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          padding: 12px 14px;
-          background: #fbfbfd;
-          border: 1px solid #ebedf3;
-          border-radius: 10px;
-          transition: all 0.2s ease;
-        }
-        .alert-card-row:hover {
-          background: #f6f7fb;
-          border-color: #dedcf8;
-        }
-        .alert-info {
-          display: flex;
-          align-items: center;
-          gap: 12px;
-        }
-        .alert-dot {
-          width: 9px;
-          height: 9px;
-          border-radius: 50%;
-          flex-shrink: 0;
-        }
-        .alert-dot.good {
-          background: #27d7ad;
-          box-shadow: 0 0 0 3px rgba(39, 215, 173, 0.2);
-        }
-        .alert-dot.gold, .alert-dot.warn {
-          background: #f6bd49;
-          box-shadow: 0 0 0 3px rgba(246, 189, 73, 0.2);
-        }
-        .alert-dot.bad {
-          background: #ff725e;
-          box-shadow: 0 0 0 3px rgba(255, 114, 94, 0.2);
-        }
-        .alert-info b {
-          font-size: 13px;
-          font-weight: 700;
-          color: #1e202c;
-          display: block;
-        }
-        .alert-info small {
-          font-size: 11px;
-          color: #8b8e9f;
-          display: block;
-          margin-top: 1px;
-        }
-        .alert-meta {
-          display: flex;
-          align-items: center;
-          gap: 10px;
-        }
-        .alert-action-btn {
-          background: #fff;
-          border: 1px solid #dcdfe8;
-          border-radius: 7px;
-          color: #5943e9;
-          font-size: 11px;
-          font-weight: 700;
-          padding: 6px 12px;
-          cursor: pointer;
-          transition: all 0.15s ease;
-        }
-        .alert-action-btn:hover {
-          background: #f0edff;
-          border-color: #b7abff;
-        }
-        /* Forms & Fields */
-        .form, .formgrid {
-          display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-          gap: 16px;
-        }
-        .field, .formgrid label {
-          display: flex;
-          flex-direction: column;
-          gap: 6px;
-          font-size: 12px;
-          font-weight: 700;
-          color: #4e5163;
-        }
-        .field input, .field select, .field textarea,
-        .formgrid input, .formgrid select {
-          background: #fff;
-          border: 1px solid #dfe1e7;
-          border-radius: 8px;
-          color: #1e202c;
-          font-size: 12px;
-          padding: 9px 12px;
-          font-weight: 600;
-          outline: none;
-          font-family: inherit;
-          transition: border-color 0.15s ease, box-shadow 0.15s ease;
-        }
-        .field input:focus, .field select:focus, .field textarea:focus,
-        .formgrid input:focus, .formgrid select:focus {
-          border-color: #7868ff;
-          box-shadow: 0 0 0 3px rgba(120, 104, 255, 0.15);
-        }
-        /* Buttons */
-        .btn {
-          background: #fff;
-          border: 1px solid #dfe1e7;
-          border-radius: 8px;
-          color: #313345;
-          font-size: 12px;
-          font-weight: 700;
-          padding: 8px 14px;
-          cursor: pointer;
-          transition: all 0.2s ease;
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          text-decoration: none;
-        }
-        .btn:hover {
-          background: #f8f9fb;
-          border-color: #cbcdd7;
-        }
-        .btn.small {
-          padding: 5px 10px;
-          font-size: 11px;
-          border-radius: 6px;
-        }
-        .btn.primary {
-          background: linear-gradient(135deg, #806fff, #6653ee);
-          border-color: transparent;
-          color: #fff;
-          box-shadow: 0 4px 12px rgba(104, 83, 238, 0.2);
-        }
-        .btn.primary:hover {
-          background: linear-gradient(135deg, #9384ff, #7362f2);
-          color: #fff;
-        }
-        .btn.danger {
-          background: #fff0ef;
-          border-color: #ffd0cb;
-          color: #e46559;
-        }
-        /* Fallback Bars */
-        .bars {
-          display: flex;
-          flex-direction: column;
-          gap: 12px;
-        }
-        .bars .b {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          gap: 12px;
-          padding: 10px 14px;
-          background: #fbfbfd;
-          border: 1px solid #ebedf3;
-          border-radius: 8px;
-          font-size: 12px;
-        }
-        /* Tables */
-        .tblwrap, .responsive-table {
-          overflow-x: auto;
-          width: 100%;
-        }
-        .tbl, .responsive-table table {
-          width: 100%;
-          border-collapse: collapse;
-          min-width: 680px;
-          background: #fff;
-        }
-        .tbl th, .responsive-table th {
-          color: #9a9cab !important;
-          text-transform: uppercase !important;
-          font-weight: 700 !important;
-          font-size: 11px !important;
-          padding: 12px 14px !important;
-          text-align: left !important;
-          border-bottom: 1px solid #ebecf0 !important;
-          letter-spacing: 0.5px !important;
-          background: #fff !important;
-        }
-        .tbl td, .responsive-table td {
-          color: #313345 !important;
-          font-size: 12px !important;
-          padding: 12px 14px !important;
-          border-bottom: 1px solid #f0f1f5 !important;
-          vertical-align: middle !important;
-        }
-        .tbl tbody tr:hover, .responsive-table tbody tr:hover {
-          background: #fafbfe !important;
-        }
-        /* Tags */
-        .tag {
-          background: #f0f2f5;
-          border-radius: 20px;
-          color: #767b8d;
-          display: inline-flex;
-          align-items: center;
-          font-size: 10px;
-          font-weight: 800;
-          padding: 4px 10px;
-          text-transform: uppercase;
-          letter-spacing: 0.4px;
-        }
-        .tag.good, .tag.success {
-          background: rgba(39, 215, 173, 0.15) !important;
-          color: #1eae87 !important;
-        }
-        .tag.gold, .tag.warn, .tag.warning {
-          background: rgba(246, 189, 73, 0.15) !important;
-          color: #d99726 !important;
-        }
-        .tag.bad, .tag.danger {
-          background: rgba(255, 114, 94, 0.15) !important;
-          color: #e15d57 !important;
-        }
-        .tag.neutral {
-          background: rgba(148, 151, 166, 0.12) !important;
-          color: #7f8292 !important;
-        }
-        .money {
-          font-family: 'JetBrains Mono', monospace;
-          font-weight: 700;
-        }
-        .panel {
-          background: #fff;
-          border: 1px solid #e4e6ec;
-          border-radius: 12px;
-          padding: 16px;
-        }
-      `}</style>
+                  <div style={{ display: "flex", gap: 10, marginTop: 10 }}>
+                    <button type="submit" className="admin-primary">
+                      Save Commission Rules
+                    </button>
+                    <button
+                      type="button"
+                      className="outline-button"
+                      onClick={() => setRulesForm(DEFAULT_COMMISSION_SETTINGS)}
+                    >
+                      Reset to BET888 Standards
+                    </button>
+                  </div>
+                </form>
+              </div>
+            )}
+          </div>
+        </section>
       </div>
+
+      {/* ================= CREATE TABLE MODAL ================= */}
+      {showCreateModal && (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(0,0,0,0.5)",
+            backdropFilter: "blur(3px)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 1000,
+          }}
+          onClick={() => setShowCreateModal(false)}
+        >
+          <div
+            style={{
+              background: "#fff",
+              borderRadius: 12,
+              padding: 24,
+              width: "90vw",
+              maxWidth: 480,
+              boxShadow: "0 20px 40px rgba(0,0,0,0.2)",
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+              <h3 style={{ margin: 0, fontSize: 16, color: "#1e202c" }}>Figure 10.3 — Create Live Cash Table</h3>
+              <button
+                onClick={() => setShowCreateModal(false)}
+                style={{ background: "none", border: "none", fontSize: 18, cursor: "pointer", color: "#838697" }}
+              >
+                ×
+              </button>
+            </div>
+
+            <form onSubmit={handleCreateTableSubmit} style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+              <div>
+                <label style={{ display: "block", fontSize: 11, fontWeight: 700, color: "#696c7e", marginBottom: 4 }}>
+                  Table Name
+                </label>
+                <input
+                  type="text"
+                  value={formName}
+                  onChange={(e) => setFormName(e.target.value)}
+                  style={{ width: "100%", padding: "8px 12px", borderRadius: 6, border: "1px solid #dcdfe6", fontSize: 12 }}
+                  required
+                />
+              </div>
+
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+                <div>
+                  <label style={{ display: "block", fontSize: 11, fontWeight: 700, color: "#696c7e", marginBottom: 4 }}>
+                    Small Blind (SB €)
+                  </label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={formSb}
+                    onChange={(e) => setFormSb(Number(e.target.value))}
+                    style={{ width: "100%", padding: "8px 12px", borderRadius: 6, border: "1px solid #dcdfe6", fontSize: 12 }}
+                    required
+                  />
+                </div>
+                <div>
+                  <label style={{ display: "block", fontSize: 11, fontWeight: 700, color: "#696c7e", marginBottom: 4 }}>
+                    Big Blind (BB €)
+                  </label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={formBb}
+                    onChange={(e) => setFormBb(Number(e.target.value))}
+                    style={{ width: "100%", padding: "8px 12px", borderRadius: 6, border: "1px solid #dcdfe6", fontSize: 12 }}
+                    required
+                  />
+                </div>
+              </div>
+
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+                <div>
+                  <label style={{ display: "block", fontSize: 11, fontWeight: 700, color: "#696c7e", marginBottom: 4 }}>
+                    Min Buy-In (€)
+                  </label>
+                  <input
+                    type="number"
+                    value={formMinBuy}
+                    onChange={(e) => setFormMinBuy(Number(e.target.value))}
+                    style={{ width: "100%", padding: "8px 12px", borderRadius: 6, border: "1px solid #dcdfe6", fontSize: 12 }}
+                    required
+                  />
+                </div>
+                <div>
+                  <label style={{ display: "block", fontSize: 11, fontWeight: 700, color: "#696c7e", marginBottom: 4 }}>
+                    Max Buy-In (€)
+                  </label>
+                  <input
+                    type="number"
+                    value={formMaxBuy}
+                    onChange={(e) => setFormMaxBuy(Number(e.target.value))}
+                    style={{ width: "100%", padding: "8px 12px", borderRadius: 6, border: "1px solid #dcdfe6", fontSize: 12 }}
+                    required
+                  />
+                </div>
+              </div>
+
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+                <div>
+                  <label style={{ display: "block", fontSize: 11, fontWeight: 700, color: "#696c7e", marginBottom: 4 }}>
+                    Max Seats
+                  </label>
+                  <select
+                    value={formMaxSeats}
+                    onChange={(e) => setFormMaxSeats(Number(e.target.value))}
+                    style={{ width: "100%", padding: "8px 12px", borderRadius: 6, border: "1px solid #dcdfe6", fontSize: 12 }}
+                  >
+                    <option value={2}>2-Max (Heads-Up)</option>
+                    <option value={6}>6-Max (Short Handed)</option>
+                    <option value={9}>9-Max (Full Ring)</option>
+                  </select>
+                </div>
+                <div>
+                  <label style={{ display: "block", fontSize: 11, fontWeight: 700, color: "#696c7e", marginBottom: 4 }}>
+                    Commission Model
+                  </label>
+                  <select
+                    value={formFeeType}
+                    onChange={(e) => setFormFeeType(e.target.value as any)}
+                    style={{ width: "100%", padding: "8px 12px", borderRadius: 6, border: "1px solid #dcdfe6", fontSize: 12 }}
+                  >
+                    <option value="RAKE">Model 1: Pot Rake (5%)</option>
+                    <option value="HAND_FEE">Model 2: Fixed Hand Fee (€2.00)</option>
+                    <option value="TABLE_FEE">Model 3: Timed Table Fee (€20 / 30m)</option>
+                  </select>
+                </div>
+              </div>
+
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <input
+                  type="checkbox"
+                  id="chk-private"
+                  checked={formIsPrivate}
+                  onChange={(e) => setFormIsPrivate(e.target.checked)}
+                />
+                <label htmlFor="chk-private" style={{ fontSize: 12, color: "#313345", cursor: "pointer" }}>
+                  Private Friends Table (6-digit PIN code)
+                </label>
+              </div>
+
+              {formIsPrivate && (
+                <div>
+                  <label style={{ display: "block", fontSize: 11, fontWeight: 700, color: "#696c7e", marginBottom: 4 }}>
+                    Invite PIN Code (Leave empty to auto-generate)
+                  </label>
+                  <input
+                    type="text"
+                    maxLength={6}
+                    value={formInviteCode}
+                    onChange={(e) => setFormInviteCode(e.target.value.toUpperCase())}
+                    placeholder="e.g. 7KJ8P9"
+                    style={{ width: "100%", padding: "8px 12px", borderRadius: 6, border: "1px solid #dcdfe6", fontSize: 12 }}
+                  />
+                </div>
+              )}
+
+              <div style={{ display: "flex", justifyContent: "flex-end", gap: 10, marginTop: 10 }}>
+                <button type="button" className="outline-button" onClick={() => setShowCreateModal(false)}>
+                  Cancel
+                </button>
+                <button type="submit" className="admin-primary">
+                  Deploy Table
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -1,18 +1,10 @@
-import { Metadata } from "next";
-import { Suspense } from "react";
-import PokerApp from "./PokerApp";
+import { redirect } from "next/navigation";
 
-export const metadata: Metadata = {
-  title: "TIG Poker — Multi-Variant Platform & Backoffice",
-  description:
-    "Interactive online poker platform powered by TRUEiGTECH, featuring No-Limit Hold'em, Omaha, Short Deck, Fast-Fold Blitz, Tournaments, and Operator Backoffice.",
+export const metadata = {
+  title: "Redirecting to Cash Game — BET888CASH Poker Live",
 };
 
-export default function PokerPage() {
-  return (
-    <Suspense fallback={<div className="poker-app" style={{ minHeight: "100vh", background: "#0c0920" }} />}>
-      <PokerApp />
-    </Suspense>
-  );
+export default function PokerRedirectPage() {
+  redirect("/cashgame");
 }
 

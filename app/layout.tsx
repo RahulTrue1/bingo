@@ -38,18 +38,34 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <head>
         <script
           dangerouslySetInnerHTML={{
             __html: `
 (function() {
+  // 1. Filter extension errors and hydration warnings caused by extensions like bis_skin_checked
+  var originalConsoleError = console.error;
+  console.error = function() {
+    var args = Array.prototype.slice.call(arguments);
+    var fullMsg = args.map(function(a) { return String(a && a.message ? a.message : a); }).join(" ");
+    if (
+      fullMsg.indexOf("bis_skin_checked") !== -1 ||
+      (fullMsg.indexOf("hydrat") !== -1 && fullMsg.indexOf("bis_skin_checked") !== -1) ||
+      fullMsg.indexOf("chrome-extension://") !== -1
+    ) {
+      return;
+    }
+    return originalConsoleError.apply(console, args);
+  };
+
   function suppressExtensionErrors(e) {
     try {
       var reason = e && (e.reason || e.error || e.message || "");
       var msg = String(reason && reason.message ? reason.message : reason);
       var stack = String((reason && reason.stack) || (e && e.error && e.error.stack) || (e && e.filename) || "");
       if (
+        msg.indexOf("bis_skin_checked") !== -1 ||
         msg.indexOf("M_ID") !== -1 ||
         stack.indexOf("chrome-extension://") !== -1 ||
         stack.indexOf("eppiocemhmnlbhjplcgkofciiegomcon") !== -1 ||
@@ -65,12 +81,24 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
   }
   window.addEventListener("unhandledrejection", suppressExtensionErrors, true);
   window.addEventListener("error", suppressExtensionErrors, true);
+
+  // 2. Remove bis_skin_checked attribute injected by Bitdefender or other extensions before React hydration
+  if (typeof MutationObserver !== "undefined") {
+    var observer = new MutationObserver(function(mutations) {
+      mutations.forEach(function(m) {
+        if (m.type === "attributes" && m.attributeName === "bis_skin_checked") {
+          m.target.removeAttribute("bis_skin_checked");
+        }
+      });
+    });
+    observer.observe(document.documentElement, { attributes: true, subtree: true, attributeFilter: ["bis_skin_checked"] });
+  }
 })();
 `,
           }}
         />
       </head>
-      <body>{children}</body>
+      <body suppressHydrationWarning>{children}</body>
     </html>
   );
 }

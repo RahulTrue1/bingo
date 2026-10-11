@@ -1577,14 +1577,1725 @@
   .tablescreen .preacts {
     width: 100%;
   }
-  .tablescreen .seat {
-    width: 86px;
-  }
-  .tablescreen .seat .box {
-    grid-template-columns: 1fr;
-    text-align: center;
-  }
   .tablescreen .av {
     display: none;
   }
+}
+
+/* ========================================================================= */
+/* ==================== BET888CASH POKER LIVE MODULE CSS =================== */
+/* ========================================================================= */
+
+.bet888-casino-root {
+  min-height: 100vh;
+  background: #080c16;
+  color: #ffffff;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Top Header */
+.bet888-header {
+  height: 64px;
+  background: #0d1222;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+
+.bet888-header-left, .bet888-header-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.bet888-menu-burger {
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 6px;
+}
+
+.bet888-menu-burger span {
+  display: block;
+  width: 20px;
+  height: 2px;
+  background: #8a94a6;
+  border-radius: 2px;
+}
+
+.bet888-brand-badge {
+  background: #0f172a;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  padding: 6px 14px;
+  border-radius: 8px;
+  font-weight: 900;
+  letter-spacing: 0.5px;
+}
+
+.bet888-brand-text {
+  color: #2ecc71;
+  font-size: 18px;
+}
+
+.bet888-cash-gold {
+  color: #f1c40f;
+  margin-left: 2px;
+}
+
+.bet888-top-tabs {
+  display: flex;
+  gap: 4px;
+  background: rgba(0, 0, 0, 0.25);
+  padding: 3px;
+  border-radius: 6px;
+}
+
+.bet888-top-tab {
+  background: none;
+  border: none;
+  color: #8a94a6;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 5px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.bet888-top-tab.active {
+  background: #1e293b;
+  color: #fff;
+}
+
+.bet888-search-trigger {
+  width: 36px;
+  height: 36px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #8a94a6;
+  cursor: pointer;
+}
+
+.bet888-balance-box {
+  background: #141c2e;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 4px 12px;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.bet888-bal-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  color: #8a94a6;
+  font-weight: 600;
+}
+
+.bet888-bal-val {
+  font-size: 14px;
+  font-weight: 800;
+  color: #f1c40f;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.bet888-chip-coin {
+  font-size: 12px;
+}
+
+.bet888-user-pill {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.04);
+  padding: 4px 10px 4px 4px;
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.bet888-avatar-mini {
+  width: 28px;
+  height: 28px;
+  background: linear-gradient(135deg, #b08a3e, #6e4e1a);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 11px;
+}
+
+.bet888-username {
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.bet888-lang-switch {
+  font-size: 12px;
+  color: #8a94a6;
+  padding: 4px 8px;
+}
+
+/* Main Layout */
+.bet888-body-wrapper {
+  display: flex;
+  flex: 1;
+}
+
+/* Sidebar */
+.bet888-sidebar {
+  width: 210px;
+  background: #090e1a;
+  border-right: 1px solid rgba(255, 255, 255, 0.06);
+  padding: 16px 10px;
+  flex-shrink: 0;
+}
+
+.bet888-side-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.bet888-side-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  background: none;
+  border: none;
+  color: #8a94a6;
+  font-size: 13.5px;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+  width: 100%;
+  text-decoration: none;
+  transition: all 0.15s ease;
+}
+
+.bet888-side-item:hover, .bet888-side-item.active {
+  background: #141c2e;
+  color: #ffffff;
+}
+
+.bet888-side-item.poker-live-side-item {
+  color: #ffffff;
+}
+
+.bet888-side-item.poker-live-side-item.active {
+  background: linear-gradient(90deg, #162438, #0e1726);
+  border-left: 3px solid #2ecc71;
+}
+
+.bet888-side-icon.spade-icon {
+  color: #38bdf8;
+  font-size: 16px;
+}
+
+.bet888-badge-live {
+  background: #e74c3c;
+  color: #fff;
+  font-size: 9px;
+  font-weight: 800;
+  padding: 2px 5px;
+  border-radius: 4px;
+  letter-spacing: 0.5px;
+  margin-left: auto;
+}
+
+.bet888-badge-live.pulse {
+  animation: bet888Pulse 1.8s infinite;
+}
+
+@keyframes bet888Pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.75; transform: scale(0.96); }
+}
+
+.bet888-side-divider {
+  height: 1px;
+  background: rgba(255, 255, 255, 0.08);
+  margin: 12px 6px;
+}
+
+.bet888-side-item.admin-link {
+  font-size: 12px;
+  color: #64748b;
+}
+
+/* Main Content Area */
+.bet888-main-content {
+  flex: 1;
+  padding: 20px 24px 60px;
+  overflow-x: hidden;
+  max-width: 1360px;
+}
+
+/* Hero Banner */
+.bet888-hero-banner {
+  background: linear-gradient(135deg, #0f1c30 0%, #070e18 100%);
+  border: 1px solid rgba(56, 189, 248, 0.2);
+  border-radius: 16px;
+  padding: 32px 36px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+  position: relative;
+  overflow: hidden;
+}
+
+.bet888-hero-kicker {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+  color: #38bdf8;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+  display: block;
+}
+
+.bet888-hero-title {
+  font-size: 38px;
+  font-weight: 900;
+  letter-spacing: -0.5px;
+  margin: 0 0 10px;
+  background: linear-gradient(90deg, #ffffff, #93c5fd);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.bet888-hero-desc {
+  color: #94a3b8;
+  font-size: 14px;
+  max-width: 520px;
+  margin: 0 0 20px;
+  line-height: 1.5;
+}
+
+.bet888-hero-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.bet888-hero-btn {
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 13.5px;
+  cursor: pointer;
+  border: none;
+  transition: all 0.15s ease;
+}
+
+.bet888-hero-btn.primary {
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  color: #fff;
+  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.4);
+}
+
+.bet888-hero-btn.primary:hover {
+  filter: brightness(1.1);
+  transform: translateY(-1px);
+}
+
+.bet888-hero-btn.secondary {
+  background: rgba(255, 255, 255, 0.08);
+  color: #e2e8f0;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.bet888-hero-btn.secondary:hover {
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.bet888-card-fan {
+  position: relative;
+  width: 140px;
+  height: 100px;
+}
+
+.bet888-fan-card {
+  width: 55px;
+  height: 80px;
+  background: #ffffff;
+  color: #0f172a;
+  border-radius: 6px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
+  position: absolute;
+  top: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  border: 1px solid #cbd5e1;
+}
+
+.bet888-fan-card .r { font-size: 16px; }
+.bet888-fan-card .s { font-size: 16px; }
+.bet888-fan-card .s.red { color: #e11d48; }
+
+.bet888-fan-card.c1 { left: 0; transform: rotate(-18deg); }
+.bet888-fan-card.c2 { left: 35px; transform: rotate(0deg); z-index: 2; }
+.bet888-fan-card.c3 { left: 70px; transform: rotate(18deg); z-index: 3; }
+
+/* Provider Chip Strip */
+.bet888-provider-strip {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding-bottom: 12px;
+  margin-bottom: 24px;
+}
+
+.bet888-provider-chip {
+  background: #111827;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #94a3b8;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.bet888-provider-chip:hover {
+  background: #1e293b;
+  color: #fff;
+}
+
+.bet888-provider-chip.poker-live-chip {
+  background: linear-gradient(135deg, #15704a, #04241a);
+  border: 1.5px solid #f1c40f;
+  color: #ffffff;
+  box-shadow: 0 0 12px rgba(241, 196, 15, 0.25);
+}
+
+.bet888-provider-chip.poker-live-chip .chip-spade {
+  color: #f1c40f;
+  font-size: 14px;
+}
+
+/* Game Row Sections */
+.bet888-game-row-section {
+  margin-bottom: 34px;
+}
+
+.bet888-row-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.bet888-row-title-chip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #1d4ed8;
+  color: #fff;
+  padding: 6px 14px;
+  border-radius: 6px;
+}
+
+.bet888-row-title-chip.egt-chip {
+  background: #c0392b;
+}
+
+.bet888-row-title-chip.pragmatic-chip {
+  background: #8e44ad;
+}
+
+.bet888-row-title-chip h2 {
+  font-size: 15px;
+  font-weight: 800;
+  margin: 0;
+  letter-spacing: 0.3px;
+}
+
+.title-spade {
+  font-size: 16px;
+}
+
+/* Row Controls (Section 5.3) */
+.bet888-row-controls {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.bet888-invite-join-form, .bet888-create-friends-form {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #0f172a;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 12px;
+}
+
+.bet888-invite-join-form label, .bet888-create-friends-form .friends-label {
+  color: #94a3b8;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.bet888-invite-join-form input, .bet888-create-friends-form input {
+  background: #1e293b;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #fff;
+  font-size: 12px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  width: 90px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.bet888-create-friends-form input {
+  width: 120px;
+  text-transform: none;
+}
+
+.bet888-create-friends-form select {
+  background: #1e293b;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #fff;
+  font-size: 12px;
+  padding: 4px 6px;
+  border-radius: 4px;
+}
+
+.bet888-btn-join {
+  background: #2563eb;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  padding: 5px 10px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.bet888-btn-create {
+  background: #15803d;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  padding: 5px 12px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.bet888-row-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.bet888-btn-view-all {
+  background: #1e293b;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #cbd5e1;
+  padding: 5px 10px;
+  border-radius: 4px;
+  font-size: 11.5px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.bet888-row-arrows {
+  display: flex;
+  gap: 4px;
+}
+
+.bet888-row-arrows button {
+  width: 26px;
+  height: 26px;
+  background: #1e293b;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #cbd5e1;
+  border-radius: 4px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.bet888-alert-bar.error {
+  background: rgba(239, 68, 68, 0.15);
+  border: 1px solid #ef4444;
+  color: #fca5a5;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  margin-bottom: 12px;
+}
+
+/* Poker Live Table Tiles Grid (Section 5.2) */
+.bet888-table-tiles-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 14px;
+}
+
+.bet888-table-tile {
+  background: #0f172a;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 14px 12px;
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  flex-direction: column;
+}
+
+.bet888-table-tile:hover {
+  transform: translateY(-2px);
+  border-color: rgba(56, 189, 248, 0.5);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+
+.bet888-table-tile.theme-green {
+  background: radial-gradient(circle at 50% 20%, #15704a22, #0b1120 70%);
+}
+
+.bet888-table-tile.theme-blue {
+  background: radial-gradient(circle at 50% 20%, #1e40af22, #0b1120 70%);
+}
+
+.bet888-table-tile.theme-red {
+  background: radial-gradient(circle at 50% 20%, #b91c1c22, #0b1120 70%);
+}
+
+.bet888-table-tile.is-private {
+  background: radial-gradient(circle at 50% 20%, #7c3aed22, #0b1120 70%);
+  border-color: rgba(124, 58, 237, 0.4);
+}
+
+.tile-fee-badge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  font-size: 10px;
+  font-weight: 800;
+  padding: 2px 6px;
+  border-radius: 4px;
+  letter-spacing: 0.5px;
+}
+
+.tile-fee-badge.badge-green { background: #15803d; color: #fff; }
+.tile-fee-badge.badge-blue { background: #1d4ed8; color: #fff; }
+.tile-fee-badge.badge-red { background: #b91c1c; color: #fff; }
+.tile-fee-badge.badge-purple { background: #7c3aed; color: #fff; }
+
+.tile-private-code {
+  font-size: 11px;
+  color: #f1c40f;
+  margin-bottom: 6px;
+}
+
+/* Mini Oval Table Graphic */
+.mini-table-stage {
+  height: 90px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 10px 0;
+  position: relative;
+}
+
+.mini-table-oval {
+  width: 130px;
+  height: 75px;
+  border-radius: 50px;
+  background: #141c2e;
+  border: 2px solid #38bdf8;
+  box-shadow: 0 0 10px rgba(56, 189, 248, 0.3);
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mini-table-oval.glow-green { border-color: #22c55e; box-shadow: 0 0 10px rgba(34, 197, 94, 0.4); }
+.mini-table-oval.glow-blue { border-color: #3b82f6; box-shadow: 0 0 10px rgba(59, 130, 246, 0.4); }
+.mini-table-oval.glow-red { border-color: #ef4444; box-shadow: 0 0 10px rgba(239, 68, 68, 0.4); }
+.mini-table-oval.glow-purple { border-color: #a855f7; box-shadow: 0 0 10px rgba(168, 85, 247, 0.4); }
+
+.mini-table-felt {
+  width: 105px;
+  height: 52px;
+  border-radius: 40px;
+  background: radial-gradient(ellipse at center, #15704a, #04241a);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.mini-felt-title {
+  font-size: 10px;
+  font-weight: 800;
+  color: #f1c40f;
+  letter-spacing: 0.5px;
+}
+
+.mini-blinds-label {
+  font-size: 9px;
+  color: #cbd5e1;
+  font-weight: 600;
+}
+
+.mini-seat-dot {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.mini-seat-dot.occupied {
+  background: #f1c40f;
+  box-shadow: 0 0 6px #f1c40f;
+}
+
+.mini-seat-dot.empty {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.tile-info-block {
+  margin-top: 4px;
+}
+
+.tile-table-name {
+  font-size: 14px;
+  font-weight: 800;
+  margin: 0 0 4px;
+  color: #ffffff;
+}
+
+.tile-meta {
+  font-size: 11px;
+  color: #94a3b8;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-bottom: 6px;
+}
+
+.dot-sep { opacity: 0.5; }
+
+.tile-status-line {
+  font-size: 11px;
+  color: #cbd5e1;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.status-indicator-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+
+.status-indicator-dot.playing {
+  background: #22c55e;
+  box-shadow: 0 0 6px #22c55e;
+}
+
+.status-indicator-dot.waiting {
+  background: #94a3b8;
+}
+
+.tile-hover-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(7, 11, 20, 0.88);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}
+
+.bet888-table-tile:hover .tile-hover-overlay {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.tile-play-btn {
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  color: #fff;
+  border: 1px solid #60a5fa;
+  padding: 8px 18px;
+  border-radius: 8px;
+  font-weight: 800;
+  font-size: 12px;
+  letter-spacing: 0.5px;
+  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.5);
+  cursor: pointer;
+}
+
+/* Slots Cards Grid for EGT and Pragmatic */
+.bet888-casino-slots-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 14px;
+}
+
+.bet888-slot-card {
+  background: #0f172a;
+  border: 1.5px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  overflow: hidden;
+  position: relative;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.bet888-slot-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+
+.slot-visual {
+  height: 110px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.slot-tag {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  background: rgba(0, 0, 0, 0.6);
+  color: #f1c40f;
+  font-size: 10px;
+  font-weight: 800;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.slot-reel-icon {
+  font-size: 32px;
+  margin-bottom: 4px;
+}
+
+.slot-jackpot {
+  font-size: 11px;
+  font-weight: 800;
+  color: #f1c40f;
+}
+
+.slot-info {
+  padding: 10px 12px;
+  background: #0d1222;
+}
+
+.slot-info h4 {
+  font-size: 13px;
+  margin: 0 0 2px;
+  font-weight: 700;
+}
+
+.slot-info small {
+  color: #64748b;
+  font-size: 11px;
+}
+
+.slot-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(7, 11, 20, 0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.bet888-slot-card:hover .slot-overlay {
+  opacity: 1;
+}
+
+.slot-play-btn {
+  background: #2563eb;
+  color: #fff;
+  border: none;
+  padding: 6px 14px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+/* ========================================================================= */
+/* ================= LIVE TABLE SCREEN CSS (Section 16) ==================== */
+/* ========================================================================= */
+
+.bet888-table-root {
+  position: fixed;
+  inset: 0;
+  background: #0c0920;
+  color: #ffffff;
+  display: flex;
+  flex-direction: column;
+  z-index: 1000;
+  overflow: hidden;
+  font-family: 'Plus Jakarta Sans', 'Manrope', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+.bet888-table-root.is-embedded {
+  position: relative;
+  inset: auto;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+}
+
+/* Table HUD */
+.bet888-table-hud {
+  height: 52px;
+  background: rgba(14, 10, 36, 0.9);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  z-index: 20;
+}
+
+.table-hud-left, .table-hud-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.hud-blinds-badge, .hud-round-badge {
+  display: flex;
+  flex-direction: column;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 2px 8px;
+  border-radius: 6px;
+}
+
+.hud-blinds-badge .lbl, .hud-round-badge .lbl {
+  font-size: 8.5px;
+  font-weight: 800;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.hud-blinds-badge .val, .hud-round-badge .val {
+  font-size: 11px;
+  font-weight: 700;
+  color: #cbd5e1;
+}
+
+.hud-invite-chip {
+  background: rgba(241, 196, 15, 0.12);
+  border: 1px solid #f1c40f;
+  color: #f1c40f;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: 11px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.hud-ctrl-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #cbd5e1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 13px;
+  transition: all 0.15s ease;
+}
+
+.hud-ctrl-btn:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+}
+
+.hud-ctrl-btn.menu-btn {
+  background: #1e293b;
+  color: #f1c40f;
+  border-color: rgba(241, 196, 15, 0.3);
+}
+
+/* Stadium Table Stage */
+.bet888-stadium-stage {
+  flex: 1;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 20px;
+}
+
+/* Dealer Section */
+.bet888-dealer-section {
+  position: absolute;
+  top: 6px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  z-index: 10;
+}
+
+.dealer-avatar-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.dealer-portrait-art {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #2c3e50, #0a0e17);
+  border: 2px solid #f1c40f;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dealer-tie {
+  color: #f1c40f;
+  font-size: 24px;
+}
+
+.dealer-name-tag {
+  background: #0f172a;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 9px;
+  font-weight: 800;
+  color: #94a3b8;
+  letter-spacing: 0.5px;
+  margin-top: -6px;
+}
+
+.dealer-chip-tray {
+  display: flex;
+  gap: 3px;
+  background: #111827;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  padding: 2px 6px;
+  border-radius: 4px;
+  margin-top: 4px;
+}
+
+.tray-slot {
+  width: 12px;
+  height: 5px;
+  background: #374151;
+  border-radius: 1px;
+}
+
+.tray-slot.gold {
+  background: #f1c40f;
+}
+
+/* The Table Oval */
+.bet888-stadium-table {
+  width: 92vw;
+  max-width: 1100px;
+  height: 58vh;
+  max-height: 500px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.bet888-table-rail {
+  width: 100%;
+  height: 100%;
+  border-radius: 280px;
+  background: #17122f;
+  border: 6px solid #100c25;
+  box-shadow: 0 0 32px rgba(120, 104, 255, 0.4), inset 0 0 16px rgba(0, 0, 0, 0.85);
+  padding: 8px;
+  position: relative;
+  box-sizing: border-box;
+}
+
+.bet888-table-felt {
+  width: 100%;
+  height: 100%;
+  border-radius: 260px;
+  background: radial-gradient(ellipse at 50% 50%, #15704a 0%, #083824 55%, #04241a 100%);
+  border: 2px solid #f6bd49;
+  position: relative;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+.felt-watermark {
+  position: absolute;
+  top: 36%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  opacity: 0.15;
+  text-align: center;
+  pointer-events: none;
+  user-select: none;
+}
+
+.felt-watermark span {
+  font-size: 32px;
+  font-weight: 900;
+  letter-spacing: 1px;
+  display: block;
+}
+
+.felt-watermark small {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 2px;
+}
+
+/* Board Center */
+.bet888-center-board {
+  position: absolute;
+  top: 52%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  z-index: 10;
+}
+
+.board-pot-pill {
+  background: rgba(18, 14, 40, 0.9);
+  border: 1px solid rgba(246, 189, 73, 0.6);
+  padding: 4px 14px;
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.6);
+}
+
+.pot-label {
+  font-size: 11px;
+  font-weight: 800;
+  color: #928ca7;
+}
+
+.pot-value {
+  font-size: 15px;
+  font-weight: 900;
+  color: #f6bd49;
+}
+
+.stage-pill-tag {
+  background: #7868ff;
+  color: #fff;
+  font-size: 9px;
+  font-weight: 800;
+  padding: 1px 5px;
+  border-radius: 3px;
+  margin-left: 4px;
+}
+
+.board-community-cards {
+  display: flex;
+  gap: 6px;
+}
+
+.felt-card {
+  width: 48px;
+  height: 68px;
+  background: #ffffff;
+  border-radius: 5px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.6);
+  font-weight: 800;
+}
+
+.felt-card.red-card { color: #e11d48; }
+.felt-card.black-card { color: #0f172a; }
+.felt-card .card-rank { font-size: 15px; line-height: 1; }
+.felt-card .card-suit { font-size: 17px; line-height: 1; }
+
+.felt-card.empty-card-slot {
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px dashed rgba(255, 255, 255, 0.2);
+  box-shadow: none;
+}
+
+/* Seats Layer */
+.bet888-seats-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.seat-container {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  pointer-events: auto;
+  z-index: 15;
+}
+
+.seat-container.is-folded {
+  opacity: 0.45;
+}
+
+.seat-bet-chips {
+  background: #0f172a;
+  border: 1px solid rgba(241, 196, 15, 0.5);
+  padding: 2px 6px;
+  border-radius: 10px;
+  font-size: 10px;
+  font-weight: 800;
+  color: #f1c40f;
+  margin-bottom: 4px;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.opponent-card-backs {
+  position: relative;
+  width: 36px;
+  height: 38px;
+  margin-bottom: 2px;
+}
+
+.opp-card {
+  width: 22px;
+  height: 32px;
+  background: linear-gradient(135deg, #e5344a, #a3121f);
+  border: 1px solid #ffffff;
+  border-radius: 3px;
+  position: absolute;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.6);
+}
+
+.opp-card.c-left { left: 0; transform: rotate(-10deg); }
+.opp-card.c-right { left: 14px; transform: rotate(10deg); }
+
+.hero-hole-cards-display {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 4px;
+}
+
+.hero-card-face {
+  width: 44px;
+  height: 62px;
+  background: #ffffff;
+  border-radius: 5px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.7);
+}
+
+.hero-card-face.red-card { color: #e11d48; }
+.hero-card-face.black-card { color: #0f172a; }
+.hero-card-face .c-rank { font-size: 14px; line-height: 1; }
+.hero-card-face .c-suit { font-size: 16px; line-height: 1; }
+
+.seat-pill {
+  background: #130f2b;
+  border: 1.5px solid rgba(255, 255, 255, 0.12);
+  border-radius: 20px;
+  padding: 3px 10px 3px 3px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.6);
+}
+
+.seat-pill.is-active-turn {
+  border-color: #f6bd49;
+  box-shadow: 0 0 16px rgba(246, 189, 73, 0.55);
+}
+
+.seat-avatar-box {
+  width: 34px;
+  height: 34px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.timer-svg-ring {
+  position: absolute;
+  inset: -5px;
+  width: 44px;
+  height: 44px;
+  transform: rotate(-90deg);
+}
+
+.seat-avatar-inner {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 11px;
+  color: #fff;
+  border: 1.5px solid #f6bd49;
+}
+
+.seat-meta {
+  display: flex;
+  flex-direction: column;
+}
+
+.seat-name {
+  font-size: 11px;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.seat-stack {
+  font-size: 11px;
+  font-weight: 800;
+  color: #f6bd49;
+}
+
+.hero-hand-rank-pill {
+  background: linear-gradient(135deg, #7868ff, #5943e9);
+  color: #ffffff;
+  padding: 3px 10px;
+  border-radius: 10px;
+  font-size: 10px;
+  font-weight: 800;
+  margin-top: 3px;
+  box-shadow: 0 3px 8px rgba(120, 104, 255, 0.35);
+}
+
+.seat-action-tag {
+  font-size: 9.5px;
+  font-weight: 800;
+  padding: 1px 6px;
+  border-radius: 3px;
+  margin-top: 3px;
+  letter-spacing: 0.5px;
+}
+
+.seat-action-tag.tag-active {
+  background: #f6bd49;
+  color: #0c0920;
+}
+
+.seat-action-tag.tag-fold {
+  background: #251e44;
+  color: #928ca7;
+}
+
+/* Bottom Action Bar */
+.bet888-table-actionbar {
+  background: #0e0a24;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 12px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+  z-index: 20;
+}
+
+.action-buttons-group {
+  display: flex;
+  gap: 10px;
+  flex: 1;
+}
+
+.action-btn {
+  flex: 1;
+  min-width: 85px;
+  height: 44px;
+  border-radius: 8px;
+  font-weight: 800;
+  font-size: 13px;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  border: none;
+  transition: all 0.15s ease;
+}
+
+.action-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.action-btn.fold-btn {
+  background: linear-gradient(135deg, #1c2029, #07090d);
+  color: #e2e8f0;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.action-btn.check-btn, .action-btn.call-btn {
+  background: #111827;
+  color: #f1c40f;
+  border: 1.5px solid #f1c40f;
+}
+
+.action-btn.bet-btn {
+  background: linear-gradient(135deg, #f23345, #a40f1c);
+  color: #fff;
+}
+
+.action-btn.allin-btn {
+  background: linear-gradient(135deg, #1fae5d, #0c6b37);
+  color: #fff;
+}
+
+.bet-slider-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #17122f;
+  padding: 6px 14px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.slider-step-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  background: #231b46;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #fff;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.slider-step-btn:hover {
+  background: #7868ff;
+  border-color: #7868ff;
+}
+
+.slider-range-box {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.slider-range-box input[type="range"] {
+  accent-color: #7868ff;
+  cursor: pointer;
+  width: 110px;
+}
+
+.slider-amount-indicator {
+  font-size: 12px;
+  font-weight: 800;
+  color: #f6bd49;
+  min-width: 70px;
+}
+
+.slider-preset-chip {
+  background: #231b46;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #cbd5e1;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.slider-preset-chip:hover {
+  background: #7868ff;
+  color: #fff;
+  border-color: #7868ff;
+}
+
+/* Drawers & Modals */
+.bet888-drawer-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(10, 7, 30, 0.75);
+  backdrop-filter: blur(6px);
+  z-index: 50;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.bet888-table-drawer, .bet888-chat-drawer {
+  width: 320px;
+  background: #17122f;
+  border-left: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  box-shadow: -10px 0 30px rgba(0, 0, 0, 0.5);
+}
+
+.drawer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.drawer-header h3 {
+  margin: 0;
+  font-size: 16px;
+  color: #fff;
+}
+
+.drawer-close-btn {
+  background: none;
+  border: none;
+  color: #928ca7;
+  font-size: 20px;
+  cursor: pointer;
+}
+
+.drawer-wallet-box {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 12px;
+  border-radius: 10px;
+  margin-bottom: 14px;
+}
+
+.drawer-wallet-box .lbl {
+  font-size: 10px;
+  color: #94a3b8;
+  font-weight: 700;
+  display: block;
+}
+
+.drawer-wallet-box .val {
+  font-size: 18px;
+  font-weight: 900;
+  color: #f1c40f;
+}
+
+.drawer-invite-card {
+  background: rgba(241, 196, 15, 0.1);
+  border: 1px solid #f1c40f;
+  padding: 10px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+
+.drawer-invite-card .lbl {
+  font-size: 10px;
+  color: #f1c40f;
+  font-weight: 700;
+  display: block;
+}
+
+.invite-val-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 4px;
+}
+
+.invite-val-row b {
+  font-size: 16px;
+  letter-spacing: 1px;
+}
+
+.invite-val-row button {
+  background: #f1c40f;
+  color: #0b1120;
+  border: none;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-weight: 800;
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.drawer-links-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.drawer-action-btn {
+  padding: 10px;
+  border-radius: 8px;
+  background: #1e293b;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #cbd5e1;
+  font-size: 13px;
+  font-weight: 700;
+  text-align: left;
+  cursor: pointer;
+}
+
+.drawer-action-btn.primary {
+  background: #e11d48;
+  color: #fff;
+  border-color: #e11d48;
+}
+
+/* Chat Drawer */
+.chat-messages-container {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.chat-line {
+  background: #141c2e;
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+}
+
+.chat-line.hero-msg {
+  background: #1e3a5f;
+  border-left: 3px solid #38bdf8;
+}
+
+.chat-line b {
+  color: #38bdf8;
+  margin-right: 4px;
+}
+
+.chat-line small {
+  display: block;
+  font-size: 9px;
+  color: #64748b;
+  margin-top: 2px;
+}
+
+.chat-input-form {
+  display: flex;
+  gap: 6px;
+}
+
+.chat-input-form input {
+  flex: 1;
+  background: #141c2e;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #fff;
+  padding: 8px;
+  border-radius: 6px;
+  font-size: 12px;
+}
+
+.chat-input-form button {
+  background: #2563eb;
+  color: #fff;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-weight: 700;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+/* History Modal */
+.bet888-history-modal {
+  margin: auto;
+  width: 90vw;
+  max-width: 480px;
+  background: #0f172a;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 12px;
+  padding: 20px;
+}
+
+.history-modal-body p {
+  color: #94a3b8;
+  font-size: 12px;
+  margin-bottom: 12px;
+}
+
+.history-hand-details {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: #141c2e;
+  padding: 12px;
+  border-radius: 8px;
+  font-size: 12px;
+}
+
+.h-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.h-row span:first-child {
+  color: #94a3b8;
+  font-weight: 700;
 }

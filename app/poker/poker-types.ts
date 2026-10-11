@@ -247,3 +247,21 @@ export interface PokerSessionState {
   recorded?: boolean;
   turnStart?: number;
 }
+
+export interface Bet888TableSummary {
+  id: string;
+  name: string;
+  feeType: "RAKE" | "HAND_FEE" | "TABLE_FEE";
+  feeLabel: string;
+  sb: number;
+  bb: number;
+  minBuyIn: number;
+  maxBuyIn: number;
+  maxSeats: number;
+  seatsOccupied: number;
+  status: "playing" | "waiting" | "paused";
+  isPrivate: boolean;
+  inviteCode?: string;
+  owner?: string;
+  theme: "green" | "blue" | "red" | "purple";
+}
