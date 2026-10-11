@@ -344,6 +344,48 @@ export function resetPokerTables(): BasepokerTableItem[] {
 }
 
 /* ========================================================================= */
+/* ================== REAL-TIME LIVE TABLE COMMAND BUS ===================== */
+/* ========================================================================= */
+
+export interface LivePokerCommand {
+  tableId: string;
+  action: "pause" | "resume" | "next_street" | "reset_hand" | "set_pot";
+  pot?: number;
+  timestamp?: number;
+}
+
+export function sendLivePokerCommand(command: LivePokerCommand) {
+  if (typeof window === "undefined") return;
+  const payload = { ...command, timestamp: Date.now() };
+  try {
+    localStorage.setItem("basepoker_live_command", JSON.stringify(payload));
+  } catch (_) {}
+  window.dispatchEvent(new CustomEvent("basepoker_live_command", { detail: payload }));
+}
+
+export function subscribeLivePokerCommand(callback: (cmd: LivePokerCommand) => void): () => void {
+  if (typeof window === "undefined") return () => {};
+  const handleCustom = (e: Event) => {
+    const custom = e as CustomEvent<LivePokerCommand>;
+    if (custom.detail) callback(custom.detail);
+  };
+  const handleStorage = (e: StorageEvent) => {
+    if (e.key === "basepoker_live_command" && e.newValue) {
+      try {
+        const parsed = JSON.parse(e.newValue);
+        callback(parsed);
+      } catch (_) {}
+    }
+  };
+  window.addEventListener("basepoker_live_command", handleCustom);
+  window.addEventListener("storage", handleStorage);
+  return () => {
+    window.removeEventListener("basepoker_live_command", handleCustom);
+    window.removeEventListener("storage", handleStorage);
+  };
+}
+
+/* ========================================================================= */
 /* =================== COMMISSION MODELS & RULES STORE ===================== */
 /* ========================================================================= */
 

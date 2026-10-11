@@ -431,8 +431,125 @@
       "customRtp": true
     }
   ],
-  "wallet": 1088,
+  "wallet": 108898.5,
   "transactions": [
+    {
+      "id": "TXN-910891",
+      "timestamp": "21:27:08",
+      "player": "Rahul Password VIP",
+      "room": "Gjakova 5/10",
+      "type": "Poker Win",
+      "amount": 3600,
+      "status": "Completed"
+    },
+    {
+      "id": "TXN-869191",
+      "timestamp": "21:27:05",
+      "player": "Rahul Password VIP",
+      "room": "Gjakova 5/10",
+      "type": "Poker Bet",
+      "amount": -1000,
+      "status": "Completed"
+    },
+    {
+      "id": "TXN-891477",
+      "timestamp": "21:27:02",
+      "player": "Rahul Password VIP",
+      "room": "Gjakova 5/10",
+      "type": "Poker Bet",
+      "amount": -500,
+      "status": "Completed"
+    },
+    {
+      "id": "TXN-206409",
+      "timestamp": "21:20:15",
+      "player": "Ari.R",
+      "room": "Gjakova 5/10",
+      "type": "Poker Win",
+      "amount": 4270,
+      "status": "Completed"
+    },
+    {
+      "id": "TXN-912150",
+      "timestamp": "21:20:11",
+      "player": "Ari.R",
+      "room": "Gjakova 5/10",
+      "type": "Poker Bet",
+      "amount": -320,
+      "status": "Completed"
+    },
+    {
+      "id": "TXN-553620",
+      "timestamp": "21:20:10",
+      "player": "Ari.R",
+      "room": "Gjakova 5/10",
+      "type": "Poker Bet",
+      "amount": -1680,
+      "status": "Completed"
+    },
+    {
+      "id": "TXN-793889",
+      "timestamp": "21:20:00",
+      "player": "Ari.R",
+      "room": "Gjakova 5/10",
+      "type": "Poker Bet",
+      "amount": -500,
+      "status": "Completed"
+    },
+    {
+      "id": "TXN-746193",
+      "timestamp": "21:19:44",
+      "player": "Ari.R",
+      "room": "VIP Private Friends Club",
+      "type": "Poker Bet",
+      "amount": -10,
+      "status": "Completed"
+    },
+    {
+      "id": "TXN-894398",
+      "timestamp": "21:19:36",
+      "player": "Ari.R",
+      "room": "VIP Private Friends Club",
+      "type": "Poker Win",
+      "amount": 3220,
+      "status": "Completed"
+    },
+    {
+      "id": "TXN-907166",
+      "timestamp": "21:19:24",
+      "player": "Ari.R",
+      "room": "VIP Private Friends Club",
+      "type": "Poker Bet",
+      "amount": -500,
+      "status": "Completed"
+    },
+    {
+      "id": "TXN-898047",
+      "timestamp": "21:19:19",
+      "player": "Ari.R",
+      "room": "VIP Private Friends Club",
+      "type": "Poker Bet",
+      "amount": -250,
+      "status": "Completed"
+    },
+    {
+      "id": "TXN-597295",
+      "timestamp": "21:19:14",
+      "player": "Ari.R",
+      "room": "VIP Private Friends Club",
+      "type": "Poker Bet",
+      "amount": -250,
+      "status": "Completed"
+    },
+    {
+      "id": "TXN-736445",
+      "timestamp": "21:18:56",
+      "player": "Ari.R",
+      "room": "VIP Private Friends Club",
+      "type": "Poker Bet",
+      "amount": -500,
+      "status": "Completed"
+    },
     {
       "id": "TXN-469220",
       "timestamp": "21:31:15",
@@ -20107,11 +20224,11 @@
       "id": "USR-11804",
       "username": "Ari.R",
       "tier": "Standard",
-      "balance": 105418.5,
+      "balance": 108898.5,
       "gamesPlayed": 128,
       "cardsPurchased": 400,
-      "wins": 18,
-      "totalPrizes": 2840,
+      "wins": 20,
+      "totalPrizes": 10330,
       "restrictions": [],
       "lastLogin": "Just now",
       "status": "Active",
@@ -20320,11 +20437,11 @@
       "email": "rahulpass_308@player.trueigtech.com",
       "joinedDate": "Sep 19, 2026",
       "tier": "Standard",
-      "balance": 100,
+      "balance": 3600,
       "gamesPlayed": 0,
       "cardsPurchased": 0,
-      "wins": 0,
-      "totalPrizes": 0,
+      "wins": 1,
+      "totalPrizes": 3600,
       "restrictions": [],
       "lastLogin": "Just now",
       "status": "Active"
@@ -20436,6 +20553,97 @@
     "updatedBy": "Super Admin"
   },
   "auditFeed": [
+    {
+      "id": "feed-1791734228934",
+      "type": "player",
+      "title": "Poker Win",
+      "detail": "Rahul Password VIP won $3600.00 at Gjakova 5/10 (Hand #2487) - Won by all folds",
+      "time": "21:27"
+    },
+    {
+      "id": "feed-1791734225230",
+      "type": "player",
+      "title": "Poker Bet",
+      "detail": "Rahul Password VIP wagered $1000.00 at Gjakova 5/10 (Hand #2487) - Raise €1000",
+      "time": "21:27"
+    },
+    {
+      "id": "feed-1791734222249",
+      "type": "player",
+      "title": "Poker Bet",
+      "detail": "Rahul Password VIP wagered $500.00 at Gjakova 5/10 (Hand #2487) - Call €500",
+      "time": "21:27"
+    },
+    {
+      "id": "feed-1791733815186",
+      "type": "player",
+      "title": "Poker Win",
+      "detail": "Ari.R won $4270.00 at Gjakova 5/10 (Hand #2487) - Straight, Ace high",
+      "time": "21:20"
+    },
+    {
+      "id": "feed-1791733811847",
+      "type": "player",
+      "title": "Poker Bet",
+      "detail": "Ari.R wagered $320.00 at Gjakova 5/10 (Hand #2487) - Raise €320",
+      "time": "21:20"
+    },
+    {
+      "id": "feed-1791733810133",
+      "type": "player",
+      "title": "Poker Bet",
+      "detail": "Ari.R wagered $1680.00 at Gjakova 5/10 (Hand #2487) - Raise €1680",
+      "time": "21:20"
+    },
+    {
+      "id": "feed-1791733800148",
+      "type": "player",
+      "title": "Poker Bet",
+      "detail": "Ari.R wagered $500.00 at Gjakova 5/10 (Hand #2487) - Call €500",
+      "time": "21:20"
+    },
+    {
+      "id": "feed-1791733784726",
+      "type": "player",
+      "title": "Poker Bet",
+      "detail": "Ari.R wagered $10.00 at VIP Private Friends Club (Hand #2489) - Call €10",
+      "time": "21:19"
+    },
+    {
+      "id": "feed-1791733776073",
+      "type": "player",
+      "title": "Poker Win",
+      "detail": "Ari.R won $3220.00 at VIP Private Friends Club (Hand #2487) - Straight, Ace high",
+      "time": "21:19"
+    },
+    {
+      "id": "feed-1791733764957",
+      "type": "player",
+      "title": "Poker Bet",
+      "detail": "Ari.R wagered $500.00 at VIP Private Friends Club (Hand #2487) - All-in €500",
+      "time": "21:19"
+    },
+    {
+      "id": "feed-1791733759829",
+      "type": "player",
+      "title": "Poker Bet",
+      "detail": "Ari.R wagered $250.00 at VIP Private Friends Club (Hand #2487) - Raise €250",
+      "time": "21:19"
+    },
+    {
+      "id": "feed-1791733754258",
+      "type": "player",
+      "title": "Poker Bet",
+      "detail": "Ari.R wagered $250.00 at VIP Private Friends Club (Hand #2487) - Raise €250",
+      "time": "21:19"
+    },
+    {
+      "id": "feed-1791733736282",
+      "type": "player",
+      "title": "Poker Bet",
+      "detail": "Ari.R wagered $500.00 at VIP Private Friends Club (Hand #2487) - Call €500",
+      "time": "21:18"
+    },
     {
       "id": "feed-1791216126735",
       "type": "alert",
@@ -20694,97 +20902,6 @@
       "title": "Round restarted",
       "detail": "Game round reset in diamond-75",
       "time": "21:18"
-    },
-    {
-      "id": "feed-1791215294399",
-      "type": "claim",
-      "title": "Bingo claim validated",
-      "detail": "Diamond 75 · RahulRahulGame_331 won $1000 on Diamond",
-      "time": "21:18"
-    },
-    {
-      "id": "feed-1791215273465",
-      "type": "player",
-      "title": "Tickets purchased",
-      "detail": "1 card bought for Diamond 75 ($2.00) by RahulRahulGame_331",
-      "time": "21:17"
-    },
-    {
-      "id": "feed-1791215150913",
-      "type": "alert",
-      "title": "Round restarted",
-      "detail": "Game round reset in diamond-75",
-      "time": "21:15"
-    },
-    {
-      "id": "feed-1791215142848",
-      "type": "claim",
-      "title": "Bingo claim validated",
-      "detail": "Diamond 75 · NovaPlayer_4511 won $1000 on Diamond",
-      "time": "21:15"
-    },
-    {
-      "id": "feed-1791215119499",
-      "type": "player",
-      "title": "Tickets purchased",
-      "detail": "1 card bought for Diamond 75 ($2.00) by NovaPlayer_4511",
-      "time": "21:15"
-    },
-    {
-      "id": "feed-1791215086613",
-      "type": "alert",
-      "title": "Round restarted",
-      "detail": "Game round reset in trueig-90",
-      "time": "21:14"
-    },
-    {
-      "id": "feed-1791215073834",
-      "type": "claim",
-      "title": "Bingo claim validated",
-      "detail": "Trueig 910Classic · NovaPlayer_4511 won $4188 on Full House",
-      "time": "21:14"
-    },
-    {
-      "id": "feed-1791215057195",
-      "type": "player",
-      "title": "Tickets purchased",
-      "detail": "1 card bought for Trueig 910Classic ($10.00) by NovaPlayer_4511",
-      "time": "21:14"
-    },
-    {
-      "id": "feed-1791215052480",
-      "type": "alert",
-      "title": "Round restarted",
-      "detail": "Game round reset in trueig-90",
-      "time": "21:14"
-    },
-    {
-      "id": "feed-1791215050250",
-      "type": "claim",
-      "title": "Bingo claim validated",
-      "detail": "Trueig 910Classic · NovaPlayer_4511 won $4188 on Full House",
-      "time": "21:14"
-    },
-    {
-      "id": "feed-1791215033617",
-      "type": "player",
-      "title": "Tickets purchased",
-      "detail": "1 card bought for Trueig 910Classic ($10.00) by NovaPlayer_4511",
-      "time": "21:13"
-    },
-    {
-      "id": "feed-1791215019652",
-      "type": "alert",
-      "title": "Round restarted",
-      "detail": "Game round reset in trueig-90",
-      "time": "21:13"
-    },
-    {
-      "id": "feed-1791215011302",
-      "type": "claim",
-      "title": "Bingo claim validated",
-      "detail": "Trueig 910Classic · Ari.R won $4188 on Full House",
-      "time": "21:13"
     }
   ],
   "sessions": {
@@ -21053,6 +21170,27 @@
       "userId": "USR-30800",
       "createdAt": "2026-10-05T15:47:25.600Z",
       "lastSeen": "2026-10-05T16:43:43.178Z"
+    },
+    "tig_sess_h3om08pr_1791734191944": {
+      "token": "tig_sess_h3om08pr_1791734191944",
+      "username": "Rahul",
+      "userId": "USR-68648",
+      "createdAt": "2026-10-11T15:56:31.944Z",
+      "lastSeen": "2026-10-11T15:56:36.077Z"
+    },
+    "tig_sess_4yvzqiir_1791734213660": {
+      "token": "tig_sess_4yvzqiir_1791734213660",
+      "username": "RahulPass_308",
+      "userId": "USR-32285",
+      "createdAt": "2026-10-11T15:56:53.660Z",
+      "lastSeen": "2026-10-11T15:57:34.668Z"
+    },
+    "tig_sess_weim61ys_1791734288277": {
+      "token": "tig_sess_weim61ys_1791734288277",
+      "username": "Ari.R",
+      "userId": "USR-11804",
+      "createdAt": "2026-10-11T15:58:08.277Z",
+      "lastSeen": "2026-10-11T15:58:08.350Z"
     }
   }
 }

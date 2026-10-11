@@ -92,7 +92,19 @@ export interface Transaction {
   id: string;
   player: string;
   room: string;
-  type: "Ticket purchase" | "Prize payout" | "Jackpot contribution" | "Refund" | "Promotional credit" | "Deposit" | "Withdrawal";
+  type:
+    | "Poker Bet"
+    | "Poker Win"
+    | "Poker Buy-in"
+    | "Poker Cashout"
+    | "Ticket purchase"
+    | "Prize payout"
+    | "Jackpot contribution"
+    | "Refund"
+    | "Promotional credit"
+    | "Deposit"
+    | "Withdrawal"
+    | string;
   amount: number;
   status: "Completed" | "Processing" | "Failed";
   timestamp: string;

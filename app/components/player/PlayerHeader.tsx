@@ -22,6 +22,7 @@ import {
 import type { PlayerModel } from "../../api-client";
 import { Logo } from "../shared/Logo";
 import { money, type PlayerView } from "../shared/types";
+import { PlayerHistoryModal } from "./PlayerHistoryModal";
 
 export function PlayerHeader({
   view,
@@ -59,6 +60,7 @@ export function PlayerHeader({
   onPokerTabChange?: (tab: "holdem" | "plo" | "spin" | "aof" | "tournaments") => void;
 }) {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [historyModalOpen, setHistoryModalOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const handleOpenAuth = onOpenAuth || openAuthModal;
 
@@ -442,13 +444,28 @@ export function PlayerHeader({
                 <button
                   className={`tooltip-item ${view === "profile" ? "active" : ""}`}
                   onClick={() => {
-                    setView?.("profile");
+                    if (setView) {
+                      setView("profile");
+                    } else {
+                      setHistoryModalOpen(true);
+                    }
                     setMenuOpen(false);
                   }}
                   role="menuitem"
                 >
                   <User size={18} weight="fill" className="tooltip-icon" />
                   <span className="tooltip-item-label">Profile</span>
+                </button>
+                <button
+                  className="tooltip-item"
+                  onClick={() => {
+                    setHistoryModalOpen(true);
+                    setMenuOpen(false);
+                  }}
+                  role="menuitem"
+                >
+                  <ClockCounterClockwise size={18} weight="bold" className="tooltip-icon" />
+                  <span className="tooltip-item-label">Transaction History</span>
                 </button>
                 <button
                   className="tooltip-item tooltip-action-btn"
@@ -466,6 +483,14 @@ export function PlayerHeader({
           )}
         </div>
       </div>
+
+      {/* Unified Player History & Profile Modal */}
+      <PlayerHistoryModal
+        isOpen={historyModalOpen}
+        onClose={() => setHistoryModalOpen(false)}
+        currentUser={currentUser}
+        walletBalance={wallet}
+      />
 
       <style>{`
         .player-header {

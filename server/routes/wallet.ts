@@ -7,8 +7,20 @@ export const walletRouter = express.Router();
 // GET /api/wallet - Get wallet balance and overview
 walletRouter.get("/", (req: Request, res: Response) => {
   const resolved = store.resolveUser(req);
-  const currentUsername = (req.query.username as string) || (req.query.player as string) || resolved?.username || store.activeUsername || "Ari.R";
-  const player = resolved || store.players.find((p) => p.username.toLowerCase() === currentUsername.toLowerCase() || p.id.toLowerCase() === currentUsername.toLowerCase());
+  const currentUsername =
+    (req.query.username as string) ||
+    (req.query.player as string) ||
+    (req.headers["x-player-username"] as string) ||
+    resolved?.username ||
+    store.activeUsername ||
+    "Ari.R";
+  const player =
+    resolved ||
+    store.players.find(
+      (p) =>
+        p.username.toLowerCase() === currentUsername.toLowerCase() ||
+        p.id.toLowerCase() === currentUsername.toLowerCase()
+    );
   const balance = player ? player.balance : store.wallet;
 
   const purchases = store.transactions.filter((t) => t.type === "Ticket purchase" && (!t.player || t.player.toLowerCase() === currentUsername.toLowerCase()));
@@ -131,16 +143,112 @@ walletRouter.post("/withdraw", (req: Request, res: Response) => {
   });
 });
 
-// GET /api/wallet/transactions - List transactions
+// POST /api/wallet/poker-transaction - Record gameplay bet deduction or win addition
+walletRouter.post("/poker-transaction", (req: Request, res: Response) => {
+  const { username, type = "Poker Bet", amount = 0, tableName = "Cash Table", handNo, detail } = req.body;
+  const num = Number(amount);
+  if (isNaN(num) || num < 0) {
+    res.status(400).json({ success: false, error: "Invalid transaction amount" });
+    return;
+  }
+
+  const resolved = store.resolveUser(req);
+  const currentUsername =
+    username ||
+    (req.headers["x-player-username"] as string) ||
+    resolved?.username ||
+    store.activeUsername ||
+    "Ari.R";
+  const player =
+    resolved ||
+    store.players.find(
+      (p) =>
+        p.username.toLowerCase() === currentUsername.toLowerCase() ||
+        p.id.toLowerCase() === currentUsername.toLowerCase()
+    );
+
+  let updatedBalance: number;
+  const isDeduction = type === "Poker Bet" || type === "Poker Buy-in";
+
+  if (player) {
+    if (isDeduction) {
+      player.balance = Math.max(0, Math.round((player.balance - num) * 100) / 100);
+    } else {
+      player.balance = Math.round((player.balance + num) * 100) / 100;
+      player.wins = (player.wins || 0) + 1;
+      player.totalPrizes = (player.totalPrizes || 0) + num;
+    }
+    updatedBalance = player.balance;
+    if (player.username.toLowerCase() === (store.activeUsername || "Ari.R").toLowerCase()) {
+      store.wallet = player.balance;
+    }
+  } else {
+    if (isDeduction) {
+      store.wallet = Math.max(0, Math.round((store.wallet - num) * 100) / 100);
+    } else {
+      store.wallet = Math.round((store.wallet + num) * 100) / 100;
+    }
+    updatedBalance = store.wallet;
+  }
+
+  const tx = store.addTransaction({
+    player: currentUsername,
+    room: tableName,
+    type: type as any,
+    amount: isDeduction ? -num : num,
+    status: "Completed",
+  });
+
+  store.addAudit(
+    "player",
+    type,
+    `${currentUsername} ${isDeduction ? "wagered" : "won"} $${num.toFixed(2)} at ${tableName}${handNo ? ` (Hand #${handNo})` : ""}${detail ? ` - ${detail}` : ""}`
+  );
+  store.save();
+
+  syncBus.emitChange("wallet", isDeduction ? "poker-bet" : "poker-win", {
+    balance: updatedBalance,
+    transaction: tx,
+    player: currentUsername,
+  });
+
+  res.json({
+    success: true,
+    balance: updatedBalance,
+    transaction: tx,
+    message: `Successfully processed ${type} of $${num.toFixed(2)}.`,
+  });
+});
+
+// GET /api/wallet/transactions - List transactions with multi-player and query filters
 walletRouter.get("/transactions", (req: Request, res: Response) => {
-  const { type, limit } = req.query;
+  const { type, limit, player, username, search, all } = req.query;
   let txs = store.transactions;
 
+  // Filter by player unless all=true requested
+  const targetPlayer = (player as string) || (username as string);
+  if (targetPlayer && all !== "true" && targetPlayer !== "All players") {
+    txs = txs.filter((t) => t.player && t.player.toLowerCase() === targetPlayer.toLowerCase());
+  }
+
+  // Filter by transaction type
   if (type && typeof type === "string" && type !== "All types") {
     txs = txs.filter((t) => t.type.toLowerCase().includes(type.toLowerCase()));
   }
 
-  const max = limit ? Number(limit) : 50;
+  // Search query filter
+  if (search && typeof search === "string" && search.trim()) {
+    const q = search.trim().toLowerCase();
+    txs = txs.filter(
+      (t) =>
+        t.id.toLowerCase().includes(q) ||
+        (t.player && t.player.toLowerCase().includes(q)) ||
+        (t.room && t.room.toLowerCase().includes(q)) ||
+        t.type.toLowerCase().includes(q)
+    );
+  }
+
+  const max = limit ? Number(limit) : 250;
   res.json({
     success: true,
     count: txs.length,

@@ -71,28 +71,57 @@ export default function BasepokerHoldemTablesView() {
     refreshWallet();
   };
 
-  // Load tables on mount
+  const isCurrentUserBlocked = useMemo(() => {
+    if (!currentUser) return false;
+    return (
+      currentUser.status === "Restricted" ||
+      currentUser.status === "Suspended" ||
+      (currentUser as any).pokerAccess === false
+    );
+  }, [currentUser]);
+
+  // Load tables on mount and listen to store updates (table create/delete from backoffice)
   useEffect(() => {
-    const list = getStoredPokerTables();
-    setAllTables(list);
+    const syncTables = () => {
+      const list = getStoredPokerTables();
+      setAllTables(list);
+
+      // Clean up openTableCodes if tables were deleted in backoffice
+      setOpenTableCodes((prev) => {
+        const validCodes = prev.filter((c) => list.some((t) => t.id === c || t.inviteCode === c));
+        if (validCodes.length === 0 && list.length > 0) {
+          const firstCode = list[0].inviteCode || list[0].id;
+          setActiveTableCode(firstCode);
+          return [firstCode];
+        }
+        return validCodes.length > 0 ? validCodes : prev;
+      });
+    };
+
+    syncTables();
 
     let initialCode = codeParam;
-    if (!initialCode && list.length > 0) {
-      initialCode = list[0].inviteCode || list[0].id;
+    const currentList = getStoredPokerTables();
+    if (!initialCode && currentList.length > 0) {
+      initialCode = currentList[0].inviteCode || currentList[0].id;
     }
 
-    setActiveTableCode(initialCode);
-    if (initialCode && !openTableCodes.includes(initialCode)) {
-      setOpenTableCodes([initialCode]);
+    if (initialCode) {
+      setActiveTableCode(initialCode);
+      setOpenTableCodes((prev) => (prev.includes(initialCode) ? prev : [initialCode]));
     }
-  }, [codeParam]);
 
-  // Synchronize when URL codeParam changes
-  useEffect(() => {
-    if (codeParam) {
-      setActiveTableCode(codeParam);
-      setOpenTableCodes((prev) => (prev.includes(codeParam) ? prev : [...prev, codeParam]));
-    }
+    const handleUpdate = () => {
+      syncTables();
+    };
+
+    window.addEventListener("basepoker_tables_updated", handleUpdate);
+    window.addEventListener("storage", handleUpdate);
+
+    return () => {
+      window.removeEventListener("basepoker_tables_updated", handleUpdate);
+      window.removeEventListener("storage", handleUpdate);
+    };
   }, [codeParam]);
 
   // Resolve current active table
@@ -157,6 +186,17 @@ export default function BasepokerHoldemTablesView() {
 
   // Stand up / leave table handler
   const handleLeaveTable = (cashedOutStack?: number) => {
+    if (cashedOutStack && cashedOutStack > 0) {
+      apiClient.wallet
+        .pokerTransaction({
+          username: currentUser?.username,
+          type: "Poker Cashout",
+          amount: cashedOutStack,
+          tableName: activeTable.name,
+          detail: `Cashed out ${cashedOutStack} chips`,
+        })
+        .catch(() => {});
+    }
     const remaining = openTableCodes.filter((c) => c !== activeTableCode);
     if (remaining.length === 0) {
       router.push("/cashgame");
@@ -237,15 +277,33 @@ export default function BasepokerHoldemTablesView() {
         </div>
       </header>
 
-      {/* ================= LIVE STADIUM TABLE VIEW ================= */}
-      <div className="bp-table-workspace">
-        <Bet888LiveTable
-          table={activeTable}
-          onLeaveTable={handleLeaveTable}
-          walletBalance={wallet}
-          userName={currentUser?.displayName || currentUser?.username || "Hero"}
-          embedded={true}
-        />
+      {/* ================= LIVE STADIUM TABLE VIEW (MULTI-TABLE CONCURRENT) ================= */}
+      <div className="bp-table-workspace" style={{ display: "flex", flex: 1, position: "relative", overflow: "hidden", width: "100%", height: "100%" }}>
+        {openTableCodes.map((code) => {
+          const tbl = allTables.find((t) => (t.inviteCode || t.id) === code) || findPokerTable(code) || activeTable;
+          const isVisible = code === activeTableCode;
+          return (
+            <div
+              key={code}
+              style={{
+                display: isVisible ? "flex" : "none",
+                width: "100%",
+                height: "100%",
+                flex: 1,
+                flexDirection: "column",
+              }}
+            >
+              <Bet888LiveTable
+                table={tbl}
+                onLeaveTable={handleLeaveTable}
+                walletBalance={wallet}
+                userName={currentUser?.displayName || currentUser?.username || "Hero"}
+                embedded={true}
+                isUserBlocked={isCurrentUserBlocked}
+              />
+            </div>
+          );
+        })}
       </div>
 
       {/* ================= AUTH MODAL ================= */}
