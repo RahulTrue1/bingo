@@ -235,13 +235,6 @@ export default function BasepokerHoldemTablesView() {
             </button>
           </div>
         </div>
-
-        {/* Right: Quick Nav */}
-        <div className="bp-multibar-right">
-          <Link href="/poker-backoffice" className="bp-link-bo" title="Open Poker Backoffice">
-            ⚙ Backoffice
-          </Link>
-        </div>
       </header>
 
       {/* ================= LIVE STADIUM TABLE VIEW ================= */}
@@ -480,9 +473,11 @@ export default function BasepokerHoldemTablesView() {
         /* Workspace */
         .bp-table-workspace {
           flex: 1;
-          height: calc(100vh - 48px);
+          min-height: 0;
           overflow: hidden;
           position: relative;
+          display: flex;
+          flex-direction: column;
         }
 
         /* Modal */

@@ -4,6 +4,7 @@ import React, { useEffect, useRef, useState, useCallback } from "react";
 import "./poker.css";
 import { Bet888TableSummary, CardModel } from "./poker-types";
 import { bestHand, buildDeck, cardStr, parseCard, shuffle, VARIANTS } from "./poker-engine";
+import { Gear, SpeakerHigh, SpeakerSimpleSlash, ChatCircleDots, List } from "@phosphor-icons/react";
 
 interface TableSeatPlayer {
   seatNo: number;
@@ -729,28 +730,28 @@ export function Bet888LiveTable({
             onClick={() => setHistoryOpen(!historyOpen)}
             title="Hand history"
           >
-            ⚙
+            <Gear size={18} weight="bold" />
           </button>
           <button
             className={`hud-ctrl-btn ${soundMuted ? "muted" : ""}`}
             onClick={toggleSound}
             title={soundMuted ? "Unmute audio" : "Mute audio"}
           >
-            {soundMuted ? "🔇" : "🔊"}
+            {soundMuted ? <SpeakerSimpleSlash size={18} weight="bold" /> : <SpeakerHigh size={18} weight="bold" />}
           </button>
           <button
             className="hud-ctrl-btn"
             onClick={() => setChatOpen(!chatOpen)}
             title="Player chat"
           >
-            💬
+            <ChatCircleDots size={18} weight="bold" />
           </button>
           <button
             className="hud-ctrl-btn menu-btn"
             onClick={() => setMenuOpen(!menuOpen)}
             title="Table menu"
           >
-            ☰
+            <List size={18} weight="bold" />
           </button>
         </div>
       </header>
@@ -849,8 +850,8 @@ export function Bet888LiveTable({
                   const n = players.length;
                   // Geometric angle: Hero is at bottom-center (Seat 0)
                   const angle = (Math.PI / 2) + ((idx / n) * 2 * Math.PI);
-                  const x = 50 + 44 * Math.cos(angle);
-                  const y = 50 + 40 * Math.sin(angle);
+                  const x = 50 + 41 * Math.cos(angle);
+                  const y = 50 + 34 * Math.sin(angle);
 
                   const isTurn = activeSeat === p.seatNo && stage !== "showdown";
                   const isWinner = stage === "showdown" && winnerInfo?.winnerSeatNo === p.seatNo;
@@ -864,133 +865,237 @@ export function Bet888LiveTable({
                       className={`seat-container ${p.isHero ? "hero-seat" : "opponent-seat"} ${p.folded ? "is-folded" : ""} ${isWinner ? "is-winner" : ""}`}
                       style={{ left: `${x}%`, top: `${y}%` }}
                     >
-                      {/* WINNER FLOATING BADGE */}
-                      {isWinner && (
-                        <div className="winner-seat-badge">
-                          <div className="winner-badge-inner">
-                            <span className="winner-badge-crown">👑 WINNER</span>
-                            <span className="winner-badge-pot">+{winnerInfo.potWon.toLocaleString()}</span>
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Player Bet Chips on Table */}
-                      {p.bet > 0 && (
-                        <div className="seat-bet-chips">
-                          <span className="bet-coin">🪙</span>
-                          <span className="bet-amt">{p.bet.toLocaleString()}</span>
-                        </div>
-                      )}
-
-                      {/* Opponents' Red Card Backs or Showdown Cards */}
-                      {!p.isHero && !p.folded && (
-                        stage === "showdown" ? (
-                          <div className="opponent-showdown-cards">
-                            {p.cards.map((c, cIdx) => {
-                              const isWinning = isWinningCard(c);
-                              const isDimmed = stage === "showdown" && winnerInfo && !winnerInfo.wonByFold && !isWinning;
-                              return (
-                                <div
-                                  key={cIdx}
-                                  className={`opp-card-face ${c.s === 1 || c.s === 2 ? "red-card" : "black-card"} ${isWinning ? "is-winning-card" : ""} ${isDimmed ? "is-dimmed" : ""}`}
-                                >
-                                  <span className="c-rank">{rankLabel(c.r)}</span>
-                                  <span className="c-suit">{suitSymbol(c.s)}</span>
-                                </div>
-                              );
-                            })}
-                          </div>
-                        ) : (
-                          <div className="opponent-card-backs">
-                            <div className="opp-card c-left" />
-                            <div className="opp-card c-right" />
-                          </div>
-                        )
-                      )}
-
-                      {/* Hero Face-Up Cards with Live Hand Rank Indicator */}
-                      {p.isHero && !p.folded && (
-                        <div className="hero-hole-cards-display">
-                          {p.cards.map((c, cIdx) => {
-                            const isWinning = isWinningCard(c);
-                            const isDimmed = stage === "showdown" && winnerInfo && !winnerInfo.wonByFold && !isWinning;
-                            return (
+                      {isWinner ? (
+                        /* ================= ZYNGA-STYLE POKER WINNER SPOTLIGHT ================= */
+                        <div className="poker-winner-spotlight">
+                          {/* Fanned Hole Cards on left behind avatar */}
+                          <div className="winner-fanned-cards">
+                            {(p.cards || []).filter(Boolean).map((c, cIdx) => (
                               <div
                                 key={cIdx}
-                                className={`hero-card-face ${c.s === 1 || c.s === 2 ? "red-card" : "black-card"} ${isWinning ? "is-winning-card" : ""} ${isDimmed ? "is-dimmed" : ""}`}
+                                className={`winner-fanned-card card-${cIdx} ${c.s === 1 || c.s === 2 ? "red-card" : "black-card"}`}
                               >
-                                <span className="c-rank">{rankLabel(c.r)}</span>
-                                <span className="c-suit">{suitSymbol(c.s)}</span>
+                                <div className="w-card-corner">
+                                  <span className="w-card-rank">{rankLabel(c.r)}</span>
+                                  <span className="w-card-suit">{suitSymbol(c.s)}</span>
+                                </div>
+                                <span className="w-card-center-suit">{suitSymbol(c.s)}</span>
                               </div>
-                            );
-                          })}
-                        </div>
-                      )}
+                            ))}
+                          </div>
 
-                      {/* Player Seat Pill with Gold Ring & Timer */}
-                      <div className={`seat-pill ${isTurn ? "is-active-turn" : ""} ${isWinner ? "is-winner-seat" : ""}`}>
-                        {/* Avatar with Turn Countdown Ring */}
-                        <div className="seat-avatar-box">
-                          {isTurn && (
-                            <svg
-                              className="timer-svg-ring"
-                              viewBox="0 0 44 44"
-                              width={44}
-                              height={44}
-                              style={{
-                                position: "absolute",
-                                inset: -5,
-                                width: 44,
-                                height: 44,
-                                transform: "rotate(-90deg)",
-                                pointerEvents: "none",
-                              }}
-                            >
-                              <circle
-                                cx="22"
-                                cy="22"
-                                r="20"
-                                fill="none"
-                                stroke={timerColor}
-                                strokeWidth="3"
-                                strokeDasharray={125.6}
-                                strokeDashoffset={125.6 * (1 - actionTimeLeft / 20)}
-                              />
-                            </svg>
-                          )}
-                          <div className="seat-avatar-inner" style={{ background: p.avatarColor }}>
-                            {p.name.slice(0, 2).toUpperCase()}
+                          {/* Glowing Circular Avatar Disc */}
+                          <div className="winner-avatar-disc">
+                            {/* Golden Royal Crown tilted on top-left of the avatar */}
+                            <div className="winner-crown-wrapper">
+                              <svg className="winner-crown-svg" viewBox="0 0 64 48" width={48} height={36}>
+                                <defs>
+                                  <linearGradient id={`crownGoldGrad-${p.seatNo}`} x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" stopColor="#fff89a" />
+                                    <stop offset="35%" stopColor="#ffd214" />
+                                    <stop offset="70%" stopColor="#f39c12" />
+                                    <stop offset="100%" stopColor="#b76e00" />
+                                  </linearGradient>
+                                  <filter id={`crownGlow-${p.seatNo}`} x="-20%" y="-20%" width="140%" height="140%">
+                                    <feDropShadow dx="0" dy="2" stdDeviation="2.5" floodColor="#000" floodOpacity="0.75" />
+                                  </filter>
+                                </defs>
+                                <g filter={`url(#crownGlow-${p.seatNo})`}>
+                                  <path
+                                    d="M7 36 L11 16 L24 26 L32 7 L40 26 L53 16 L57 36 Z"
+                                    fill={`url(#crownGoldGrad-${p.seatNo})`}
+                                    stroke="#8a4f00"
+                                    strokeWidth="1.2"
+                                  />
+                                  <rect x="7" y="36" width="50" height="7" rx="2" fill={`url(#crownGoldGrad-${p.seatNo})`} stroke="#8a4f00" strokeWidth="1" />
+                                  <circle cx="32" cy="7" r="3.2" fill="#e74c3c" stroke="#fff" strokeWidth="0.8" />
+                                  <circle cx="11" cy="16" r="2.8" fill="#e74c3c" stroke="#fff" strokeWidth="0.8" />
+                                  <circle cx="53" cy="16" r="2.8" fill="#e74c3c" stroke="#fff" strokeWidth="0.8" />
+                                  <polygon points="32,19 35,24 32,29 29,24" fill="#e74c3c" stroke="#ffeaa7" strokeWidth="0.5" />
+                                  <circle cx="19" cy="39.5" r="2" fill="#2ecc71" stroke="#fff" strokeWidth="0.4" />
+                                  <circle cx="32" cy="39.5" r="2.3" fill="#e74c3c" stroke="#fff" strokeWidth="0.4" />
+                                  <circle cx="45" cy="39.5" r="2" fill="#3498db" stroke="#fff" strokeWidth="0.4" />
+                                </g>
+                              </svg>
+                            </div>
+
+                            {/* Sparkling stars orbiting the ring */}
+                            <span className="winner-star star-1">★</span>
+                            <span className="winner-star star-2">✦</span>
+                            <span className="winner-star star-3">★</span>
+                            <span className="winner-star star-4">✦</span>
+
+                            {/* Inner Avatar Portrait */}
+                            <div className="winner-avatar-portrait" style={{ background: p.avatarColor }}>
+                              {p.name.slice(0, 2).toUpperCase()}
+                            </div>
+
+                            {/* WINNER text stamped across avatar */}
+                            <div className="winner-stamp-overlay">
+                              <svg viewBox="0 0 100 32" className="winner-stamp-svg">
+                                <defs>
+                                  <linearGradient id={`winnerTxtGrad-${p.seatNo}`} x1="0%" y1="0%" x2="0%" y2="100%">
+                                    <stop offset="0%" stopColor="#fff875" />
+                                    <stop offset="50%" stopColor="#ffc700" />
+                                    <stop offset="100%" stopColor="#ff8c00" />
+                                  </linearGradient>
+                                  <filter id={`winnerTxtShadow-${p.seatNo}`} x="-10%" y="-10%" width="120%" height="120%">
+                                    <feDropShadow dx="0" dy="2" stdDeviation="1.5" floodColor="#000" floodOpacity="0.9" />
+                                  </filter>
+                                </defs>
+                                <text
+                                  x="50"
+                                  y="24"
+                                  textAnchor="middle"
+                                  filter={`url(#winnerTxtShadow-${p.seatNo})`}
+                                  fontFamily="'Impact', 'Arial Black', sans-serif"
+                                  fontSize="22"
+                                  fontWeight="900"
+                                  letterSpacing="0.8"
+                                  stroke="#c0392b"
+                                  strokeWidth="3.2"
+                                  paintOrder="stroke fill"
+                                  fill={`url(#winnerTxtGrad-${p.seatNo})`}
+                                >
+                                  WINNER
+                                </text>
+                              </svg>
+                            </div>
+                          </div>
+
+                          {/* Chip Stack Pill below avatar */}
+                          <div className="winner-chips-pill">
+                            <div className="winner-green-chip">
+                              <span>$</span>
+                            </div>
+                            <span className="winner-chip-value">{(winnerInfo?.potWon || pot || 0).toLocaleString()}</span>
+                          </div>
+
+                          {/* Hand rank badge below chips */}
+                          <div className="winner-hand-rank-badge">
+                            {winnerInfo?.wonByFold ? "Won by all folds" : winnerInfo?.handRankName || "Winner"}
                           </div>
                         </div>
+                      ) : (
+                        /* ================= REGULAR SEAT RENDERING ================= */
+                        <>
+                          {/* Player Bet Chips on Table */}
+                          {p.bet > 0 && (
+                            <div className="seat-bet-chips">
+                              <span className="bet-coin">🪙</span>
+                              <span className="bet-amt">{p.bet.toLocaleString()}</span>
+                            </div>
+                          )}
 
-                        {/* Name & Stack */}
-                        <div className="seat-meta">
-                          <span className="seat-name">{p.name}</span>
-                          <span className="seat-stack">{p.stack.toLocaleString()}</span>
-                        </div>
-                      </div>
+                          {/* Opponents' Red Card Backs or Showdown Cards */}
+                          {!p.isHero && !p.folded && (
+                            stage === "showdown" ? (
+                              <div className="opponent-showdown-cards">
+                                {p.cards.map((c, cIdx) => {
+                                  const isWinning = isWinningCard(c);
+                                  const isDimmed = stage === "showdown" && winnerInfo && !winnerInfo.wonByFold && !isWinning;
+                                  return (
+                                    <div
+                                      key={cIdx}
+                                      className={`opp-card-face ${c.s === 1 || c.s === 2 ? "red-card" : "black-card"} ${isWinning ? "is-winning-card" : ""} ${isDimmed ? "is-dimmed" : ""}`}
+                                    >
+                                      <span className="c-rank">{rankLabel(c.r)}</span>
+                                      <span className="c-suit">{suitSymbol(c.s)}</span>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            ) : (
+                              <div className="opponent-card-backs">
+                                <div className="opp-card c-left" />
+                                <div className="opp-card c-right" />
+                              </div>
+                            )
+                          )}
 
-                      {/* Hand Rank under Seat Pill */}
-                      {p.isHero && !p.folded && (
-                        <div className={`hero-hand-rank-pill ${isWinner ? "is-winner-rank" : ""}`}>
-                          {isWinner && <span>👑 </span>}
-                          <span>{stage === "showdown" && winnerInfo?.isHero ? winnerInfo.handRankName : heroHandName}</span>
-                        </div>
-                      )}
+                          {/* Hero Face-Up Cards with Live Hand Rank Indicator */}
+                          {p.isHero && !p.folded && (
+                            <div className="hero-hole-cards-display">
+                              {p.cards.map((c, cIdx) => {
+                                const isWinning = isWinningCard(c);
+                                const isDimmed = stage === "showdown" && winnerInfo && !winnerInfo.wonByFold && !isWinning;
+                                return (
+                                  <div
+                                    key={cIdx}
+                                    className={`hero-card-face ${c.s === 1 || c.s === 2 ? "red-card" : "black-card"} ${isWinning ? "is-winning-card" : ""} ${isDimmed ? "is-dimmed" : ""}`}
+                                  >
+                                    <span className="c-rank">{rankLabel(c.r)}</span>
+                                    <span className="c-suit">{suitSymbol(c.s)}</span>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          )}
 
-                      {/* Opponent Showdown Hand Rank Pill */}
-                      {!p.isHero && !p.folded && stage === "showdown" && (
-                        <div className={`showdown-hand-rank-pill ${isWinner ? "is-winner-rank" : ""}`}>
-                          {isWinner && <span>👑 </span>}
-                          <span>{getShowdownHandName(p)}</span>
-                        </div>
-                      )}
+                          {/* Player Seat Pill with Gold Ring & Timer */}
+                          <div className={`seat-pill ${isTurn ? "is-active-turn" : ""}`}>
+                            {/* Avatar with Turn Countdown Ring */}
+                            <div className="seat-avatar-box">
+                              {isTurn && (
+                                <svg
+                                  className="timer-svg-ring"
+                                  viewBox="0 0 44 44"
+                                  width={44}
+                                  height={44}
+                                  style={{
+                                    position: "absolute",
+                                    inset: -5,
+                                    width: 44,
+                                    height: 44,
+                                    transform: "rotate(-90deg)",
+                                    pointerEvents: "none",
+                                  }}
+                                >
+                                  <circle
+                                    cx="22"
+                                    cy="22"
+                                    r="20"
+                                    fill="none"
+                                    stroke={timerColor}
+                                    strokeWidth="3"
+                                    strokeDasharray={125.6}
+                                    strokeDashoffset={125.6 * (1 - actionTimeLeft / 20)}
+                                  />
+                                </svg>
+                              )}
+                              <div className="seat-avatar-inner" style={{ background: p.avatarColor }}>
+                                {p.name.slice(0, 2).toUpperCase()}
+                              </div>
+                            </div>
 
-                      {/* Last Action Tag below pill */}
-                      {p.lastAction && (
-                        <div className={`seat-action-tag ${p.lastAction.startsWith("FOLD") ? "tag-fold" : "tag-active"}`}>
-                          {p.lastAction}
-                        </div>
+                            {/* Name & Stack */}
+                            <div className="seat-meta">
+                              <span className="seat-name">{p.name}</span>
+                              <span className="seat-stack">{p.stack.toLocaleString()}</span>
+                            </div>
+                          </div>
+
+                          {/* Hand Rank under Seat Pill */}
+                          {p.isHero && !p.folded && (
+                            <div className="hero-hand-rank-pill">
+                              <span>{heroHandName}</span>
+                            </div>
+                          )}
+
+                          {/* Opponent Showdown Hand Rank Pill */}
+                          {!p.isHero && !p.folded && stage === "showdown" && (
+                            <div className="showdown-hand-rank-pill">
+                              <span>{getShowdownHandName(p)}</span>
+                            </div>
+                          )}
+
+                          {/* Last Action Tag below pill */}
+                          {p.lastAction && (
+                            <div className={`seat-action-tag ${p.lastAction.startsWith("FOLD") ? "tag-fold" : "tag-active"}`}>
+                              {p.lastAction}
+                            </div>
+                          )}
+                        </>
                       )}
                     </div>
                   );
@@ -1103,12 +1208,13 @@ export function Bet888LiveTable({
             </div>
           </>
         )}
+      </footer>
 
       {/* ================= 4. TABLE MENU DRAWER ================= */}
       {menuOpen && (
         <div className="bet888-drawer-backdrop" onClick={() => setMenuOpen(false)}>
           <div className="bet888-table-drawer" onClick={(e) => e.stopPropagation()}>
-            <div className="drawer-header">
+            <div className="poker-drawer-header">
               <h3>{table.name}</h3>
               <button className="drawer-close-btn" onClick={() => setMenuOpen(false)}>×</button>
             </div>
@@ -1173,7 +1279,7 @@ export function Bet888LiveTable({
       {chatOpen && (
         <div className="bet888-drawer-backdrop" onClick={() => setChatOpen(false)}>
           <div className="bet888-chat-drawer" onClick={(e) => e.stopPropagation()}>
-            <div className="drawer-header">
+            <div className="poker-drawer-header">
               <h3>Table Chat</h3>
               <button className="drawer-close-btn" onClick={() => setChatOpen(false)}>×</button>
             </div>
@@ -1202,7 +1308,7 @@ export function Bet888LiveTable({
       {historyOpen && (
         <div className="bet888-drawer-backdrop" onClick={() => setHistoryOpen(false)}>
           <div className="bet888-history-modal" onClick={(e) => e.stopPropagation()}>
-            <div className="drawer-header">
+            <div className="poker-drawer-header">
               <h3>Hand #{handNo} History</h3>
               <button className="drawer-close-btn" onClick={() => setHistoryOpen(false)}>×</button>
             </div>
