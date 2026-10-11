@@ -576,13 +576,17 @@ export function Bet888LiveTable({
   // Hero Actions
   const handleHeroAction = (action: "fold" | "check" | "call" | "raise" | "allin") => {
     const hero = players[0];
-    if (!hero || hero.folded) return;
+    if (!hero || hero.folded || stage === "showdown") return;
 
     if (action === "fold") {
       audio.playCheck();
-      setPlayers((prev) =>
-        prev.map((p) => (p.isHero ? { ...p, folded: true, lastAction: "FOLD" } : p))
-      );
+      const updated = players.map((p) => (p.isHero ? { ...p, folded: true, lastAction: "FOLD" } : p));
+      setPlayers(updated);
+      const alive = updated.filter((p) => !p.folded);
+      if (alive.length === 1) {
+        setTimeout(() => triggerWinByFold(alive[0], pot), 250);
+        return;
+      }
       advanceTurn();
     } else if (action === "check") {
       audio.playCheck();
@@ -667,6 +671,25 @@ export function Bet888LiveTable({
   const suitSymbol = (s: number) => ["♠", "♥", "♦", "♣"][s];
   const rankLabel = (r: number) =>
     r === 14 ? "A" : r === 13 ? "K" : r === 12 ? "Q" : r === 11 ? "J" : String(r);
+
+  // Helper to test if a card is in the winning 5-card hand
+  const isWinningCard = (card: CardModel | null | undefined): boolean => {
+    if (!card || stage !== "showdown" || !winnerInfo || !winnerInfo.winningCards || winnerInfo.wonByFold) {
+      return false;
+    }
+    return winnerInfo.winningCards.some((wc) => wc.r === card.r && wc.s === card.s);
+  };
+
+  // Helper to get evaluated showdown hand description for any player
+  const getShowdownHandName = (p: TableSeatPlayer): string => {
+    if (p.cards.length < 2 || board.length < 3) return "";
+    try {
+      const res = bestHand(p.cards, board, VARIANTS.NLH);
+      return res?.name || "";
+    } catch (_) {
+      return "";
+    }
+  };
 
   const hero = players[0];
   const toCall = currentBet - hero.bet;
@@ -778,17 +801,47 @@ export function Bet888LiveTable({
 
                 {/* 5 Community Cards */}
                 <div className="board-community-cards">
-                  {board.map((card, idx) => (
-                    <div key={idx} className={`felt-card ${card.s === 1 || card.s === 2 ? "red-card" : "black-card"}`}>
-                      <span className="card-rank">{rankLabel(card.r)}</span>
-                      <span className="card-suit">{suitSymbol(card.s)}</span>
-                    </div>
-                  ))}
+                  {board.map((card, idx) => {
+                    const isWinning = isWinningCard(card);
+                    const isDimmed = stage === "showdown" && winnerInfo && !winnerInfo.wonByFold && !isWinning;
+                    return (
+                      <div
+                        key={idx}
+                        className={`felt-card ${card.s === 1 || card.s === 2 ? "red-card" : "black-card"} ${isWinning ? "is-winning-card" : ""} ${isDimmed ? "is-dimmed" : ""}`}
+                      >
+                        <span className="card-rank">{rankLabel(card.r)}</span>
+                        <span className="card-suit">{suitSymbol(card.s)}</span>
+                      </div>
+                    );
+                  })}
                   {Array.from({ length: 5 - board.length }).map((_, emptyIdx) => (
                     <div key={emptyIdx} className="felt-card empty-card-slot" />
                   ))}
                 </div>
               </div>
+
+              {/* CELEBRATION WINNER BANNER OVERLAY AT SHOWDOWN */}
+              {stage === "showdown" && winnerInfo && (
+                <div className="table-center-winner-banner">
+                  <div className="winner-banner-badge">🏆 HAND #{handNo} COMPLETED</div>
+                  <div className="winner-banner-headline">
+                    {winnerInfo.isHero ? "🎉 YOU WON!" : `👑 ${winnerInfo.winnerName} WINS!`}
+                  </div>
+                  <div className="winner-banner-pot">
+                    <span className="pot-chip-icon">🪙</span>
+                    <span>+{winnerInfo.potWon.toLocaleString()}</span>
+                  </div>
+                  <div className="winner-banner-hand">
+                    {winnerInfo.wonByFold ? "All opponents folded" : winnerInfo.handRankName}
+                  </div>
+                  <button
+                    className="winner-next-hand-btn"
+                    onClick={handleDealNextHand}
+                  >
+                    Deal Next Hand ⏭ {nextHandCountdown > 0 ? `(${nextHandCountdown}s)` : ""}
+                  </button>
+                </div>
+              )}
 
               {/* SEATS DISTRIBUTED AROUND THE TABLE (Super-ellipse) */}
               <div className="bet888-seats-layer">
@@ -799,7 +852,8 @@ export function Bet888LiveTable({
                   const x = 50 + 44 * Math.cos(angle);
                   const y = 50 + 40 * Math.sin(angle);
 
-                  const isTurn = activeSeat === p.seatNo;
+                  const isTurn = activeSeat === p.seatNo && stage !== "showdown";
+                  const isWinner = stage === "showdown" && winnerInfo?.winnerSeatNo === p.seatNo;
                   // Timer ring color based on actionTimeLeft
                   const timerColor =
                     actionTimeLeft > 10 ? "#e9b95a" : actionTimeLeft > 5 ? "#f39c12" : "#e74c3c";
@@ -807,9 +861,19 @@ export function Bet888LiveTable({
                   return (
                     <div
                       key={p.seatNo}
-                      className={`seat-container ${p.isHero ? "hero-seat" : "opponent-seat"} ${p.folded ? "is-folded" : ""}`}
+                      className={`seat-container ${p.isHero ? "hero-seat" : "opponent-seat"} ${p.folded ? "is-folded" : ""} ${isWinner ? "is-winner" : ""}`}
                       style={{ left: `${x}%`, top: `${y}%` }}
                     >
+                      {/* WINNER FLOATING BADGE */}
+                      {isWinner && (
+                        <div className="winner-seat-badge">
+                          <div className="winner-badge-inner">
+                            <span className="winner-badge-crown">👑 WINNER</span>
+                            <span className="winner-badge-pot">+{winnerInfo.potWon.toLocaleString()}</span>
+                          </div>
+                        </div>
+                      )}
+
                       {/* Player Bet Chips on Table */}
                       {p.bet > 0 && (
                         <div className="seat-bet-chips">
@@ -818,31 +882,53 @@ export function Bet888LiveTable({
                         </div>
                       )}
 
-                      {/* Opponents' Red Card Backs Angled towards Center */}
+                      {/* Opponents' Red Card Backs or Showdown Cards */}
                       {!p.isHero && !p.folded && (
-                        <div className="opponent-card-backs">
-                          <div className="opp-card c-left" />
-                          <div className="opp-card c-right" />
-                        </div>
+                        stage === "showdown" ? (
+                          <div className="opponent-showdown-cards">
+                            {p.cards.map((c, cIdx) => {
+                              const isWinning = isWinningCard(c);
+                              const isDimmed = stage === "showdown" && winnerInfo && !winnerInfo.wonByFold && !isWinning;
+                              return (
+                                <div
+                                  key={cIdx}
+                                  className={`opp-card-face ${c.s === 1 || c.s === 2 ? "red-card" : "black-card"} ${isWinning ? "is-winning-card" : ""} ${isDimmed ? "is-dimmed" : ""}`}
+                                >
+                                  <span className="c-rank">{rankLabel(c.r)}</span>
+                                  <span className="c-suit">{suitSymbol(c.s)}</span>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        ) : (
+                          <div className="opponent-card-backs">
+                            <div className="opp-card c-left" />
+                            <div className="opp-card c-right" />
+                          </div>
+                        )
                       )}
 
                       {/* Hero Face-Up Cards with Live Hand Rank Indicator */}
                       {p.isHero && !p.folded && (
                         <div className="hero-hole-cards-display">
-                          {p.cards.map((c, cIdx) => (
-                            <div
-                              key={cIdx}
-                              className={`hero-card-face ${c.s === 1 || c.s === 2 ? "red-card" : "black-card"}`}
-                            >
-                              <span className="c-rank">{rankLabel(c.r)}</span>
-                              <span className="c-suit">{suitSymbol(c.s)}</span>
-                            </div>
-                          ))}
+                          {p.cards.map((c, cIdx) => {
+                            const isWinning = isWinningCard(c);
+                            const isDimmed = stage === "showdown" && winnerInfo && !winnerInfo.wonByFold && !isWinning;
+                            return (
+                              <div
+                                key={cIdx}
+                                className={`hero-card-face ${c.s === 1 || c.s === 2 ? "red-card" : "black-card"} ${isWinning ? "is-winning-card" : ""} ${isDimmed ? "is-dimmed" : ""}`}
+                              >
+                                <span className="c-rank">{rankLabel(c.r)}</span>
+                                <span className="c-suit">{suitSymbol(c.s)}</span>
+                              </div>
+                            );
+                          })}
                         </div>
                       )}
 
                       {/* Player Seat Pill with Gold Ring & Timer */}
-                      <div className={`seat-pill ${isTurn ? "is-active-turn" : ""}`}>
+                      <div className={`seat-pill ${isTurn ? "is-active-turn" : ""} ${isWinner ? "is-winner-seat" : ""}`}>
                         {/* Avatar with Turn Countdown Ring */}
                         <div className="seat-avatar-box">
                           {isTurn && (
@@ -884,10 +970,19 @@ export function Bet888LiveTable({
                         </div>
                       </div>
 
-                      {/* Live Hand Strength under Hero Plate */}
+                      {/* Hand Rank under Seat Pill */}
                       {p.isHero && !p.folded && (
-                        <div className="hero-hand-rank-pill">
-                          <span>{heroHandName}</span>
+                        <div className={`hero-hand-rank-pill ${isWinner ? "is-winner-rank" : ""}`}>
+                          {isWinner && <span>👑 </span>}
+                          <span>{stage === "showdown" && winnerInfo?.isHero ? winnerInfo.handRankName : heroHandName}</span>
+                        </div>
+                      )}
+
+                      {/* Opponent Showdown Hand Rank Pill */}
+                      {!p.isHero && !p.folded && stage === "showdown" && (
+                        <div className={`showdown-hand-rank-pill ${isWinner ? "is-winner-rank" : ""}`}>
+                          {isWinner && <span>👑 </span>}
+                          <span>{getShowdownHandName(p)}</span>
                         </div>
                       )}
 
@@ -908,96 +1003,106 @@ export function Bet888LiveTable({
 
       {/* ================= 3. BOTTOM ACTION BAR ================= */}
       <footer className="bet888-table-actionbar">
-        {/* Action Buttons: FOLD (black), CHECK/CALL (gold outline), BET/RAISE (red), ALL-IN (green) */}
-        <div className="action-buttons-group">
-          <button
-            className="action-btn fold-btn"
-            onClick={() => handleHeroAction("fold")}
-            disabled={hero.folded || activeSeat !== 0}
-          >
-            FOLD
-          </button>
-
-          {canCheck ? (
-            <button
-              className="action-btn check-btn"
-              onClick={() => handleHeroAction("check")}
-              disabled={hero.folded || activeSeat !== 0}
-            >
-              CHECK
+        {stage === "showdown" ? (
+          <div className="showdown-actionbar-notice">
+            <span>Hand complete · Winner: <b>{winnerInfo?.winnerName}</b> ({winnerInfo?.wonByFold ? "Opponents folded" : winnerInfo?.handRankName})</span>
+            <button className="action-btn next-hand-quick-btn" onClick={handleDealNextHand}>
+              Deal Next Hand ⏭ {nextHandCountdown > 0 ? `(${nextHandCountdown}s)` : ""}
             </button>
-          ) : (
-            <button
-              className="action-btn call-btn"
-              onClick={() => handleHeroAction("call")}
-              disabled={hero.folded || activeSeat !== 0 || hero.stack === 0}
-            >
-              CALL {toCall.toLocaleString()}
-            </button>
-          )}
-
-          <button
-            className="action-btn bet-btn"
-            onClick={() => handleHeroAction("raise")}
-            disabled={hero.folded || activeSeat !== 0 || hero.stack <= toCall}
-          >
-            {currentBet === 0 ? "BET" : "RAISE"} {raiseAmount.toLocaleString()}
-          </button>
-
-          <button
-            className="action-btn allin-btn"
-            onClick={() => handleHeroAction("allin")}
-            disabled={hero.folded || activeSeat !== 0 || hero.stack === 0}
-          >
-            ALL-IN {hero.stack.toLocaleString()}
-          </button>
-        </div>
-
-        {/* Bet Sizing Slider with -, +, Amount, ½ POT and POT presets */}
-        <div className="bet-slider-group">
-          <button
-            className="slider-step-btn"
-            onClick={() => setRaiseAmount((prev) => Math.max(table.bb, prev - table.bb))}
-          >
-            −
-          </button>
-
-          <div className="slider-range-box">
-            <input
-              type="range"
-              min={Math.max(table.bb, toCall + table.bb)}
-              max={hero.stack}
-              step={table.bb}
-              value={raiseAmount}
-              onChange={(e) => setRaiseAmount(Number(e.target.value))}
-            />
-            <span className="slider-amount-indicator">
-              🪙 {raiseAmount.toLocaleString()}
-            </span>
           </div>
+        ) : (
+          <>
+            {/* Action Buttons: FOLD (black), CHECK/CALL (gold outline), BET/RAISE (red), ALL-IN (green) */}
+            <div className="action-buttons-group">
+              <button
+                className="action-btn fold-btn"
+                onClick={() => handleHeroAction("fold")}
+                disabled={hero.folded || activeSeat !== 0}
+              >
+                FOLD
+              </button>
 
-          <button
-            className="slider-step-btn"
-            onClick={() => setRaiseAmount((prev) => Math.min(hero.stack, prev + table.bb))}
-          >
-            +
-          </button>
+              {canCheck ? (
+                <button
+                  className="action-btn check-btn"
+                  onClick={() => handleHeroAction("check")}
+                  disabled={hero.folded || activeSeat !== 0}
+                >
+                  CHECK
+                </button>
+              ) : (
+                <button
+                  className="action-btn call-btn"
+                  onClick={() => handleHeroAction("call")}
+                  disabled={hero.folded || activeSeat !== 0 || hero.stack === 0}
+                >
+                  CALL {toCall.toLocaleString()}
+                </button>
+              )}
 
-          <button
-            className="slider-preset-chip"
-            onClick={() => setRaiseAmount(Math.min(hero.stack, Math.max(table.bb, Math.floor(pot / 2))))}
-          >
-            ½ POT
-          </button>
+              <button
+                className="action-btn bet-btn"
+                onClick={() => handleHeroAction("raise")}
+                disabled={hero.folded || activeSeat !== 0 || hero.stack <= toCall}
+              >
+                {currentBet === 0 ? "BET" : "RAISE"} {raiseAmount.toLocaleString()}
+              </button>
 
-          <button
-            className="slider-preset-chip"
-            onClick={() => setRaiseAmount(Math.min(hero.stack, Math.max(table.bb, pot)))}
-          >
-            POT
-          </button>
-        </div>
-      </footer>
+              <button
+                className="action-btn allin-btn"
+                onClick={() => handleHeroAction("allin")}
+                disabled={hero.folded || activeSeat !== 0 || hero.stack === 0}
+              >
+                ALL-IN {hero.stack.toLocaleString()}
+              </button>
+            </div>
+
+            {/* Bet Sizing Slider with -, +, Amount, ½ POT and POT presets */}
+            <div className="bet-slider-group">
+              <button
+                className="slider-step-btn"
+                onClick={() => setRaiseAmount((prev) => Math.max(table.bb, prev - table.bb))}
+              >
+                −
+              </button>
+
+              <div className="slider-range-box">
+                <input
+                  type="range"
+                  min={Math.max(table.bb, toCall + table.bb)}
+                  max={hero.stack}
+                  step={table.bb}
+                  value={raiseAmount}
+                  onChange={(e) => setRaiseAmount(Number(e.target.value))}
+                />
+                <span className="slider-amount-indicator">
+                  🪙 {raiseAmount.toLocaleString()}
+                </span>
+              </div>
+
+              <button
+                className="slider-step-btn"
+                onClick={() => setRaiseAmount((prev) => Math.min(hero.stack, prev + table.bb))}
+              >
+                +
+              </button>
+
+              <button
+                className="slider-preset-chip"
+                onClick={() => setRaiseAmount(Math.min(hero.stack, Math.max(table.bb, Math.floor(pot / 2))))}
+              >
+                ½ POT
+              </button>
+
+              <button
+                className="slider-preset-chip"
+                onClick={() => setRaiseAmount(Math.min(hero.stack, Math.max(table.bb, pot)))}
+              >
+                POT
+              </button>
+            </div>
+          </>
+        )}
 
       {/* ================= 4. TABLE MENU DRAWER ================= */}
       {menuOpen && (
