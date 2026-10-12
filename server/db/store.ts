@@ -1,3 +1,4 @@
+import { randomBytes } from "node:crypto";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 import type {
@@ -10,6 +11,10 @@ import type {
   PlatformSettings,
   PlayerProfile,
   PlayerTicket,
+  PokerHandHistory,
+  PokerReconciliationReport,
+  PokerSeat,
+  PokerTable,
   Promotion,
   SavedPattern,
   Tournament,
@@ -46,6 +51,9 @@ export interface DatabaseSchema {
     time: string;
   }>;
   sessions?: Record<string, UserSession>;
+  pokerTables?: PokerTable[];
+  pokerHands?: PokerHandHistory[];
+  pokerRakeStats?: { shopRake: number; managerRake: number; agentRake: number; operatorRake: number };
 }
 
 const defaultRooms: BingoRoomData[] = [
@@ -752,6 +760,7 @@ const defaultPlayers: PlayerProfile[] = [
     lastLogin: "Today · 14:29",
     status: "Active",
     password: "QueenBingo#2026",
+    poker_enabled: false,
   },
   {
     id: "USR-09814",
@@ -766,6 +775,7 @@ const defaultPlayers: PlayerProfile[] = [
     lastLogin: "Today · 14:18",
     status: "Active",
     password: "MikaWin#2026",
+    poker_enabled: false,
   },
   {
     id: "USR-11804",
@@ -780,6 +790,7 @@ const defaultPlayers: PlayerProfile[] = [
     lastLogin: "Today · 14:21",
     status: "Active",
     password: "demo123",
+    poker_enabled: false,
   },
   {
     id: "USR-07226",
@@ -794,8 +805,124 @@ const defaultPlayers: PlayerProfile[] = [
     lastLogin: "Yesterday",
     status: "Restricted",
     password: "RiskItAll#77",
+    poker_enabled: false,
   },
 ];
+
+const defaultPokerTables: PokerTable[] = [
+  {
+    id: "tbl-tirana-1-2",
+    name: "Tirana 1/2",
+    gameType: "texas_holdem",
+    sb: 1,
+    bb: 2,
+    minBuyIn: 40,
+    maxBuyIn: 400,
+    maxSeats: 6,
+    feeType: "RAKE",
+    rakePercent: 5.0,
+    rakeCap: 10,
+    handFeeAmount: 0,
+    tableFeeAmount: 0,
+    tableFeeIntervalMinutes: 30,
+    isPrivate: false,
+    status: "open",
+    createdAt: new Date().toISOString(),
+    seats: [],
+    pot: 0,
+    tier: "low",
+  },
+  {
+    id: "tbl-prishtina-5-10",
+    name: "Prishtina 5/10",
+    gameType: "texas_holdem",
+    sb: 5,
+    bb: 10,
+    minBuyIn: 200,
+    maxBuyIn: 2000,
+    maxSeats: 6,
+    feeType: "RAKE",
+    rakePercent: 5.0,
+    rakeCap: 25,
+    handFeeAmount: 0,
+    tableFeeAmount: 0,
+    tableFeeIntervalMinutes: 30,
+    isPrivate: false,
+    status: "open",
+    createdAt: new Date().toISOString(),
+    seats: [],
+    pot: 0,
+    tier: "mid",
+  },
+  {
+    id: "tbl-durres-10-20",
+    name: "Durrës 10/20",
+    gameType: "texas_holdem",
+    sb: 10,
+    bb: 20,
+    minBuyIn: 400,
+    maxBuyIn: 4000,
+    maxSeats: 6,
+    feeType: "HAND_FEE",
+    rakePercent: 0,
+    rakeCap: 0,
+    handFeeAmount: 2,
+    tableFeeAmount: 0,
+    tableFeeIntervalMinutes: 30,
+    isPrivate: false,
+    status: "open",
+    createdAt: new Date().toISOString(),
+    seats: [],
+    pot: 0,
+    tier: "mid",
+  },
+  {
+    id: "tbl-vlora-25-50",
+    name: "Vlora 25/50",
+    gameType: "texas_holdem",
+    sb: 25,
+    bb: 50,
+    minBuyIn: 1000,
+    maxBuyIn: 10000,
+    maxSeats: 6,
+    feeType: "TABLE_FEE",
+    rakePercent: 0,
+    rakeCap: 0,
+    handFeeAmount: 0,
+    tableFeeAmount: 20,
+    tableFeeIntervalMinutes: 30,
+    isPrivate: false,
+    status: "open",
+    createdAt: new Date().toISOString(),
+    seats: [],
+    pot: 0,
+    tier: "high",
+  },
+  {
+    id: "tbl-gjakova-50-100",
+    name: "Gjakova 50/100",
+    gameType: "texas_holdem",
+    sb: 50,
+    bb: 100,
+    minBuyIn: 2000,
+    maxBuyIn: 20000,
+    maxSeats: 9,
+    feeType: "RAKE",
+    rakePercent: 4.5,
+    rakeCap: 50,
+    handFeeAmount: 0,
+    tableFeeAmount: 0,
+    tableFeeIntervalMinutes: 30,
+    isPrivate: false,
+    status: "open",
+    createdAt: new Date().toISOString(),
+    seats: [],
+    pot: 0,
+    tier: "high",
+  },
+];
+
+
 
 const defaultAuditFeed = [
   {
@@ -967,10 +1094,14 @@ class Store {
           players: (parsed.players || defaultPlayers).map((p: any) => ({
             ...p,
             password: p.password || (p.username?.toLowerCase().includes("rahul") ? "RahulSecretPass@77" : "demo123"),
+            poker_enabled: typeof p.poker_enabled === "boolean" ? p.poker_enabled : false,
           })),
           settings: parsed.settings ? { ...defaultSettings, ...parsed.settings } : { ...defaultSettings },
           auditFeed: parsed.auditFeed || defaultAuditFeed,
           sessions: parsed.sessions || {},
+          pokerTables: parsed.pokerTables?.length ? parsed.pokerTables : [...defaultPokerTables],
+          pokerHands: parsed.pokerHands || [],
+          pokerRakeStats: parsed.pokerRakeStats || { shopRake: 0, managerRake: 0, agentRake: 0, operatorRake: 0 },
         };
       }
     } catch (err) {
@@ -995,6 +1126,9 @@ class Store {
       settings: { ...defaultSettings },
       auditFeed: [...defaultAuditFeed],
       sessions: {},
+      pokerTables: [...defaultPokerTables],
+      pokerHands: [],
+      pokerRakeStats: { shopRake: 0, managerRake: 0, agentRake: 0, operatorRake: 0 },
     };
   }
 
@@ -1072,6 +1206,10 @@ class Store {
 
   get mutedUsers() {
     return this.data.mutedUsers;
+  }
+
+  set mutedUsers(val: string[]) {
+    this.data.mutedUsers = val;
   }
 
   get patterns() {
@@ -1200,6 +1338,297 @@ class Store {
 
     return undefined;
   }
+
+  // =================== POKER MODULE METHODS & INVARIANTS ===================
+  get pokerTables(): PokerTable[] {
+    if (!this.data.pokerTables) {
+      this.data.pokerTables = [...defaultPokerTables];
+    }
+    return this.data.pokerTables;
+  }
+
+  set pokerTables(v: PokerTable[]) {
+    this.data.pokerTables = v;
+    this.save();
+  }
+
+  get pokerHands(): PokerHandHistory[] {
+    if (!this.data.pokerHands) {
+      this.data.pokerHands = [];
+    }
+    return this.data.pokerHands;
+  }
+
+  get pokerRakeStats() {
+    if (!this.data.pokerRakeStats) {
+      this.data.pokerRakeStats = { shopRake: 0, managerRake: 0, agentRake: 0, operatorRake: 0 };
+    }
+    return this.data.pokerRakeStats;
+  }
+
+  // 1. CSPRNG 6-character invite code (Alphabet: ABCDEFGHJKLMNPQRSTUVWXYZ23456789, excluding 0, O, 1, I)
+  public generatePokerInviteCode(): string {
+    const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+    let code = "";
+    const bytes = randomBytes(6);
+    for (let i = 0; i < 6; i++) {
+      code += chars[bytes[i] % chars.length];
+    }
+    return code;
+  }
+
+  // 2. Brute-Force Rate Limiting & Lockout Protection (Section 7: 10 attempts / 10 min -> 15 min lockout)
+  private failedCodeAttempts: Map<string, { count: number; firstAttemptAt: number; lockedUntil: number }> = new Map();
+
+  public checkPokerCodeRateLimit(identifier: string): { allowed: boolean; remainingLockoutSeconds?: number } {
+    const now = Date.now();
+    const entry = this.failedCodeAttempts.get(identifier);
+    if (!entry) return { allowed: true };
+
+    if (entry.lockedUntil > now) {
+      return {
+        allowed: false,
+        remainingLockoutSeconds: Math.ceil((entry.lockedUntil - now) / 1000),
+      };
+    }
+
+    // Reset if window has elapsed
+    if (now - entry.firstAttemptAt > 10 * 60 * 1000) {
+      this.failedCodeAttempts.delete(identifier);
+      return { allowed: true };
+    }
+
+    return { allowed: true };
+  }
+
+  public recordFailedPokerCodeAttempt(identifier: string): { locked: boolean; attemptsLeft: number; remainingLockoutSeconds?: number } {
+    const now = Date.now();
+    let entry = this.failedCodeAttempts.get(identifier);
+    if (!entry || (now - entry.firstAttemptAt > 10 * 60 * 1000)) {
+      entry = { count: 1, firstAttemptAt: now, lockedUntil: 0 };
+    } else {
+      entry.count += 1;
+    }
+
+    if (entry.count >= 10) {
+      entry.lockedUntil = now + 15 * 60 * 1000; // 15 minute lockout
+      this.failedCodeAttempts.set(identifier, entry);
+      return { locked: true, attemptsLeft: 0, remainingLockoutSeconds: 15 * 60 };
+    }
+
+    this.failedCodeAttempts.set(identifier, entry);
+    return { locked: false, attemptsLeft: 10 - entry.count };
+  }
+
+  public resetFailedPokerCodeAttempts(identifier: string) {
+    this.failedCodeAttempts.delete(identifier);
+  }
+
+  // 3. Single-Wallet Reconciliation Audit (Section 3 & 4)
+  // Invariant: sum(buy-ins) + sum(top-ups) = sum(cash-outs) + sum(refunds) + sum(current stacks) + sum(current pots) + sum(poker fees)
+  public calculatePokerReconciliation(): PokerReconciliationReport {
+    const buyIns = this.data.transactions
+      .filter((t) => t.type === "POKER_BUYIN" || t.type === "Poker Buy-in")
+      .reduce((sum, t) => sum + Math.abs(t.amount), 0);
+
+    const topUps = this.data.transactions
+      .filter((t) => t.type === "POKER_TOPUP" || t.type === "Poker Top-up")
+      .reduce((sum, t) => sum + Math.abs(t.amount), 0);
+
+    const cashOuts = this.data.transactions
+      .filter((t) => t.type === "POKER_CASHOUT" || t.type === "Poker Cashout")
+      .reduce((sum, t) => sum + Math.abs(t.amount), 0);
+
+    const refunds = this.data.transactions
+      .filter((t) => t.type === "POKER_REFUND" || t.type === "Poker Refund")
+      .reduce((sum, t) => sum + Math.abs(t.amount), 0);
+
+    const activeStacks = (this.data.pokerTables || []).reduce((sum, table) => {
+      if (table.status === "closed") return sum;
+      return sum + (table.seats || []).reduce((sSum, seat) => sSum + (seat.stack || 0), 0);
+    }, 0);
+
+    const currentPots = (this.data.pokerTables || []).reduce((sum, table) => {
+      if (table.status === "closed") return sum;
+      return sum + (table.pot || 0);
+    }, 0);
+
+    const pokerFees = this.data.transactions
+      .filter((t) => t.type === "POKER_COMMISSION" || t.type === "Poker Commission")
+      .reduce((sum, t) => sum + Math.abs(t.amount), 0);
+
+    const leftSide = Math.round((buyIns + topUps) * 100) / 100;
+    const rightSide = Math.round((cashOuts + refunds + activeStacks + currentPots + pokerFees) * 100) / 100;
+    const discrepancy = Math.round(Math.abs(leftSide - rightSide) * 100) / 100;
+    const balanced = discrepancy < 0.01;
+
+    const seatedPlayerCount = (this.data.pokerTables || []).reduce((sum, table) => {
+      if (table.status === "closed") return sum;
+      return sum + (table.seats || []).filter((s) => Boolean(s.player)).length;
+    }, 0);
+
+    return {
+      balanced,
+      discrepancy,
+      timestamp: new Date().toISOString(),
+      metrics: {
+        totalBuyIns: buyIns,
+        totalTopUps: topUps,
+        totalCashOuts: cashOuts,
+        totalRefunds: refunds,
+        totalActiveStacks: activeStacks,
+        totalCurrentPots: currentPots,
+        totalPokerFees: pokerFees,
+      },
+      hierarchyBreakdown: this.data.pokerRakeStats || {
+        shopRake: Math.round(pokerFees * 0.4 * 100) / 100,
+        managerRake: Math.round(pokerFees * 0.2 * 100) / 100,
+        agentRake: Math.round(pokerFees * 0.15 * 100) / 100,
+        operatorRake: Math.round(pokerFees * 0.25 * 100) / 100,
+      },
+      tableCount: (this.data.pokerTables || []).filter((t) => t.status !== "closed").length,
+      seatedPlayerCount,
+    };
+  }
+
+  // 4. Atomic Player Buy-In
+  public buyInPoker(tableId: string, player: PlayerProfile, amount: number, seatNo?: number): { success: boolean; error?: string; seat?: PokerSeat } {
+    const table = this.pokerTables.find((t) => t.id === tableId && t.status !== "closed");
+    if (!table) return { success: false, error: "Table not found or closed" };
+
+    if (amount < table.minBuyIn || amount > table.maxBuyIn) {
+      return { success: false, error: `Buy-in must be between ${table.minBuyIn} and ${table.maxBuyIn}` };
+    }
+
+    if (player.balance < amount) {
+      return { success: false, error: `Insufficient wallet balance. Available: ${player.balance}` };
+    }
+
+    if (table.seats.some((s) => s.player?.toLowerCase() === player.username.toLowerCase())) {
+      return { success: false, error: "Player already seated at this table" };
+    }
+
+    const occupiedSeats = new Set(table.seats.map((s) => s.seatNo));
+    let targetSeat = seatNo;
+    if (!targetSeat || occupiedSeats.has(targetSeat) || targetSeat < 1 || targetSeat > table.maxSeats) {
+      for (let i = 1; i <= table.maxSeats; i++) {
+        if (!occupiedSeats.has(i)) {
+          targetSeat = i;
+          break;
+        }
+      }
+    }
+
+    if (!targetSeat) {
+      return { success: false, error: "Table is full" };
+    }
+
+    player.balance = Math.round((player.balance - amount) * 100) / 100;
+    if (player.username.toLowerCase() === (this.activeUsername || "Ari.R").toLowerCase()) {
+      this.wallet = player.balance;
+    }
+
+    const nextFeeAt = table.feeType === "TABLE_FEE"
+      ? new Date(Date.now() + (table.tableFeeIntervalMinutes || 30) * 60000).toISOString()
+      : undefined;
+
+    const newSeat: PokerSeat = {
+      seatNo: targetSeat,
+      player: player.username,
+      stack: amount,
+      bet: 0,
+      folded: false,
+      sittingOut: false,
+      joinedAt: new Date().toISOString(),
+      nextFeeAt,
+    };
+    table.seats.push(newSeat);
+
+    this.addTransaction({
+      player: player.username,
+      room: table.name,
+      type: "POKER_BUYIN",
+      amount: -amount,
+      status: "Completed",
+    });
+
+    this.addAudit("player", "POKER_BUYIN", `${player.username} bought into ${table.name} for $${amount}`);
+    this.save();
+    return { success: true, seat: newSeat };
+  }
+
+  // 5. Atomic Player Cashout
+  public cashOutPoker(tableId: string, player: PlayerProfile): { success: boolean; amountCashedOut: number; error?: string } {
+    const table = this.pokerTables.find((t) => t.id === tableId);
+    if (!table) return { success: false, amountCashedOut: 0, error: "Table not found" };
+
+    const seatIndex = table.seats.findIndex((s) => s.player?.toLowerCase() === player.username.toLowerCase());
+    if (seatIndex === -1) {
+      return { success: false, amountCashedOut: 0, error: "Player not seated at this table" };
+    }
+
+    const seat = table.seats[seatIndex];
+    const amount = seat.stack;
+    table.seats.splice(seatIndex, 1);
+
+    if (amount > 0) {
+      player.balance = Math.round((player.balance + amount) * 100) / 100;
+      if (player.username.toLowerCase() === (this.activeUsername || "Ari.R").toLowerCase()) {
+        this.wallet = player.balance;
+      }
+
+      this.addTransaction({
+        player: player.username,
+        room: table.name,
+        type: "POKER_CASHOUT",
+        amount: amount,
+        status: "Completed",
+      });
+
+      this.addAudit("player", "POKER_CASHOUT", `${player.username} cashed out $${amount} from ${table.name}`);
+    }
+
+    this.save();
+    return { success: true, amountCashedOut: amount };
+  }
+
+  // 6. Force-close Table & Refund All Active Player Stacks
+  public closePokerTable(tableId: string, closedBy: string = "Admin"): { success: boolean; refundedCount: number; totalRefunded: number; error?: string } {
+    const table = this.pokerTables.find((t) => t.id === tableId);
+    if (!table) return { success: false, refundedCount: 0, totalRefunded: 0, error: "Table not found" };
+
+    table.status = "closed";
+    let refundedCount = 0;
+    let totalRefunded = 0;
+
+    for (const seat of [...table.seats]) {
+      if (seat.player && seat.stack > 0) {
+        const p = this.players.find((item) => item.username.toLowerCase() === seat.player!.toLowerCase());
+        if (p) {
+          p.balance = Math.round((p.balance + seat.stack) * 100) / 100;
+          if (p.username.toLowerCase() === (this.activeUsername || "Ari.R").toLowerCase()) {
+            this.wallet = p.balance;
+          }
+          this.addTransaction({
+            player: p.username,
+            room: table.name,
+            type: "POKER_REFUND",
+            amount: seat.stack,
+            status: "Completed",
+          });
+          refundedCount++;
+          totalRefunded += seat.stack;
+        }
+      }
+    }
+    table.seats = [];
+    table.pot = 0;
+
+    this.addAudit("alert", "POKER_TABLE_CLOSED", `Table ${table.name} closed by ${closedBy}. Refunded ${refundedCount} players for total $${totalRefunded}`);
+    this.save();
+    return { success: true, refundedCount, totalRefunded };
+  }
 }
+
 
 export const store = new Store();

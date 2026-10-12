@@ -7,10 +7,11 @@ export const chatRouter = express.Router();
 
 // GET /api/chat/:roomId - Get chat messages for room
 chatRouter.get("/:roomId", (req: Request, res: Response) => {
-  const messages = store.chatMessages[req.params.roomId] || [];
+  const roomId = String(req.params.roomId);
+  const messages = store.chatMessages[roomId] || [];
   res.json({
     success: true,
-    roomId: req.params.roomId,
+    roomId,
     messages,
     mutedUsers: store.mutedUsers,
   });
@@ -18,6 +19,7 @@ chatRouter.get("/:roomId", (req: Request, res: Response) => {
 
 // POST /api/chat/:roomId - Post new message
 chatRouter.post("/:roomId", (req: Request, res: Response) => {
+  const roomId = String(req.params.roomId);
   const { user = "Ari.R", text, role = "player" } = req.body;
   if (!text || typeof text !== "string" || !text.trim()) {
     res.status(400).json({ success: false, error: "Message text is required" });
@@ -29,8 +31,8 @@ chatRouter.post("/:roomId", (req: Request, res: Response) => {
     return;
   }
 
-  if (!store.chatMessages[req.params.roomId]) {
-    store.chatMessages[req.params.roomId] = [];
+  if (!store.chatMessages[roomId]) {
+    store.chatMessages[roomId] = [];
   }
 
   const now = new Date();
@@ -38,21 +40,21 @@ chatRouter.post("/:roomId", (req: Request, res: Response) => {
 
   const message: ChatMessage = {
     id: `msg-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
-    roomId: req.params.roomId,
+    roomId,
     user,
     text: text.trim(),
     time,
     role: role as "player" | "admin" | "system",
   };
 
-  store.chatMessages[req.params.roomId].unshift(message);
-  if (store.chatMessages[req.params.roomId].length > 50) {
-    store.chatMessages[req.params.roomId].pop();
+  store.chatMessages[roomId].unshift(message);
+  if (store.chatMessages[roomId].length > 50) {
+    store.chatMessages[roomId].pop();
   }
 
   store.save();
 
-  syncBus.emitChange("chat", "message", message, req.params.roomId);
+  syncBus.emitChange("chat", "message", message, roomId);
 
   res.status(201).json({
     success: true,
@@ -62,14 +64,15 @@ chatRouter.post("/:roomId", (req: Request, res: Response) => {
 
 // POST /api/chat/:roomId/moderate - Mute user or delete message
 chatRouter.post("/:roomId/moderate", (req: Request, res: Response) => {
+  const roomId = String(req.params.roomId);
   const { action, targetMessageId, targetUser } = req.body;
 
   if (action === "delete" && targetMessageId) {
-    const list = store.chatMessages[req.params.roomId] || [];
-    store.chatMessages[req.params.roomId] = list.filter((m) => m.id !== targetMessageId);
-    store.addAudit("alert", "Chat message deleted", `Deleted message from ${req.params.roomId}`);
+    const list = store.chatMessages[roomId] || [];
+    store.chatMessages[roomId] = list.filter((m) => m.id !== targetMessageId);
+    store.addAudit("alert", "Chat message deleted", `Deleted message from ${roomId}`);
     store.save();
-    syncBus.emitChange("chat", "delete-message", { targetMessageId }, req.params.roomId);
+    syncBus.emitChange("chat", "delete-message", { targetMessageId }, roomId);
     res.json({ success: true, message: "Message deleted" });
     return;
   }
@@ -78,11 +81,11 @@ chatRouter.post("/:roomId/moderate", (req: Request, res: Response) => {
     if (store.mutedUsers.includes(targetUser)) {
       store.mutedUsers = store.mutedUsers.filter((u) => u !== targetUser);
       store.addAudit("player", "Player unmuted", `${targetUser} unmuted in chat`);
-      syncBus.emitChange("chat", "unmute", { user: targetUser }, req.params.roomId);
+      syncBus.emitChange("chat", "unmute", { user: targetUser }, roomId);
     } else {
       store.mutedUsers.push(targetUser);
       store.addAudit("alert", "Player muted", `${targetUser} muted for 30 minutes`);
-      syncBus.emitChange("chat", "mute", { user: targetUser }, req.params.roomId);
+      syncBus.emitChange("chat", "mute", { user: targetUser }, roomId);
     }
     store.save();
     res.json({ success: true, mutedUsers: store.mutedUsers });

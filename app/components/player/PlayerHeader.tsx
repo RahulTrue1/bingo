@@ -41,6 +41,8 @@ export function PlayerHeader({
   walletDisplay,
   activePokerTab = "holdem",
   onPokerTabChange,
+  handleLogout,
+  onLogout,
 }: {
   view?: PlayerView;
   setView?: (view: PlayerView) => void;
@@ -58,6 +60,8 @@ export function PlayerHeader({
   walletDisplay?: string;
   activePokerTab?: "holdem" | "plo" | "spin" | "aof" | "tournaments";
   onPokerTabChange?: (tab: "holdem" | "plo" | "spin" | "aof" | "tournaments") => void;
+  handleLogout?: () => void;
+  onLogout?: () => void;
 }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [historyModalOpen, setHistoryModalOpen] = useState(false);
@@ -123,7 +127,7 @@ export function PlayerHeader({
         <Logo />
       </button>
 
-      {/* Main navigation: Games, Bingo, Poker */}
+      {/* Main navigation: Games, Casino, Bingo, Poker */}
       <nav className="main-nav" aria-label="Player navigation">
         <a
           href="http://14.96.241.250:8005"
@@ -132,6 +136,13 @@ export function PlayerHeader({
         >
           Games
         </a>
+        <Link
+          href="/casino"
+          className="main-nav-link"
+          title="BET888CASH Casino &amp; Poker Live"
+        >
+          Casino
+        </Link>
         <button
           className={isBingoActive ? "active" : ""}
           onClick={() => {

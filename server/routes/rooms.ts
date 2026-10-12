@@ -33,15 +33,16 @@ roomsRouter.get("/", (req: Request, res: Response) => {
 
 // GET /api/rooms/:id - Get single room
 roomsRouter.get("/:id", (req: Request, res: Response) => {
-  let room = store.rooms.find((r) => r.id === req.params.id);
+  const roomId = String(req.params.id);
+  let room = store.rooms.find((r) => r.id === roomId);
   if (!room) {
-    const cleanId = req.params.id.replace(/^tournament-/, "");
+    const cleanId = roomId.replace(/^tournament-/, "");
     const tourney = store.tournaments.find(
-      (t) => t.id === cleanId || t.id === req.params.id || t.name.toLowerCase().replace(/[^a-z0-9]+/g, "-") === cleanId
+      (t) => t.id === cleanId || t.id === roomId || t.name.toLowerCase().replace(/[^a-z0-9]+/g, "-") === cleanId
     );
     if (tourney) {
       room = {
-        id: req.params.id,
+        id: roomId,
         name: tourney.name,
         variant: `Tournament · ${tourney.rounds?.length || 4} Rounds`,
         status: tourney.status === "Live" ? "Live" : "Open",
@@ -223,15 +224,16 @@ roomsRouter.post("/:id/duplicate", (req: Request, res: Response) => {
 
 // DELETE /api/rooms/:id - Delete room
 roomsRouter.delete("/:id", (req: Request, res: Response) => {
-  const exists = store.rooms.some((r) => r.id === req.params.id);
+  const roomId = String(req.params.id);
+  const exists = store.rooms.some((r) => r.id === roomId);
   if (!exists) {
     res.status(404).json({ success: false, error: "Room not found" });
     return;
   }
 
-  store.rooms = store.rooms.filter((r) => r.id !== req.params.id);
-  store.addAudit("alert", "Room deleted", req.params.id);
-  syncBus.emitChange("rooms", "delete", { id: req.params.id }, req.params.id, `Room "${req.params.id}" deleted.`);
+  store.rooms = store.rooms.filter((r) => r.id !== roomId);
+  store.addAudit("alert", "Room deleted", roomId);
+  syncBus.emitChange("rooms", "delete", { id: roomId }, roomId, `Room "${roomId}" deleted.`);
 
   res.json({ success: true, message: "Room deleted" });
 });

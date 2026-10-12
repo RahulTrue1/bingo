@@ -75,7 +75,7 @@ ticketsRouter.post("/buy", (req: Request, res: Response) => {
   const distinctJoinedPlayers = new Set(
     store.tickets
       .filter((t) => t.roomId === room.id)
-      .map((t) => t.player.toLowerCase())
+      .map((t) => (t.player || "").toLowerCase())
   );
   const alreadyJoined = distinctJoinedPlayers.has(effectiveUsername.toLowerCase()) ||
     Boolean(effectiveUserId && store.tickets.some((t) => t.roomId === room.id && t.userId === effectiveUserId));

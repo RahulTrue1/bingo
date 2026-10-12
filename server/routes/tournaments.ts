@@ -180,14 +180,15 @@ tournamentsRouter.delete("/:id", (req: Request, res: Response) => {
   store.addAudit("alert", "Tournament deleted", `Tournament ${removed.name} deleted`);
   store.save();
 
-  syncBus.emitChange("tournaments", "delete", { id: req.params.id }, req.params.id, `Tournament "${removed.name}" deleted.`);
+  const tid = String(req.params.id);
+  syncBus.emitChange("tournaments", "delete", { id: tid }, tid, `Tournament "${removed.name}" deleted.`);
 
   res.json({ success: true, message: `Tournament "${removed.name}" deleted.` });
 });
 
 // POST /api/tournaments/:id/start - Start tournament
 tournamentsRouter.post("/:id/start", (req: Request, res: Response) => {
-  const result = TournamentEngine.startTournament(req.params.id);
+  const result = TournamentEngine.startTournament(String(req.params.id));
   if (!result.success) {
     res.status(404).json({ success: false, error: result.error });
     return;
@@ -198,7 +199,7 @@ tournamentsRouter.post("/:id/start", (req: Request, res: Response) => {
 // POST /api/tournaments/:id/score-stage - Score current stage
 tournamentsRouter.post("/:id/score-stage", (req: Request, res: Response) => {
   const { playerScores } = (req.body || {}) as { playerScores?: Array<{ player: string; points: number; wins?: number; fast?: string }> };
-  const result = TournamentEngine.scoreStage(req.params.id, playerScores);
+  const result = TournamentEngine.scoreStage(String(req.params.id), playerScores);
   if (!result.success) {
     res.status(404).json({ success: false, error: result.error });
     return;
@@ -208,7 +209,7 @@ tournamentsRouter.post("/:id/score-stage", (req: Request, res: Response) => {
 
 // POST /api/tournaments/:id/advance - Advance to next tournament stage
 tournamentsRouter.post("/:id/advance", (req: Request, res: Response) => {
-  const result = TournamentEngine.advanceStage(req.params.id);
+  const result = TournamentEngine.advanceStage(String(req.params.id));
   if (!result.success) {
     res.status(result.error?.includes("already at final") ? 400 : 404).json({ success: false, error: result.error });
     return;
@@ -219,7 +220,7 @@ tournamentsRouter.post("/:id/advance", (req: Request, res: Response) => {
 // POST /api/tournaments/:id/complete - Complete tournament and award prizes
 tournamentsRouter.post("/:id/complete", (req: Request, res: Response) => {
   const { winnerName } = (req.body || {}) as { winnerName?: string };
-  const result = TournamentEngine.completeTournament(req.params.id, winnerName);
+  const result = TournamentEngine.completeTournament(String(req.params.id), winnerName);
   if (!result.success) {
     res.status(404).json({ success: false, error: result.error });
     return;
@@ -235,7 +236,7 @@ tournamentsRouter.post("/:id/complete", (req: Request, res: Response) => {
 
 // POST /api/tournaments/:id/reset - Reset tournament for replaying
 tournamentsRouter.post("/:id/reset", (req: Request, res: Response) => {
-  const result = TournamentEngine.resetTournament(req.params.id);
+  const result = TournamentEngine.resetTournament(String(req.params.id));
   if (!result.success) {
     res.status(404).json({ success: false, error: result.error });
     return;
@@ -247,7 +248,7 @@ tournamentsRouter.post("/:id/reset", (req: Request, res: Response) => {
 tournamentsRouter.post("/:id/schedule", (req: Request, res: Response) => {
   const { delaySeconds = 30, cancel = false } = req.body || {};
   if (cancel) {
-    const result = TournamentEngine.cancelSchedule(req.params.id);
+    const result = TournamentEngine.cancelSchedule(String(req.params.id));
     if (!result.success) {
       res.status(404).json({ success: false, error: result.error });
       return;
@@ -256,7 +257,7 @@ tournamentsRouter.post("/:id/schedule", (req: Request, res: Response) => {
     return;
   }
 
-  const result = TournamentEngine.schedule(req.params.id, Number(delaySeconds));
+  const result = TournamentEngine.schedule(String(req.params.id), Number(delaySeconds));
   if (!result.success) {
     res.status(404).json({ success: false, error: result.error });
     return;
@@ -271,7 +272,7 @@ tournamentsRouter.post("/:id/schedule", (req: Request, res: Response) => {
 // POST /api/tournaments/:id/auto-config - Toggle auto-progression or update round duration
 tournamentsRouter.post("/:id/auto-config", (req: Request, res: Response) => {
   const { autoMode, roundDuration, isPaused } = req.body || {};
-  const result = TournamentEngine.setAutoConfig(req.params.id, { autoMode, roundDuration, isPaused });
+  const result = TournamentEngine.setAutoConfig(String(req.params.id), { autoMode, roundDuration, isPaused });
   if (!result.success) {
     res.status(404).json({ success: false, error: result.error });
     return;

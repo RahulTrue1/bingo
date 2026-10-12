@@ -12,6 +12,8 @@ export type SyncEntityType =
   | "players"
   | "settings"
   | "announcement"
+  | "auth"
+  | "tickets"
   | "all";
 
 export interface SyncEvent<T = unknown> {

@@ -19,7 +19,7 @@ export default function BasepokerHoldemTablesView() {
   const searchParams = useSearchParams();
   const router = useRouter();
 
-  const codeParam = searchParams.get("code") || "";
+  const codeParam = searchParams?.get("code") || "";
   const [allTables, setAllTables] = useState<BasepokerTableItem[]>(() => {
     if (typeof window !== "undefined") {
       return getStoredPokerTables();

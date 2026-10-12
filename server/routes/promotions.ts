@@ -35,7 +35,7 @@ promotionsRouter.get("/", (req: Request, res: Response) => {
 
 // GET /api/promotions/:id - Get single promotion
 promotionsRouter.get("/:id", (req: Request, res: Response) => {
-  const promo = findPromo(req.params.id);
+  const promo = findPromo(String(req.params.id));
   if (!promo) {
     res.status(404).json({ success: false, error: "Promotion not found" });
     return;
@@ -83,7 +83,7 @@ promotionsRouter.post("/", (req: Request, res: Response) => {
 // POST /api/promotions/:id/claim - Claim promotion bonus
 promotionsRouter.post("/:id/claim", (req: Request, res: Response) => {
   const { userId = "USR-11804", playerName = "Ari.R" } = req.body;
-  const promo = findPromo(req.params.id);
+  const promo = findPromo(String(req.params.id));
 
   if (!promo) {
     res.status(404).json({ success: false, error: "Promotion not found" });
@@ -147,7 +147,7 @@ promotionsRouter.post("/:id/claim", (req: Request, res: Response) => {
 
 // PUT /api/promotions/:id - Admin update promotion (toggle/edit)
 promotionsRouter.put("/:id", (req: Request, res: Response) => {
-  const promo = findPromo(req.params.id);
+  const promo = findPromo(String(req.params.id));
   if (!promo) {
     res.status(404).json({ success: false, error: "Promotion not found" });
     return;

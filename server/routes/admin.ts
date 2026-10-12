@@ -80,7 +80,7 @@ adminRouter.get("/players", (req: Request, res: Response) => {
 
 // GET /api/admin/players/:id - Get detailed profile with credentials
 adminRouter.get("/players/:id", (req: Request, res: Response) => {
-  const target = req.params.id.toLowerCase();
+  const target = String(req.params.id).toLowerCase();
   const p = store.players.find((item) => item.id.toLowerCase() === target || item.username.toLowerCase() === target);
   if (!p) {
     res.status(404).json({ success: false, error: "Player not found" });
@@ -144,7 +144,8 @@ adminRouter.post("/players/:id/add-funds", (req: Request, res: Response) => {
     return;
   }
 
-  const player = store.players.find((p) => p.id === req.params.id || p.username.toLowerCase() === req.params.id.toLowerCase());
+  const targetId = String(req.params.id);
+  const player = store.players.find((p) => p.id === targetId || p.username.toLowerCase() === targetId.toLowerCase());
   if (!player) {
     res.status(404).json({ success: false, error: "Player not found" });
     return;
@@ -223,4 +224,249 @@ adminRouter.get("/live-control", (_req: Request, res: Response) => {
     liveGames,
   });
 });
+
+// =================== POKER ADMIN MODULE ENDPOINTS ===================
+
+// PATCH /api/admin/players/:id/poker - Toggle player poker_enabled permission (Section 3 & 10)
+adminRouter.patch("/players/:id/poker", (req: Request, res: Response) => {
+  const { enabled } = req.body;
+  const target = String(req.params.id).toLowerCase();
+  const player = store.players.find((p) => p.id.toLowerCase() === target || p.username.toLowerCase() === target);
+  if (!player) {
+    res.status(404).json({ success: false, error: "Player not found" });
+    return;
+  }
+
+  player.poker_enabled = Boolean(enabled);
+  store.addAudit(
+    "player",
+    "POKER_ACCESS_TOGGLE",
+    `${player.username} poker access set to ${player.poker_enabled ? "ENABLED" : "DISABLED"}`
+  );
+  store.save();
+
+  syncBus.emitChange("players", "poker-access", {
+    player: player.username,
+    poker_enabled: player.poker_enabled,
+  });
+
+  res.json({
+    success: true,
+    playerId: player.id,
+    username: player.username,
+    poker_enabled: player.poker_enabled,
+    message: `Poker access for ${player.username} is now ${player.poker_enabled ? "Enabled" : "Disabled"}.`,
+  });
+});
+
+// POST /api/admin/players/poker/bulk - Bulk toggle poker access
+adminRouter.post("/players/poker/bulk", (req: Request, res: Response) => {
+  const { playerIds, enabled } = req.body;
+  if (!Array.isArray(playerIds) || playerIds.length === 0) {
+    res.status(400).json({ success: false, error: "playerIds array is required" });
+    return;
+  }
+
+  const state = Boolean(enabled);
+  const updatedUsernames: string[] = [];
+
+  for (const id of playerIds) {
+    const clean = String(id).toLowerCase();
+    const p = store.players.find((item) => item.id.toLowerCase() === clean || item.username.toLowerCase() === clean);
+    if (p) {
+      p.poker_enabled = state;
+      updatedUsernames.push(p.username);
+    }
+  }
+
+  store.addAudit(
+    "player",
+    "POKER_ACCESS_BULK",
+    `Bulk poker access set to ${state ? "ENABLED" : "DISABLED"} for ${updatedUsernames.length} players`
+  );
+  store.save();
+
+  syncBus.emitChange("players", "poker-access-bulk", { count: updatedUsernames.length, enabled: state });
+
+  res.json({
+    success: true,
+    count: updatedUsernames.length,
+    poker_enabled: state,
+    updatedPlayers: updatedUsernames,
+    message: `Bulk poker access updated for ${updatedUsernames.length} players.`,
+  });
+});
+
+// GET /api/admin/poker/tables - Operator table inventory
+adminRouter.get("/poker/tables", (_req: Request, res: Response) => {
+  res.json({
+    success: true,
+    tables: store.pokerTables,
+    reconciliation: store.calculatePokerReconciliation(),
+  });
+});
+
+// POST /api/admin/poker/tables - Create ring table from operator console
+adminRouter.post("/poker/tables", (req: Request, res: Response) => {
+  const {
+    name,
+    sb = 5,
+    bb = 10,
+    minBuyIn,
+    maxBuyIn,
+    maxSeats = 6,
+    feeType = "RAKE",
+    rakePercent = 5.0,
+    rakeCap = 25,
+    handFeeAmount = 2,
+    tableFeeAmount = 20,
+    tableFeeIntervalMinutes = 30,
+    isPrivate = false,
+  } = req.body;
+
+  const numSb = Number(sb);
+  const numBb = Number(bb);
+  const numSeats = Number(maxSeats);
+
+  const tableId = `tbl-adm-${Date.now().toString(36)}-${Math.random().toString(36).substring(2, 6)}`;
+  const inviteCode = isPrivate ? store.generatePokerInviteCode() : undefined;
+
+  const newTable = {
+    id: tableId,
+    name: String(name || `Operator Table ${numSb}/${numBb}`),
+    gameType: "texas_holdem" as const,
+    sb: numSb,
+    bb: numBb,
+    minBuyIn: Number(minBuyIn) || numBb * 20,
+    maxBuyIn: Number(maxBuyIn) || numBb * 200,
+    maxSeats: numSeats,
+    feeType: feeType as any,
+    rakePercent: Number(rakePercent) || 0,
+    rakeCap: Number(rakeCap) || 0,
+    handFeeAmount: Number(handFeeAmount) || 0,
+    tableFeeAmount: Number(tableFeeAmount) || 0,
+    tableFeeIntervalMinutes: Number(tableFeeIntervalMinutes) || 30,
+    isPrivate: Boolean(isPrivate),
+    inviteCode,
+    status: "open" as const,
+    createdBy: "Admin",
+    createdAt: new Date().toISOString(),
+    seats: [],
+    pot: 0,
+    tier: numBb <= 4 ? "low" : numBb <= 20 ? "mid" : "high",
+  };
+
+  store.pokerTables.unshift(newTable as any);
+  store.addAudit("alert", "POKER_TABLE_CREATED", `Operator created table ${newTable.name} (${newTable.feeType})`);
+  store.save();
+
+  syncBus.emitChange("rooms", "poker-table-created", { tableId, name: newTable.name });
+
+  res.json({
+    success: true,
+    table: newTable,
+    message: `Table '${newTable.name}' created successfully.`,
+  });
+});
+
+// PATCH /api/admin/poker/tables/:id - Update table settings / pause / resume
+adminRouter.patch("/poker/tables/:id", (req: Request, res: Response) => {
+  const targetId = String(req.params.id);
+  const table = store.pokerTables.find((t) => t.id === targetId);
+
+  if (!table) {
+    res.status(404).json({ success: false, error: "Table not found" });
+    return;
+  }
+
+  const { status, name, minBuyIn, maxBuyIn, rakePercent, rakeCap, handFeeAmount, tableFeeAmount } = req.body;
+  if (status && ["open", "active", "paused", "closed"].includes(status)) {
+    table.status = status;
+  }
+  if (name) table.name = String(name);
+  if (typeof minBuyIn === "number") table.minBuyIn = minBuyIn;
+  if (typeof maxBuyIn === "number") table.maxBuyIn = maxBuyIn;
+  if (typeof rakePercent === "number") table.rakePercent = rakePercent;
+  if (typeof rakeCap === "number") table.rakeCap = rakeCap;
+  if (typeof handFeeAmount === "number") table.handFeeAmount = handFeeAmount;
+  if (typeof tableFeeAmount === "number") table.tableFeeAmount = tableFeeAmount;
+
+  store.addAudit("alert", "POKER_TABLE_UPDATED", `Operator updated table ${table.name} (status: ${table.status})`);
+  store.save();
+
+  syncBus.emitChange("rooms", "poker-table-updated", { tableId: targetId, table });
+
+  res.json({
+    success: true,
+    table,
+    message: `Table '${table.name}' updated successfully.`,
+  });
+});
+
+// POST /api/admin/poker/tables/:id/close - Force close table & refund active player stacks (Section 4 & 10)
+adminRouter.post("/poker/tables/:id/close", (req: Request, res: Response) => {
+  const targetId = String(req.params.id);
+  const result = store.closePokerTable(targetId, "Admin Operator");
+
+  if (!result.success) {
+    res.status(404).json({ success: false, error: result.error });
+    return;
+  }
+
+  syncBus.emitChange("rooms", "poker-table-closed", { tableId: targetId });
+
+  res.json({
+    success: true,
+    tableId: targetId,
+    refundedCount: result.refundedCount,
+    totalRefunded: result.totalRefunded,
+    message: `Table closed. Refunded ${result.refundedCount} active players for a total of $${result.totalRefunded}.`,
+  });
+});
+
+// GET /api/admin/poker/stats - Operator poker KPIs
+adminRouter.get("/poker/stats", (_req: Request, res: Response) => {
+  const activeTables = store.pokerTables.filter((t) => t.status === "open" || t.status === "active").length;
+  const seatedPlayers = store.pokerTables.reduce((acc, t) => acc + (t.seats || []).filter((s) => Boolean(s.player)).length, 0);
+
+  const buyInsTotal = store.transactions
+    .filter((t) => t.type === "POKER_BUYIN" || t.type === "Poker Buy-in")
+    .reduce((acc, t) => acc + Math.abs(t.amount), 0);
+
+  const commissionTotal = store.transactions
+    .filter((t) => t.type === "POKER_COMMISSION" || t.type === "Poker Commission")
+    .reduce((acc, t) => acc + Math.abs(t.amount), 0);
+
+  const reconciliation = store.calculatePokerReconciliation();
+
+  res.json({
+    success: true,
+    activeTables,
+    seatedPlayers,
+    buyInsTotal,
+    commissionTotal,
+    reconciliation,
+    hierarchyRake: reconciliation.hierarchyBreakdown,
+  });
+});
+
+// GET /api/admin/poker/hands - Hand history archives
+adminRouter.get("/poker/hands", (req: Request, res: Response) => {
+  const limit = req.query.limit ? Number(req.query.limit) : 50;
+  res.json({
+    success: true,
+    count: store.pokerHands.length,
+    hands: store.pokerHands.slice(0, limit),
+  });
+});
+
+// GET /api/admin/poker/reconciliation - Single-wallet audit reconciliation invariant (Section 3 & 4)
+adminRouter.get("/poker/reconciliation", (_req: Request, res: Response) => {
+  const report = store.calculatePokerReconciliation();
+  res.json({
+    success: true,
+    ...report,
+  });
+});
+
 

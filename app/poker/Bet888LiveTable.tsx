@@ -3,7 +3,7 @@
 import React, { useEffect, useRef, useState, useCallback } from "react";
 import "./poker.css";
 import { Bet888TableSummary, CardModel } from "./poker-types";
-import { bestHand, buildDeck, cardStr, parseCard, shuffle, VARIANTS } from "./poker-engine";
+import { bestHand, buildDeck, cardStr, parseCard, shuffle, VARIANTS, evalName } from "./poker-engine";
 import { Gear, SpeakerHigh, SpeakerSimpleSlash, ChatCircleDots, List } from "@phosphor-icons/react";
 import { apiClient, type WalletTransaction } from "../api-client";
 import { subscribeLivePokerCommand } from "./poker-tables-store";
@@ -403,8 +403,8 @@ export function Bet888LiveTable({
     if (board.length >= 3) {
       try {
         const res = bestHand(hero.cards, board, VARIANTS.NLH);
-        if (res && res.name) {
-          setHeroHandName(res.name);
+        if (res) {
+          setHeroHandName(evalName(res));
         }
       } catch (_) {}
     } else {
@@ -434,6 +434,41 @@ export function Bet888LiveTable({
     }, 1000);
     return () => clearInterval(timer);
   }, [activeSeat, currentBet, stage, isTablePaused, isUserBlocked]);
+
+  // Desktop keyboard hotkeys: Section 16.3 (F = Fold, C = Check/Call, R = Raise)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const targetTag = (e.target as HTMLElement)?.tagName?.toLowerCase();
+      if (targetTag === "input" || targetTag === "textarea" || targetTag === "select") {
+        return;
+      }
+
+      if (isUserBlocked || isTablePaused || stage === "showdown" || activeSeat !== 0) {
+        return;
+      }
+
+      const hero = players[0];
+      if (!hero || hero.folded) return;
+
+      const key = e.key.toLowerCase();
+      if (key === "f") {
+        e.preventDefault();
+        handleHeroAction("fold");
+      } else if (key === "c") {
+        e.preventDefault();
+        const canCheck = hero.bet === currentBet;
+        handleHeroAction(canCheck ? "check" : "call");
+      } else if (key === "r") {
+        e.preventDefault();
+        if (hero.stack > (currentBet - hero.bet)) {
+          handleHeroAction("raise");
+        }
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [players, activeSeat, currentBet, isTablePaused, isUserBlocked, stage]);
 
   // Trigger win by fold when all other players fold
   const triggerWinByFold = useCallback((winner: TableSeatPlayer, currentPot: number) => {
@@ -508,9 +543,8 @@ export function Bet888LiveTable({
             result: {
               score: 0,
               cat: 0,
-              kick: 0,
+              kick: [2],
               cards: p.cards,
-              name: "High card",
             },
           };
         }
@@ -519,13 +553,14 @@ export function Bet888LiveTable({
       // Sort by score descending
       evaluated.sort((a, b) => b.result.score - a.result.score);
       const best = evaluated[0];
+      if (!best) return;
 
       const info: HandWinnerInfo = {
         winnerSeatNo: best.player.seatNo,
         winnerName: best.player.name,
         isHero: best.player.isHero,
         potWon: currentPot,
-        handRankName: best.result.name,
+        handRankName: evalName(best.result),
         winningCards: best.result.cards || [],
         wonByFold: false,
       };
@@ -884,7 +919,7 @@ export function Bet888LiveTable({
     if (p.cards.length < 2 || board.length < 3) return "";
     try {
       const res = bestHand(p.cards, board, VARIANTS.NLH);
-      return res?.name || "";
+      return res ? evalName(res) : "";
     } catch (_) {
       return "";
     }
@@ -1328,8 +1363,9 @@ export function Bet888LiveTable({
             className="action-btn fold-btn"
             onClick={() => handleHeroAction("fold")}
             disabled={isUserBlocked || isTablePaused || hero.folded || activeSeat !== 0 || stage === "showdown"}
+            title="Desktop shortcut: F"
           >
-            FOLD
+            <span style={{ opacity: 0.65, fontSize: "11px", marginRight: "3px" }}>[F]</span> FOLD
           </button>
 
           {canCheck ? (
@@ -1337,16 +1373,18 @@ export function Bet888LiveTable({
               className="action-btn check-btn"
               onClick={() => handleHeroAction("check")}
               disabled={isUserBlocked || isTablePaused || hero.folded || activeSeat !== 0 || stage === "showdown"}
+              title="Desktop shortcut: C"
             >
-              CHECK
+              <span style={{ opacity: 0.65, fontSize: "11px", marginRight: "3px" }}>[C]</span> CHECK
             </button>
           ) : (
             <button
               className="action-btn call-btn"
               onClick={() => handleHeroAction("call")}
               disabled={isUserBlocked || isTablePaused || hero.folded || activeSeat !== 0 || hero.stack === 0 || stage === "showdown"}
+              title="Desktop shortcut: C"
             >
-              CALL {toCall.toLocaleString()}
+              <span style={{ opacity: 0.65, fontSize: "11px", marginRight: "3px" }}>[C]</span> CALL {toCall.toLocaleString()}
             </button>
           )}
 
@@ -1354,8 +1392,9 @@ export function Bet888LiveTable({
             className="action-btn bet-btn"
             onClick={() => handleHeroAction("raise")}
             disabled={isUserBlocked || isTablePaused || hero.folded || activeSeat !== 0 || hero.stack <= toCall || stage === "showdown"}
+            title="Desktop shortcut: R"
           >
-            {currentBet === 0 ? "BET" : "RAISE"} {raiseAmount.toLocaleString()}
+            <span style={{ opacity: 0.65, fontSize: "11px", marginRight: "3px" }}>[R]</span> {currentBet === 0 ? "BET" : "RAISE"} {raiseAmount.toLocaleString()}
           </button>
 
           <button

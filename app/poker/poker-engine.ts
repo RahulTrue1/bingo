@@ -290,6 +290,8 @@ export function eval5(c: CardModel[], sd?: boolean): HandEvalResult {
   return { score, cat, kick };
 }
 
+export const evalName = (h: HandEvalResult): string => describe(h);
+
 export function describe(h: HandEvalResult): string {
   const k = h.kick;
   switch (h.cat) {

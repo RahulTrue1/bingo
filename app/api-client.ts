@@ -209,6 +209,57 @@ export interface PlayerModel {
   balance: number;
   status: string;
   restrictions?: string[];
+  poker_enabled?: boolean;
+}
+
+export interface PokerTableApiModel {
+  id: string;
+  name: string;
+  gameType: "texas_holdem";
+  sb: number;
+  bb: number;
+  minBuyIn: number;
+  maxBuyIn: number;
+  maxSeats: number;
+  feeType: "RAKE" | "HAND_FEE" | "TABLE_FEE";
+  rakePercent: number;
+  rakeCap: number;
+  handFeeAmount: number;
+  tableFeeAmount: number;
+  tableFeeIntervalMinutes: number;
+  isPrivate: boolean;
+  inviteCode?: string;
+  hasCode?: boolean;
+  status: "open" | "active" | "paused" | "closed";
+  createdBy?: string;
+  createdAt: string;
+  seats: Array<{ seatNo: number; player?: string; stack: number; bet: number; folded: boolean; sittingOut: boolean; joinedAt: string }>;
+  pot: number;
+  tier?: "micro" | "low" | "mid" | "high" | "all";
+  seatedCount?: number;
+}
+
+export interface PokerReconciliationApiModel {
+  balanced: boolean;
+  discrepancy: number;
+  timestamp: string;
+  metrics: {
+    totalBuyIns: number;
+    totalTopUps: number;
+    totalCashOuts: number;
+    totalRefunds: number;
+    totalActiveStacks: number;
+    totalCurrentPots: number;
+    totalPokerFees: number;
+  };
+  hierarchyBreakdown: {
+    shopRake: number;
+    managerRake: number;
+    agentRake: number;
+    operatorRake: number;
+  };
+  tableCount: number;
+  seatedPlayerCount: number;
 }
 
 export interface DashboardMetricModel {
@@ -853,6 +904,91 @@ export const apiClient = {
     },
     async liveControl() {
       return request<{ success: boolean; liveGames: GameStateModel[] }>("/admin/live-control");
+    },
+    async updatePlayerPokerAccess(id: string, enabled: boolean) {
+      return request<{ success: boolean; playerId: string; username: string; poker_enabled: boolean; message: string }>(
+        `/admin/players/${encodeURIComponent(id)}/poker`,
+        {
+          method: "PATCH",
+          body: JSON.stringify({ enabled }),
+        }
+      );
+    },
+    async bulkUpdatePlayerPokerAccess(playerIds: string[], enabled: boolean) {
+      return request<{ success: boolean; count: number; poker_enabled: boolean; updatedPlayers: string[]; message: string }>(
+        "/admin/players/poker/bulk",
+        {
+          method: "POST",
+          body: JSON.stringify({ playerIds, enabled }),
+        }
+      );
+    },
+    poker: {
+      async tables() {
+        return request<{ success: boolean; tables: PokerTableApiModel[]; reconciliation: PokerReconciliationApiModel }>("/admin/poker/tables");
+      },
+      async createTable(data: any) {
+        return request<{ success: boolean; table: PokerTableApiModel; message: string }>("/admin/poker/tables", {
+          method: "POST",
+          body: JSON.stringify(data),
+        });
+      },
+      async updateTable(id: string, updates: any) {
+        return request<{ success: boolean; table: PokerTableApiModel; message: string }>(`/admin/poker/tables/${encodeURIComponent(id)}`, {
+          method: "PATCH",
+          body: JSON.stringify(updates),
+        });
+      },
+      async closeTable(id: string) {
+        return request<{ success: boolean; tableId: string; refundedCount: number; totalRefunded: number; message: string }>(
+          `/admin/poker/tables/${encodeURIComponent(id)}/close`,
+          { method: "POST" }
+        );
+      },
+      async stats() {
+        return request<{ success: boolean; activeTables: number; seatedPlayers: number; buyInsTotal: number; commissionTotal: number; reconciliation: PokerReconciliationApiModel; hierarchyRake: any }>("/admin/poker/stats");
+      },
+      async hands(limit = 50) {
+        return request<{ success: boolean; count: number; hands: any[] }>(`/admin/poker/hands?limit=${limit}`);
+      },
+      async reconciliation() {
+        return request<PokerReconciliationApiModel & { success: boolean }>("/admin/poker/reconciliation");
+      },
+    },
+  },
+
+  poker: {
+    async tables() {
+      const res = await request<{ success: boolean; count: number; tables: PokerTableApiModel[] }>("/poker/tables");
+      return res?.tables ?? [];
+    },
+    async createPrivateTable(data: { name?: string; sb: number; bb: number; seats?: number; feeType?: string; minBuyIn?: number; maxBuyIn?: number }) {
+      return request<{ success: boolean; table: PokerTableApiModel; inviteCode: string; message: string }>("/poker/private-tables", {
+        method: "POST",
+        body: JSON.stringify(data),
+      });
+    },
+    async joinPrivateTable(code: string) {
+      return request<{ success: boolean; table?: PokerTableApiModel; error?: string; lockout?: boolean; remainingSeconds?: number; attemptsLeft?: number; message?: string }>("/poker/private-tables/join", {
+        method: "POST",
+        body: JSON.stringify({ code }),
+      });
+    },
+    async deletePrivateTable(id: string) {
+      return request<{ success: boolean; tableId: string; refundedCount: number; totalRefunded: number; message: string }>(`/poker/private-tables/${encodeURIComponent(id)}`, {
+        method: "DELETE",
+      });
+    },
+    async buyIn(tableId: string, amount: number, seatNo?: number) {
+      return request<{ success: boolean; balance: number; seat: any; error?: string; message: string }>(`/poker/tables/${encodeURIComponent(tableId)}/buyin`, {
+        method: "POST",
+        body: JSON.stringify({ amount, seatNo }),
+      });
+    },
+    async cashOut(tableId: string) {
+      return request<{ success: boolean; amountCashedOut: number; balance: number; error?: string; message: string }>(`/poker/tables/${encodeURIComponent(tableId)}/cashout`, {
+        method: "POST",
+      });
     },
   },
 

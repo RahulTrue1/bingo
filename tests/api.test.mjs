@@ -1283,5 +1283,231 @@ test("Admin player management: block, suspend, unblock, and fund credit reflecti
   assert.equal(creditJson.player.balance, 100 + 500);
 });
 
+// ============================================================================
+// BET888CASH POKER LIVE MODULE SPECIFICATION TEST SUITE (v1.0 Compliance)
+// ============================================================================
+
+test("Poker Spec: GET /api/poker/tables lists tables and conceals private table codes", async () => {
+  const res = await fetch(`${BASE_URL}/poker/tables`);
+  assert.equal(res.status, 200);
+  const json = await res.json();
+  assert.equal(json.success, true);
+  assert.ok(Array.isArray(json.tables));
+  assert.ok(json.tables.length >= 4);
+
+  // Verify Tirana 1/2, Prishtina 5/10, Durres 10/20, Vlora 25/50 exist
+  const tirana = json.tables.find((t) => t.id === "tbl-tirana-1-2");
+  assert.ok(tirana);
+  assert.equal(tirana.sb, 1);
+  assert.equal(tirana.bb, 2);
+  assert.equal(tirana.feeType, "RAKE");
+
+  // Invariant Section 7: private table invite codes are NEVER sent in public tables list
+  for (const t of json.tables) {
+    assert.equal(t.inviteCode, undefined);
+  }
+});
+
+test("Poker Spec: Opt-in access default poker_enabled === false & Admin access toggle", async () => {
+  const testUser = `PokerOptIn_${Date.now()}`;
+  const signupRes = await fetch(`${BASE_URL}/auth/signup`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ username: testUser, password: "Pass#12345", bonus: 500 }),
+  });
+  const signupJson = await signupRes.json();
+  const userId = signupJson.user.id;
+
+  // Invariant: poker_enabled defaults to false
+  assert.equal(signupJson.user.poker_enabled, false);
+
+  // Player with poker_enabled === false is blocked from buying in
+  const buyinBlocked = await fetch(`${BASE_URL}/poker/tables/tbl-tirana-1-2/buyin`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "x-player-username": testUser },
+    body: JSON.stringify({ amount: 100, seatNo: 3 }),
+  });
+  assert.equal(buyinBlocked.status, 403);
+  const blockedJson = await buyinBlocked.json();
+  assert.equal(blockedJson.pokerAccessDenied, true);
+
+  // Admin enables poker access via PATCH /api/admin/players/:id/poker
+  const enableRes = await fetch(`${BASE_URL}/admin/players/${userId}/poker`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ enabled: true }),
+  });
+  assert.equal(enableRes.status, 200);
+  const enableJson = await enableRes.json();
+  assert.equal(enableJson.poker_enabled, true);
+
+  // Bulk enable via POST /api/admin/players/poker/bulk
+  const bulkRes = await fetch(`${BASE_URL}/admin/players/poker/bulk`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ playerIds: [userId], enabled: true }),
+  });
+  assert.equal(bulkRes.status, 200);
+  const bulkJson = await bulkRes.json();
+  assert.equal(bulkJson.poker_enabled, true);
+  assert.equal(bulkJson.count, 1);
+});
+
+test("Poker Spec: CSPRNG 6-character code excludes 0, O, 1, I and join verification", async () => {
+  const hostUser = `HostPlayer_${Date.now()}`;
+  // Signup host
+  await fetch(`${BASE_URL}/auth/signup`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ username: hostUser, password: "Pass#12345" }),
+  });
+
+  // Create private friends table
+  const createRes = await fetch(`${BASE_URL}/poker/private-tables`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "x-player-username": hostUser },
+    body: JSON.stringify({ name: "Shoket e Klubit", sb: 5, bb: 10, seats: 6, feeType: "RAKE" }),
+  });
+  assert.equal(createRes.status, 200);
+  const createJson = await createRes.json();
+  assert.equal(createJson.success, true);
+  assert.ok(createJson.inviteCode);
+  assert.equal(createJson.inviteCode.length, 6);
+
+  // Verify CSPRNG character set: strictly ABCDEFGHJKLMNPQRSTUVWXYZ23456789 (no 0, O, 1, I)
+  const forbiddenChars = ["0", "O", "1", "I"];
+  for (const ch of forbiddenChars) {
+    assert.equal(createJson.inviteCode.includes(ch), false, `Invite code contains forbidden char '${ch}'`);
+  }
+
+  // Join with correct code
+  const joinRes = await fetch(`${BASE_URL}/poker/private-tables/join`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ code: createJson.inviteCode }),
+  });
+  assert.equal(joinRes.status, 200);
+  const joinJson = await joinRes.json();
+  assert.equal(joinJson.success, true);
+  assert.equal(joinJson.table.id, createJson.table.id);
+});
+
+test("Poker Spec: Brute-force rate limiting enforces 15-minute lockout after 10 failed attempts", async () => {
+  const attackerIp = "192.168.10.99";
+
+  // Submit 9 wrong attempts: each should return 400 with attempts left
+  for (let i = 1; i <= 9; i++) {
+    const res = await fetch(`${BASE_URL}/poker/private-tables/join`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "x-forwarded-for": attackerIp },
+      body: JSON.stringify({ code: "BAD999" }),
+    });
+    assert.equal(res.status, 400);
+    const json = await res.json();
+    assert.equal(json.attemptsLeft, 10 - i);
+  }
+
+  // 10th attempt: triggers 15-minute lockout (HTTP 429)
+  const lockedRes = await fetch(`${BASE_URL}/poker/private-tables/join`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "x-forwarded-for": attackerIp },
+    body: JSON.stringify({ code: "BAD999" }),
+  });
+  assert.equal(lockedRes.status, 429);
+  const lockedJson = await lockedRes.json();
+  assert.equal(lockedJson.lockout, true);
+  assert.ok(lockedJson.remainingSeconds > 0);
+
+  // Subsequent 11th attempt immediately blocked with 429
+  const blockedAgain = await fetch(`${BASE_URL}/poker/private-tables/join`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "x-forwarded-for": attackerIp },
+    body: JSON.stringify({ code: "BAD999" }),
+  });
+  assert.equal(blockedAgain.status, 429);
+});
+
+test("Poker Spec: Single-wallet atomic buy-in, cash-out, table close refund, and reconciliation invariant", async () => {
+  const player = `ReconPlayer_${Date.now()}`;
+  // 1. Signup with initial 1000 balance
+  const signup = await fetch(`${BASE_URL}/auth/signup`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ username: player, password: "Pass#12345", bonus: 1000 }),
+  });
+  const signupJson = await signup.json();
+  const userId = signupJson.user.id;
+
+  // 2. Enable poker access
+  await fetch(`${BASE_URL}/admin/players/${userId}/poker`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ enabled: true }),
+  });
+
+  // 3. Create operator table
+  const tableRes = await fetch(`${BASE_URL}/admin/poker/tables`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ name: "Recon Test Table", sb: 5, bb: 10, minBuyIn: 100, maxBuyIn: 1000, maxSeats: 6 }),
+  });
+  const tableJson = await tableRes.json();
+  const tableId = tableJson.table.id;
+
+  // 4. Atomic buy-in debits player wallet (POKER_BUYIN)
+  const buyinRes = await fetch(`${BASE_URL}/poker/tables/${tableId}/buyin`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "x-player-username": player },
+    body: JSON.stringify({ amount: 300, seatNo: 2 }),
+  });
+  assert.equal(buyinRes.status, 200);
+  const buyinJson = await buyinRes.json();
+  assert.equal(buyinJson.success, true);
+  assert.equal(buyinJson.balance, 700); // 1000 - 300
+
+  // 5. Atomic cash-out credits player wallet (POKER_CASHOUT)
+  const cashoutRes = await fetch(`${BASE_URL}/poker/tables/${tableId}/cashout`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "x-player-username": player },
+  });
+  assert.equal(cashoutRes.status, 200);
+  const cashoutJson = await cashoutRes.json();
+  assert.equal(cashoutJson.success, true);
+  assert.equal(cashoutJson.amountCashedOut, 300);
+  assert.equal(cashoutJson.balance, 1000); // 700 + 300
+
+  // 6. Buy in again and close table: verifies POKER_REFUND
+  await fetch(`${BASE_URL}/poker/tables/${tableId}/buyin`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "x-player-username": player },
+    body: JSON.stringify({ amount: 400, seatNo: 2 }),
+  });
+
+  const closeRes = await fetch(`${BASE_URL}/admin/poker/tables/${tableId}/close`, {
+    method: "POST",
+  });
+  assert.equal(closeRes.status, 200);
+  const closeJson = await closeRes.json();
+  assert.equal(closeJson.success, true);
+  assert.equal(closeJson.refundedCount, 1);
+  assert.equal(closeJson.totalRefunded, 400);
+
+  // Verify wallet balance restored
+  const walletRes = await fetch(`${BASE_URL}/wallet?username=${player}`);
+  const walletJson = await walletRes.json();
+  assert.equal(walletJson.balance, 1000);
+
+  // 7. Verify Reconciliation Report Invariant (Section 3 & 4)
+  const reconRes = await fetch(`${BASE_URL}/admin/poker/reconciliation`);
+  assert.equal(reconRes.status, 200);
+  const reconJson = await reconRes.json();
+  assert.equal(reconJson.success, true);
+  assert.equal(reconJson.balanced, true);
+  assert.equal(reconJson.discrepancy, 0);
+  assert.ok(reconJson.metrics.totalBuyIns >= 700);
+  assert.ok(reconJson.metrics.totalCashOuts >= 300);
+  assert.ok(reconJson.metrics.totalRefunds >= 400);
+});
+
 
 

@@ -44,13 +44,24 @@ export function PlayersTable({ openAction }: { openAction: (action: AdminAction)
     setTierFilter("All tiers");
   };
 
-  const filtered = rawRows.filter((p) => {
+  const handleTogglePoker = (id: string, currentEnabled: boolean) => {
+    const nextVal = !currentEnabled;
+    apiClient.admin.updatePlayerPokerAccess(id, nextVal).then((res) => {
+      if (res?.success) {
+        setPlayersList((prev) =>
+          prev.map((p) => (p.id === id || p.username === id ? { ...p, poker_enabled: nextVal } : p))
+        );
+      }
+    }).catch(() => {});
+  };
+
+  const filtered = playersList.filter((p) => {
     const matchSearch =
-      p[0].toLowerCase().includes(search.toLowerCase()) ||
-      p[1].toLowerCase().includes(search.toLowerCase()) ||
-      p[2].toLowerCase().includes(search.toLowerCase());
-    const matchStatus = statusFilter === "All account statuses" || p[8] === statusFilter;
-    const matchTier = tierFilter === "All tiers" || p[2] === tierFilter;
+      (p.id || "").toLowerCase().includes(search.toLowerCase()) ||
+      (p.username || "").toLowerCase().includes(search.toLowerCase()) ||
+      (p.tier || "").toLowerCase().includes(search.toLowerCase());
+    const matchStatus = statusFilter === "All account statuses" || (p.status || "Active") === statusFilter;
+    const matchTier = tierFilter === "All tiers" || (p.tier || "Standard") === tierFilter;
     return matchSearch && matchStatus && matchTier;
   });
 
@@ -123,37 +134,62 @@ export function PlayersTable({ openAction }: { openAction: (action: AdminAction)
               <th>Total entry</th>
               <th>Winnings</th>
               <th>Balance</th>
+              <th>Poker</th>
               <th>Status</th>
               <th />
             </tr>
           </thead>
           <tbody>
             {filtered.map((player) => (
-              <tr key={player[0]}>
+              <tr key={player.id}>
                 <td>
                   <div className="table-player">
-                    <span>{player[1].slice(0, 2).toUpperCase()}</span>
+                    <span>{player.username.slice(0, 2).toUpperCase()}</span>
                     <b>
-                      {player[1]}
-                      <small>{player[0]}</small>
+                      {player.username}
+                      <small>{player.id}</small>
                     </b>
                   </div>
                 </td>
-                {player.slice(2).map((cell, index) => (
-                  <td key={index}>
-                    {index === 5 ? (
-                      <span className={`table-status ${cell === "Active" ? "success" : "warning"}`}>
-                        {cell}
-                      </span>
-                    ) : index === 6 ? (
-                      <button onClick={() => openAction({ kind: "player", label: player[1] })}>
-                        View →
-                      </button>
-                    ) : (
-                      cell
-                    )}
-                  </td>
-                ))}
+                <td>{player.tier}</td>
+                <td>{player.lastLogin || "Recently"}</td>
+                <td>{player.gamesPlayed ?? 0}</td>
+                <td>${Number(player.totalEntry ?? 0).toLocaleString()}</td>
+                <td>${Number(player.winnings ?? player.totalPrizes ?? 0).toLocaleString()}</td>
+                <td>${Number(player.balance ?? 0).toLocaleString()}</td>
+                <td>
+                  <button
+                    type="button"
+                    onClick={() => handleTogglePoker(player.id, Boolean(player.poker_enabled))}
+                    style={{
+                      background: player.poker_enabled ? "rgba(34, 197, 94, 0.2)" : "rgba(148, 163, 184, 0.15)",
+                      border: `1px solid ${player.poker_enabled ? "#22c55e" : "#64748b"}`,
+                      color: player.poker_enabled ? "#4ade80" : "#94a3b8",
+                      padding: "3px 8px",
+                      borderRadius: "12px",
+                      fontSize: "11px",
+                      fontWeight: 700,
+                      cursor: "pointer",
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: "4px",
+                    }}
+                    title={player.poker_enabled ? "Poker Live aktiv - Kliko për të çaktivizuar" : "Poker Live jo aktiv - Kliko për të aktivizuar"}
+                  >
+                    <span style={{ fontSize: "9px" }}>{player.poker_enabled ? "●" : "○"}</span>
+                    {player.poker_enabled ? "Enabled" : "Disabled"}
+                  </button>
+                </td>
+                <td>
+                  <span className={`table-status ${player.status === "Active" ? "success" : "warning"}`}>
+                    {player.status}
+                  </span>
+                </td>
+                <td>
+                  <button onClick={() => openAction({ kind: "player", label: player.username })}>
+                    View →
+                  </button>
+                </td>
               </tr>
             ))}
           </tbody>
@@ -162,3 +198,4 @@ export function PlayersTable({ openAction }: { openAction: (action: AdminAction)
     </div>
   );
 }
+

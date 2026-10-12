@@ -250,6 +250,9 @@ export interface PlayerProfile {
   restrictions: string[];
   lastLogin: string;
   status: "Active" | "Restricted" | "Suspended";
+  poker_enabled?: boolean;
+  totalEntry?: number;
+  winnings?: number;
 }
 
 export interface PlatformSettings {
@@ -277,5 +280,84 @@ export interface UserSession {
   userId: string;
   createdAt: string;
   lastSeen: string;
+}
+
+export type PokerFeeType = "RAKE" | "HAND_FEE" | "TABLE_FEE";
+
+export interface PokerSeat {
+  seatNo: number;
+  player?: string;
+  stack: number;
+  bet: number;
+  folded: boolean;
+  sittingOut: boolean;
+  joinedAt: string;
+  nextFeeAt?: string;
+}
+
+export interface PokerTable {
+  id: string;
+  name: string;
+  gameType: "texas_holdem";
+  sb: number;
+  bb: number;
+  minBuyIn: number;
+  maxBuyIn: number;
+  maxSeats: number;
+  feeType: PokerFeeType;
+  rakePercent: number;
+  rakeCap: number;
+  handFeeAmount: number;
+  tableFeeAmount: number;
+  tableFeeIntervalMinutes: number;
+  isPrivate: boolean;
+  inviteCode?: string;
+  status: "open" | "active" | "paused" | "closed";
+  createdBy?: string;
+  createdAt: string;
+  seats: PokerSeat[];
+  pot: number;
+  currentHandId?: string;
+  tier?: "micro" | "low" | "mid" | "high" | "all";
+}
+
+export interface PokerHandHistory {
+  id: string;
+  tableId: string;
+  tableName: string;
+  sb: number;
+  bb: number;
+  dealerSeat: number;
+  potTotal: number;
+  rakeCollected: number;
+  handFeeCollected: number;
+  tableFeeCollected: number;
+  winners: Array<{ player: string; amount: number; handRank?: string; winningCards?: string[] }>;
+  communityCards: string[];
+  playersDealtIn: string[];
+  endedAt: string;
+}
+
+export interface PokerReconciliationReport {
+  balanced: boolean;
+  discrepancy: number;
+  timestamp: string;
+  metrics: {
+    totalBuyIns: number;
+    totalTopUps: number;
+    totalCashOuts: number;
+    totalRefunds: number;
+    totalActiveStacks: number;
+    totalCurrentPots: number;
+    totalPokerFees: number;
+  };
+  hierarchyBreakdown: {
+    shopRake: number;
+    managerRake: number;
+    agentRake: number;
+    operatorRake: number;
+  };
+  tableCount: number;
+  seatedPlayerCount: number;
 }
 

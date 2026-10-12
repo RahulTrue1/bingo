@@ -25,7 +25,10 @@ authRouter.get("/users", (_req: Request, res: Response) => {
 
 function sanitizePlayer(player: PlayerProfile) {
   const { password, ...safe } = player;
-  return safe;
+  return {
+    ...safe,
+    poker_enabled: typeof safe.poker_enabled === "boolean" ? safe.poker_enabled : false,
+  };
 }
 
 // GET /api/auth/me - Get current logged-in user profile
@@ -163,6 +166,7 @@ authRouter.post("/signup", (req: Request, res: Response) => {
     restrictions: [],
     lastLogin: "Just now",
     status: "Active",
+    poker_enabled: false,
   };
 
   const session = store.createSession(newPlayer.username, newPlayer.id);

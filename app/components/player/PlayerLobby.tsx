@@ -141,6 +141,7 @@ export function PlayerLobby({
         </div>
         <div className="lobby-section-chips">
           {[
+            ["♠", "Poker Live", "Casino & Ring Games"],
             ["●", "Live now", `${rooms.filter((r) => r.status === "Live").length} rooms`],
             ["◷", "Starting soon", `${rooms.filter((r) => r.status === "Open" || r.status === "Scheduled").length} rooms`],
             ["✦", "Jackpot Bingo", `${money(topJackpotAmount)} live`],
@@ -149,7 +150,11 @@ export function PlayerLobby({
           ].map((item) => (
             <button
               key={item[1]}
-              onClick={() =>
+              onClick={() => {
+                if (item[1] === "Poker Live") {
+                  window.location.href = "/casino";
+                  return;
+                }
                 setFilter(
                   item[1].includes("Jackpot")
                     ? "Jackpots"
@@ -158,8 +163,8 @@ export function PlayerLobby({
                       : item[1].includes("Live")
                         ? "Live now"
                         : "All games",
-                )
-              }
+                );
+              }}
             >
               <i>{item[0]}</i>
               <span>

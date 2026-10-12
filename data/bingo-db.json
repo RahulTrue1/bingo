@@ -127,10 +127,10 @@
       "status": "Selling Tickets",
       "ticketPrice": 50,
       "prize": 4836,
-      "jackpot": 125480,
-      "players": 348,
+      "jackpot": 125481.25,
+      "players": 1,
       "maxPlayers": 500,
-      "cardsSold": 1248,
+      "cardsSold": 1249,
       "startsIn": "02:18",
       "pattern": "One Line → Full House",
       "accent": "gold",
@@ -431,8 +431,251 @@
       "customRtp": true
     }
   ],
-  "wallet": 109048.5,
+  "wallet": 98,
   "transactions": [
+    {
+      "id": "TXN-232648",
+      "timestamp": "22:14:14",
+      "player": "NovaPlayer_2118",
+      "room": "Prishtina 2/5",
+      "type": "Poker Bet",
+      "amount": -14,
+      "status": "Completed"
+    },
+    {
+      "id": "TXN-389242",
+      "timestamp": "22:14:07",
+      "player": "NovaPlayer_2118",
+      "room": "Prishtina 2/5",
+      "type": "Poker Bet",
+      "amount": -5,
+      "status": "Completed"
+    },
+    {
+      "id": "TXN-892064",
+      "timestamp": "22:10:33",
+      "player": "NovaPlayer_2118",
+      "room": "Mega Trueig Jackpot",
+      "type": "Ticket purchase",
+      "amount": -50,
+      "status": "Completed"
+    },
+    {
+      "id": "TXN-731399",
+      "timestamp": "22:07:21",
+      "player": "Rahul",
+      "room": "Prizren 1/2 Heads-Up",
+      "type": "Poker Bet",
+      "amount": -206,
+      "status": "Completed"
+    },
+    {
+      "id": "TXN-360834",
+      "timestamp": "22:07:13",
+      "player": "Rahul",
+      "room": "Prizren 1/2 Heads-Up",
+      "type": "Poker Win",
+      "amount": 10,
+      "status": "Completed"
+    },
+    {
+      "id": "TXN-637557",
+      "timestamp": "22:07:11",
+      "player": "Rahul",
+      "room": "Prizren 1/2 Heads-Up",
+      "type": "Poker Bet",
+      "amount": -4,
+      "status": "Completed"
+    },
+    {
+      "id": "TXN-602768",
+      "timestamp": "22:05:47",
+      "player": "Rahul",
+      "room": "Prizren 1/2 Heads-Up",
+      "type": "Poker Win",
+      "amount": 7,
+      "status": "Completed"
+    },
+    {
+      "id": "TXN-373590",
+      "timestamp": "22:05:45",
+      "player": "Rahul",
+      "room": "Prizren 1/2 Heads-Up",
+      "type": "Poker Bet",
+      "amount": -4,
+      "status": "Completed"
+    },
+    {
+      "id": "TXN-990306",
+      "timestamp": "22:05:03",
+      "player": "Rahul",
+      "room": "Prizren 1/2 Heads-Up",
+      "type": "Poker Win",
+      "amount": 8,
+      "status": "Completed"
+    },
+    {
+      "id": "TXN-169447",
+      "timestamp": "22:05:01",
+      "player": "Rahul",
+      "room": "Prizren 1/2 Heads-Up",
+      "type": "Poker Bet",
+      "amount": -4,
+      "status": "Completed"
+    },
+    {
+      "id": "TXN-186519",
+      "timestamp": "22:04:53",
+      "player": "Rahul",
+      "room": "Prizren 1/2 Heads-Up",
+      "type": "Poker Bet",
+      "amount": -2,
+      "status": "Completed"
+    },
+    {
+      "id": "TXN-568888",
+      "timestamp": "22:04:14",
+      "player": "Ari.R",
+      "room": "Prizren 1/2 Heads-Up",
+      "type": "Poker Bet",
+      "amount": -2,
+      "status": "Completed"
+    },
+    {
+      "id": "TXN-589667",
+      "timestamp": "22:04:12",
+      "player": "NovaPlayer_2118",
+      "room": "Prizren 1/2 Heads-Up",
+      "type": "Poker Bet",
+      "amount": -2,
+      "status": "Completed"
+    },
+    {
+      "id": "TXN-487845",
+      "timestamp": "22:04:06",
+      "player": "Ari.R",
+      "room": "Prizren 1/2 Heads-Up",
+      "type": "Poker Win",
+      "amount": 8,
+      "status": "Completed"
+    },
+    {
+      "id": "TXN-160589",
+      "timestamp": "22:04:04",
+      "player": "Ari.R",
+      "room": "Prizren 1/2 Heads-Up",
+      "type": "Poker Bet",
+      "amount": -2,
+      "status": "Completed"
+    },
+    {
+      "id": "TXN-193565",
+      "timestamp": "22:00:00",
+      "player": "Ari.R",
+      "room": "Micro NLH 0.01/0.02",
+      "type": "Poker Win",
+      "amount": 0.12,
+      "status": "Completed"
+    },
+    {
+      "id": "TXN-800995",
+      "timestamp": "21:59:56",
+      "player": "Ari.R",
+      "room": "Micro NLH 0.01/0.02",
+      "type": "Poker Bet",
+      "amount": -0.039999999999999994,
+      "status": "Completed"
+    },
+    {
+      "id": "TXN-484143",
+      "timestamp": "21:59:50",
+      "player": "Ari.R",
+      "room": "Micro NLH 0.01/0.02",
+      "type": "Poker Bet",
+      "amount": -0.02,
+      "status": "Completed"
+    },
+    {
+      "id": "TXN-689499",
+      "timestamp": "21:55:16",
+      "player": "Ari.R",
+      "room": "Monaco Elite 100/200",
+      "type": "Poker Win",
+      "amount": 2300,
+      "status": "Completed"
+    },
+    {
+      "id": "TXN-928230",
+      "timestamp": "21:55:11",
+      "player": "Ari.R",
+      "room": "Monaco Elite 100/200",
+      "type": "Poker Bet",
+      "amount": -400,
+      "status": "Completed"
+    },
+    {
+      "id": "TXN-757149",
+      "timestamp": "21:55:07",
+      "player": "Ari.R",
+      "room": "Monaco Elite 100/200",
+      "type": "Poker Bet",
+      "amount": -400,
+      "status": "Completed"
+    },
+    {
+      "id": "TXN-587790",
+      "timestamp": "21:55:01",
+      "player": "Ari.R",
+      "room": "Monaco Elite 100/200",
+      "type": "Poker Bet",
+      "amount": -400,
+      "status": "Completed"
+    },
+    {
+      "id": "TXN-321261",
+      "timestamp": "21:54:48",
+      "player": "Ari.R",
+      "room": "Monaco Elite 100/200",
+      "type": "Poker Bet",
+      "amount": -200,
+      "status": "Completed"
+    },
+    {
+      "id": "TXN-369724",
+      "timestamp": "21:42:50",
+      "player": "Ari.R",
+      "room": "Gjakova 5/10",
+      "type": "Poker Win",
+      "amount": 50,
+      "status": "Completed"
+    },
+    {
+      "id": "TXN-949540",
+      "timestamp": "21:42:48",
+      "player": "Ari.R",
+      "room": "Gjakova 5/10",
+      "type": "Poker Bet",
+      "amount": -20,
+      "status": "Completed"
+    },
+    {
+      "id": "TXN-928275",
+      "timestamp": "21:42:42",
+      "player": "Ari.R",
+      "room": "Gjakova 5/10",
+      "type": "Poker Win",
+      "amount": 80,
+      "status": "Completed"
+    },
+    {
+      "id": "TXN-543000",
+      "timestamp": "21:42:35",
+      "player": "Ari.R",
+      "room": "Gjakova 5/10",
+      "type": "Poker Bet",
+      "amount": -20,
+      "status": "Completed"
+    },
     {
       "id": "TXN-810727",
       "timestamp": "22:35:46",
@@ -3011,10 +3254,20 @@
     },
     "mega-jackpot": {
       "roomId": "mega-jackpot",
-      "phase": "selling",
+      "phase": "live",
       "countdown": 5,
-      "called": [],
-      "current": null,
+      "called": [
+        42,
+        72,
+        12,
+        40,
+        47,
+        7,
+        18,
+        54,
+        39
+      ],
+      "current": 39,
       "speed": "Fast",
       "paused": false,
       "stageIndex": 0,
@@ -3448,6 +3701,118 @@
     }
   },
   "tickets": [
+    {
+      "id": "TCK-187732",
+      "ticketIndex": 0,
+      "roomId": "mega-jackpot",
+      "userId": "USR-27684",
+      "player": "NovaPlayer_2118",
+      "variant": "75-Ball Progressive",
+      "cells": [
+        {
+          "value": 4,
+          "column": "B"
+        },
+        {
+          "value": 24,
+          "column": "I"
+        },
+        {
+          "value": 44,
+          "column": "N"
+        },
+        {
+          "value": 49,
+          "column": "G"
+        },
+        {
+          "value": 69,
+          "column": "O"
+        },
+        {
+          "value": 11,
+          "column": "B"
+        },
+        {
+          "value": 16,
+          "column": "I"
+        },
+        {
+          "value": 36,
+          "column": "N"
+        },
+        {
+          "value": 56,
+          "column": "G"
+        },
+        {
+          "value": 61,
+          "column": "O"
+        },
+        {
+          "value": 3,
+          "column": "B"
+        },
+        {
+          "value": 23,
+          "column": "I"
+        },
+        {
+          "value": "FREE",
+          "column": "N"
+        },
+        {
+          "value": 48,
+          "column": "G"
+        },
+        {
+          "value": 68,
+          "column": "O"
+        },
+        {
+          "value": 10,
+          "column": "B"
+        },
+        {
+          "value": 30,
+          "column": "I"
+        },
+        {
+          "value": 35,
+          "column": "N"
+        },
+        {
+          "value": 55,
+          "column": "G"
+        },
+        {
+          "value": 75,
+          "column": "O"
+        },
+        {
+          "value": 2,
+          "column": "B"
+        },
+        {
+          "value": 22,
+          "column": "I"
+        },
+        {
+          "value": 42,
+          "column": "N"
+        },
+        {
+          "value": 47,
+          "column": "G"
+        },
+        {
+          "value": 67,
+          "column": "O"
+        }
+      ],
+      "daubed": [],
+      "purchasedAt": "2026-10-12T16:40:33.451Z"
+    },
     {
       "id": "TCK-955956",
       "ticketIndex": 0,
@@ -19309,7 +19674,7 @@
       "id": "mega-trueig",
       "name": "Mega Trueig Jackpot",
       "variant": "75-Ball Progressive",
-      "currentAmount": 127480.6,
+      "currentAmount": 127481.85,
       "startingAmount": 50000,
       "maximumAmount": 250000,
       "resetAmount": 50000,
@@ -19322,6 +19687,12 @@
         "diamond-75"
       ],
       "history": [
+        {
+          "type": "Ticket contribution",
+          "amount": 1.25,
+          "time": "10:10 PM",
+          "user": "NovaPlayer_2118"
+        },
         {
           "type": "Manual adjustment",
           "amount": 1000,
@@ -20294,7 +20665,8 @@
       "lastLogin": "Just now",
       "status": "Active",
       "password": "QueenBingo#2026",
-      "totalEntry": 56.5
+      "totalEntry": 56.5,
+      "poker_enabled": false
     },
     {
       "id": "USR-09814",
@@ -20308,22 +20680,24 @@
       "restrictions": [],
       "lastLogin": "Just now",
       "status": "Active",
-      "password": "MikaWin#2026"
+      "password": "MikaWin#2026",
+      "poker_enabled": false
     },
     {
       "id": "USR-11804",
       "username": "Ari.R",
       "tier": "Standard",
-      "balance": 109048.5,
+      "balance": 110042.56,
       "gamesPlayed": 128,
       "cardsPurchased": 400,
-      "wins": 23,
-      "totalPrizes": 10540,
+      "wins": 28,
+      "totalPrizes": 12978.12,
       "restrictions": [],
       "lastLogin": "Just now",
       "status": "Active",
       "password": "demo123",
-      "totalEntry": 490
+      "totalEntry": 490,
+      "poker_enabled": false
     },
     {
       "id": "USR-07226",
@@ -20341,7 +20715,8 @@
       "lastLogin": "Just now",
       "status": "Restricted",
       "totalEntry": 30,
-      "password": "RiskItAll#77"
+      "password": "RiskItAll#77",
+      "poker_enabled": false
     },
     {
       "id": "USR-68648",
@@ -20350,16 +20725,17 @@
       "email": "rahul@trueigtech.com",
       "joinedDate": "Sep 19, 2026",
       "tier": "Standard",
-      "balance": 55,
+      "balance": 0,
       "gamesPlayed": 0,
       "cardsPurchased": 11,
-      "wins": 0,
-      "totalPrizes": 0,
+      "wins": 3,
+      "totalPrizes": 25,
       "restrictions": [],
       "lastLogin": "Just now",
       "status": "Active",
       "totalEntry": 67,
-      "password": "RahulSecretPass@77"
+      "password": "RahulSecretPass@77",
+      "poker_enabled": false
     },
     {
       "id": "USR-58063",
@@ -20377,7 +20753,8 @@
       "lastLogin": "Just now",
       "status": "Active",
       "password": "demo123",
-      "totalEntry": 22
+      "totalEntry": 22,
+      "poker_enabled": false
     },
     {
       "id": "USR-27684",
@@ -20386,15 +20763,17 @@
       "email": "novaplayer_2118@trueigtech.com",
       "joinedDate": "Sep 19, 2026",
       "tier": "Standard",
-      "balance": 100,
+      "balance": 29,
       "gamesPlayed": 0,
-      "cardsPurchased": 0,
+      "cardsPurchased": 1,
       "wins": 0,
       "totalPrizes": 0,
       "restrictions": [],
       "lastLogin": "Just now",
       "status": "Active",
-      "password": "demo123"
+      "password": "demo123",
+      "poker_enabled": false,
+      "totalEntry": 50
     },
     {
       "id": "USR-33290",
@@ -20411,7 +20790,8 @@
       "restrictions": [],
       "lastLogin": "Just now",
       "status": "Active",
-      "password": "demo123"
+      "password": "demo123",
+      "poker_enabled": false
     },
     {
       "id": "USR-44839",
@@ -20429,7 +20809,8 @@
       "lastLogin": "Just now",
       "status": "Active",
       "totalEntry": 6,
-      "password": "demo123"
+      "password": "demo123",
+      "poker_enabled": false
     },
     {
       "id": "USR-37175",
@@ -20447,7 +20828,8 @@
       "lastLogin": "Just now",
       "status": "Active",
       "totalEntry": 6,
-      "password": "demo123"
+      "password": "demo123",
+      "poker_enabled": false
     },
     {
       "id": "USR-22034",
@@ -20465,7 +20847,8 @@
       "lastLogin": "Just now",
       "status": "Active",
       "totalEntry": 88,
-      "password": "RahulSecretPass@77"
+      "password": "RahulSecretPass@77",
+      "poker_enabled": false
     },
     {
       "id": "USR-30800",
@@ -20483,7 +20866,8 @@
       "lastLogin": "Just now",
       "status": "Active",
       "password": "RahulSecretPass@77",
-      "totalEntry": 146
+      "totalEntry": 146,
+      "poker_enabled": false
     },
     {
       "id": "USR-99125",
@@ -20500,7 +20884,8 @@
       "totalPrizes": 0,
       "restrictions": [],
       "lastLogin": "Just now",
-      "status": "Active"
+      "status": "Active",
+      "poker_enabled": false
     },
     {
       "id": "USR-45005",
@@ -20517,7 +20902,8 @@
       "totalPrizes": 0,
       "restrictions": [],
       "lastLogin": "Just now",
-      "status": "Active"
+      "status": "Active",
+      "poker_enabled": false
     },
     {
       "id": "USR-32285",
@@ -20534,7 +20920,8 @@
       "totalPrizes": 3600,
       "restrictions": [],
       "lastLogin": "Just now",
-      "status": "Active"
+      "status": "Active",
+      "poker_enabled": false
     },
     {
       "id": "USR-29218",
@@ -20551,7 +20938,8 @@
       "totalPrizes": 0,
       "restrictions": [],
       "lastLogin": "Just now",
-      "status": "Active"
+      "status": "Active",
+      "poker_enabled": false
     },
     {
       "id": "USR-95304",
@@ -20568,7 +20956,8 @@
       "totalPrizes": 0,
       "restrictions": [],
       "lastLogin": "Just now",
-      "status": "Active"
+      "status": "Active",
+      "poker_enabled": false
     },
     {
       "id": "USR-94766",
@@ -20586,7 +20975,8 @@
       "restrictions": [],
       "lastLogin": "Just now",
       "status": "Active",
-      "totalEntry": 20
+      "totalEntry": 20,
+      "poker_enabled": false
     },
     {
       "id": "USR-52778",
@@ -20603,7 +20993,8 @@
       "totalPrizes": 0,
       "restrictions": [],
       "lastLogin": "Just now",
-      "status": "Active"
+      "status": "Active",
+      "poker_enabled": false
     },
     {
       "id": "USR-84011",
@@ -20621,7 +21012,8 @@
       "restrictions": [],
       "lastLogin": "Just now",
       "status": "Active",
-      "totalEntry": 1.5
+      "totalEntry": 1.5,
+      "poker_enabled": false
     }
   ],
   "settings": {
@@ -20643,6 +21035,195 @@
     "updatedBy": "Super Admin"
   },
   "auditFeed": [
+    {
+      "id": "feed-1791823454549",
+      "type": "player",
+      "title": "Poker Bet",
+      "detail": "NovaPlayer_2118 wagered $14.00 at Prishtina 2/5 (Hand #2912) - Raise €14",
+      "time": "22:14"
+    },
+    {
+      "id": "feed-1791823447469",
+      "type": "player",
+      "title": "Poker Bet",
+      "detail": "NovaPlayer_2118 wagered $5.00 at Prishtina 2/5 (Hand #2912) - Call €5",
+      "time": "22:14"
+    },
+    {
+      "id": "feed-1791823233482",
+      "type": "player",
+      "title": "Tickets purchased",
+      "detail": "1 card bought for Mega Trueig Jackpot ($50.00) by NovaPlayer_2118",
+      "time": "22:10"
+    },
+    {
+      "id": "feed-1791823041120",
+      "type": "player",
+      "title": "Poker Bet",
+      "detail": "Rahul wagered $206.00 at Prizren 1/2 Heads-Up (Hand #8311) - All-in €206",
+      "time": "22:07"
+    },
+    {
+      "id": "feed-1791823033346",
+      "type": "player",
+      "title": "Poker Win",
+      "detail": "Rahul won $10.00 at Prizren 1/2 Heads-Up (Hand #8309) - Won by all folds",
+      "time": "22:07"
+    },
+    {
+      "id": "feed-1791823031948",
+      "type": "player",
+      "title": "Poker Bet",
+      "detail": "Rahul wagered $4.00 at Prizren 1/2 Heads-Up (Hand #8309) - Raise €4",
+      "time": "22:07"
+    },
+    {
+      "id": "feed-1791822947100",
+      "type": "player",
+      "title": "Poker Win",
+      "detail": "Rahul won $7.00 at Prizren 1/2 Heads-Up (Hand #8313) - Won by all folds",
+      "time": "22:05"
+    },
+    {
+      "id": "feed-1791822945947",
+      "type": "player",
+      "title": "Poker Bet",
+      "detail": "Rahul wagered $4.00 at Prizren 1/2 Heads-Up (Hand #8313) - Raise €4",
+      "time": "22:05"
+    },
+    {
+      "id": "feed-1791822903763",
+      "type": "player",
+      "title": "Poker Win",
+      "detail": "Rahul won $8.00 at Prizren 1/2 Heads-Up (Hand #8309) - Won by all folds",
+      "time": "22:05"
+    },
+    {
+      "id": "feed-1791822901781",
+      "type": "player",
+      "title": "Poker Bet",
+      "detail": "Rahul wagered $4.00 at Prizren 1/2 Heads-Up (Hand #8309) - Raise €4",
+      "time": "22:05"
+    },
+    {
+      "id": "feed-1791822893751",
+      "type": "player",
+      "title": "Poker Bet",
+      "detail": "Rahul wagered $2.00 at Prizren 1/2 Heads-Up (Hand #8309) - Call €2",
+      "time": "22:04"
+    },
+    {
+      "id": "feed-1791822854547",
+      "type": "player",
+      "title": "Poker Bet",
+      "detail": "Ari.R wagered $2.00 at Prizren 1/2 Heads-Up (Hand #8311) - Call €2",
+      "time": "22:04"
+    },
+    {
+      "id": "feed-1791822852960",
+      "type": "player",
+      "title": "Poker Bet",
+      "detail": "NovaPlayer_2118 wagered $2.00 at Prizren 1/2 Heads-Up (Hand #8309) - Call €2",
+      "time": "22:04"
+    },
+    {
+      "id": "feed-1791822846066",
+      "type": "player",
+      "title": "Poker Win",
+      "detail": "Ari.R won $8.00 at Prizren 1/2 Heads-Up (Hand #8309) - Won by all folds",
+      "time": "22:04"
+    },
+    {
+      "id": "feed-1791822844168",
+      "type": "player",
+      "title": "Poker Bet",
+      "detail": "Ari.R wagered $2.00 at Prizren 1/2 Heads-Up (Hand #8309) - Call €2",
+      "time": "22:04"
+    },
+    {
+      "id": "feed-1791822600803",
+      "type": "player",
+      "title": "Poker Win",
+      "detail": "Ari.R won $0.12 at Micro NLH 0.01/0.02 (Hand #5318) - Won by all folds",
+      "time": "22:00"
+    },
+    {
+      "id": "feed-1791822596946",
+      "type": "player",
+      "title": "Poker Bet",
+      "detail": "Ari.R wagered $0.04 at Micro NLH 0.01/0.02 (Hand #5318) - Call €0.039999999999999994",
+      "time": "21:59"
+    },
+    {
+      "id": "feed-1791822590158",
+      "type": "player",
+      "title": "Poker Bet",
+      "detail": "Ari.R wagered $0.02 at Micro NLH 0.01/0.02 (Hand #5318) - Call €0.02",
+      "time": "21:59"
+    },
+    {
+      "id": "feed-1791822316658",
+      "type": "player",
+      "title": "Poker Win",
+      "detail": "Ari.R won $2300.00 at Monaco Elite 100/200 (Hand #3853) - Won by all folds",
+      "time": "21:55"
+    },
+    {
+      "id": "feed-1791822311445",
+      "type": "player",
+      "title": "Poker Bet",
+      "detail": "Ari.R wagered $400.00 at Monaco Elite 100/200 (Hand #3853) - Raise €400",
+      "time": "21:55"
+    },
+    {
+      "id": "feed-1791822307032",
+      "type": "player",
+      "title": "Poker Bet",
+      "detail": "Ari.R wagered $400.00 at Monaco Elite 100/200 (Hand #3853) - Call €400",
+      "time": "21:55"
+    },
+    {
+      "id": "feed-1791822301362",
+      "type": "player",
+      "title": "Poker Bet",
+      "detail": "Ari.R wagered $400.00 at Monaco Elite 100/200 (Hand #3853) - Raise €400",
+      "time": "21:55"
+    },
+    {
+      "id": "feed-1791822288220",
+      "type": "player",
+      "title": "Poker Bet",
+      "detail": "Ari.R wagered $200.00 at Monaco Elite 100/200 (Hand #3853) - Call €200",
+      "time": "21:54"
+    },
+    {
+      "id": "feed-1791821570809",
+      "type": "player",
+      "title": "Poker Win",
+      "detail": "Ari.R won $50.00 at Gjakova 5/10 (Hand #3798) - Won by all folds",
+      "time": "21:42"
+    },
+    {
+      "id": "feed-1791821568827",
+      "type": "player",
+      "title": "Poker Bet",
+      "detail": "Ari.R wagered $20.00 at Gjakova 5/10 (Hand #3798) - Call €20",
+      "time": "21:42"
+    },
+    {
+      "id": "feed-1791821562656",
+      "type": "player",
+      "title": "Poker Win",
+      "detail": "Ari.R won $80.00 at Gjakova 5/10 (Hand #3796) - Won by all folds",
+      "time": "21:42"
+    },
+    {
+      "id": "feed-1791821555850",
+      "type": "player",
+      "title": "Poker Bet",
+      "detail": "Ari.R wagered $20.00 at Gjakova 5/10 (Hand #3796) - Call €20",
+      "time": "21:42"
+    },
     {
       "id": "feed-1791738346622",
       "type": "player",
@@ -20803,195 +21384,6 @@
       "title": "Poker Bet",
       "detail": "Ari.R wagered $500.00 at VIP Private Friends Club (Hand #2487) - Call €500",
       "time": "21:18"
-    },
-    {
-      "id": "feed-1791216126735",
-      "type": "alert",
-      "title": "Room updated",
-      "detail": "Trueig 910Classic settings modified (Ticket: $100, Prize: $200)",
-      "time": "21:32"
-    },
-    {
-      "id": "feed-1791216077081",
-      "type": "alert",
-      "title": "Round restarted",
-      "detail": "Game round reset in trueig-90",
-      "time": "21:31"
-    },
-    {
-      "id": "feed-1791216075184",
-      "type": "claim",
-      "title": "Bingo claim validated",
-      "detail": "Trueig 910Classic · RahulRahulGame_331 won $4188 on Full House",
-      "time": "21:31"
-    },
-    {
-      "id": "feed-1791216056684",
-      "type": "player",
-      "title": "Tickets purchased",
-      "detail": "1 card bought for Trueig 910Classic ($100.00) by RahulRahulGame_331",
-      "time": "21:30"
-    },
-    {
-      "id": "feed-1791216043737",
-      "type": "alert",
-      "title": "Room updated",
-      "detail": "Trueig Pattern Arena settings modified (Ticket: $100, Prize: $580)",
-      "time": "21:30"
-    },
-    {
-      "id": "feed-1791216037516",
-      "type": "alert",
-      "title": "Room updated",
-      "detail": "Mega Trueig Jackpot settings modified (Ticket: $50, Prize: $4836)",
-      "time": "21:30"
-    },
-    {
-      "id": "feed-1791216032938",
-      "type": "alert",
-      "title": "Room updated",
-      "detail": "Diamond 75 settings modified (Ticket: $20, Prize: $1500)",
-      "time": "21:30"
-    },
-    {
-      "id": "feed-1791216023668",
-      "type": "alert",
-      "title": "Room updated",
-      "detail": "Trueig 910Classic settings modified (Ticket: $100, Prize: $5688)",
-      "time": "21:30"
-    },
-    {
-      "id": "feed-1791215975401",
-      "type": "alert",
-      "title": "Round restarted",
-      "detail": "Game round reset in diamond-75",
-      "time": "21:29"
-    },
-    {
-      "id": "feed-1791215971433",
-      "type": "claim",
-      "title": "Bingo claim validated",
-      "detail": "Diamond 75 · RahulRahulGame_331 won $1000 on Diamond",
-      "time": "21:29"
-    },
-    {
-      "id": "feed-1791215949002",
-      "type": "player",
-      "title": "Tickets purchased",
-      "detail": "1 card bought for Diamond 75 ($2.00) by RahulRahulGame_331",
-      "time": "21:29"
-    },
-    {
-      "id": "feed-1791215926232",
-      "type": "alert",
-      "title": "Round restarted",
-      "detail": "Game round reset in diamond-75",
-      "time": "21:28"
-    },
-    {
-      "id": "feed-1791215922110",
-      "type": "claim",
-      "title": "Bingo claim validated",
-      "detail": "Diamond 75 · RahulRahulGame_331 won $1000 on Diamond",
-      "time": "21:28"
-    },
-    {
-      "id": "feed-1791215899833",
-      "type": "player",
-      "title": "Tickets purchased",
-      "detail": "8 cards bought for Diamond 75 ($16.00) by RahulRahulGame_331",
-      "time": "21:28"
-    },
-    {
-      "id": "feed-1791215887787",
-      "type": "player",
-      "title": "Tickets purchased",
-      "detail": "8 cards bought for Diamond 75 ($16.00) by RahulRahulGame_331",
-      "time": "21:28"
-    },
-    {
-      "id": "feed-1791215876634",
-      "type": "alert",
-      "title": "Round restarted",
-      "detail": "Game round reset in diamond-75",
-      "time": "21:27"
-    },
-    {
-      "id": "feed-1791215865599",
-      "type": "claim",
-      "title": "Bingo claim validated",
-      "detail": "Diamond 75 · RahulRahulGame_331 won $1000 on Diamond",
-      "time": "21:27"
-    },
-    {
-      "id": "feed-1791215842202",
-      "type": "player",
-      "title": "Tickets purchased",
-      "detail": "1 card bought for Diamond 75 ($2.00) by RahulRahulGame_331",
-      "time": "21:27"
-    },
-    {
-      "id": "feed-1791215823210",
-      "type": "alert",
-      "title": "Round restarted",
-      "detail": "Game round reset in diamond-75",
-      "time": "21:27"
-    },
-    {
-      "id": "feed-1791215820357",
-      "type": "claim",
-      "title": "Bingo claim validated",
-      "detail": "Diamond 75 · RahulRahulGame_331 won $1000 on Diamond",
-      "time": "21:27"
-    },
-    {
-      "id": "feed-1791215797004",
-      "type": "player",
-      "title": "Tickets purchased",
-      "detail": "1 card bought for Diamond 75 ($2.00) by RahulRahulGame_331",
-      "time": "21:26"
-    },
-    {
-      "id": "feed-1791215790495",
-      "type": "alert",
-      "title": "Round restarted",
-      "detail": "Game round reset in diamond-75",
-      "time": "21:26"
-    },
-    {
-      "id": "feed-1791215788656",
-      "type": "claim",
-      "title": "Bingo claim validated",
-      "detail": "Diamond 75 · RahulRahulGame_331 won $1000 on Diamond",
-      "time": "21:26"
-    },
-    {
-      "id": "feed-1791215736411",
-      "type": "alert",
-      "title": "Banner created",
-      "detail": "Banner \"Weekend Super Cup 1\" added to lobby",
-      "time": "21:25"
-    },
-    {
-      "id": "feed-1791215721948",
-      "type": "alert",
-      "title": "Banner created",
-      "detail": "Banner \"Weekend Super Cup\" added to lobby",
-      "time": "21:25"
-    },
-    {
-      "id": "feed-1791215650625",
-      "type": "player",
-      "title": "Tickets purchased",
-      "detail": "1 card bought for Diamond 75 ($2.00) by RahulRahulGame_331",
-      "time": "21:24"
-    },
-    {
-      "id": "feed-1791215645859",
-      "type": "player",
-      "title": "Promotion claimed",
-      "detail": "Ari.R claimed Happy Hour Bingo",
-      "time": "21:24"
     }
   ],
   "sessions": {
@@ -21280,7 +21672,147 @@
       "username": "Ari.R",
       "userId": "USR-11804",
       "createdAt": "2026-10-11T15:58:08.277Z",
-      "lastSeen": "2026-10-11T17:05:46.621Z"
+      "lastSeen": "2026-10-12T16:34:01.757Z"
+    },
+    "tig_sess_rguj9mqs_1791822849479": {
+      "token": "tig_sess_rguj9mqs_1791822849479",
+      "username": "NovaPlayer_2118",
+      "userId": "USR-27684",
+      "createdAt": "2026-10-12T16:34:09.479Z",
+      "lastSeen": "2026-10-12T16:34:41.844Z"
+    },
+    "tig_sess_ohf3a3nc_1791822889854": {
+      "token": "tig_sess_ohf3a3nc_1791822889854",
+      "username": "Rahul",
+      "userId": "USR-68648",
+      "createdAt": "2026-10-12T16:34:49.854Z",
+      "lastSeen": "2026-10-12T16:37:21.119Z"
+    },
+    "tig_sess_91qtumy2_1791823068894": {
+      "token": "tig_sess_91qtumy2_1791823068894",
+      "username": "NovaPlayer_2118",
+      "userId": "USR-27684",
+      "createdAt": "2026-10-12T16:37:48.894Z",
+      "lastSeen": "2026-10-12T16:44:14.549Z"
     }
+  },
+  "pokerTables": [
+    {
+      "id": "tbl-tirana-1-2",
+      "name": "Tirana 1/2",
+      "gameType": "texas_holdem",
+      "sb": 1,
+      "bb": 2,
+      "minBuyIn": 40,
+      "maxBuyIn": 400,
+      "maxSeats": 6,
+      "feeType": "RAKE",
+      "rakePercent": 5,
+      "rakeCap": 10,
+      "handFeeAmount": 0,
+      "tableFeeAmount": 0,
+      "tableFeeIntervalMinutes": 30,
+      "isPrivate": false,
+      "status": "open",
+      "createdAt": "2026-10-12T16:24:17.030Z",
+      "seats": [],
+      "pot": 0,
+      "tier": "low"
+    },
+    {
+      "id": "tbl-prishtina-5-10",
+      "name": "Prishtina 5/10",
+      "gameType": "texas_holdem",
+      "sb": 5,
+      "bb": 10,
+      "minBuyIn": 200,
+      "maxBuyIn": 2000,
+      "maxSeats": 6,
+      "feeType": "RAKE",
+      "rakePercent": 5,
+      "rakeCap": 25,
+      "handFeeAmount": 0,
+      "tableFeeAmount": 0,
+      "tableFeeIntervalMinutes": 30,
+      "isPrivate": false,
+      "status": "open",
+      "createdAt": "2026-10-12T16:24:17.030Z",
+      "seats": [],
+      "pot": 0,
+      "tier": "mid"
+    },
+    {
+      "id": "tbl-durres-10-20",
+      "name": "Durrës 10/20",
+      "gameType": "texas_holdem",
+      "sb": 10,
+      "bb": 20,
+      "minBuyIn": 400,
+      "maxBuyIn": 4000,
+      "maxSeats": 6,
+      "feeType": "HAND_FEE",
+      "rakePercent": 0,
+      "rakeCap": 0,
+      "handFeeAmount": 2,
+      "tableFeeAmount": 0,
+      "tableFeeIntervalMinutes": 30,
+      "isPrivate": false,
+      "status": "open",
+      "createdAt": "2026-10-12T16:24:17.030Z",
+      "seats": [],
+      "pot": 0,
+      "tier": "mid"
+    },
+    {
+      "id": "tbl-vlora-25-50",
+      "name": "Vlora 25/50",
+      "gameType": "texas_holdem",
+      "sb": 25,
+      "bb": 50,
+      "minBuyIn": 1000,
+      "maxBuyIn": 10000,
+      "maxSeats": 6,
+      "feeType": "TABLE_FEE",
+      "rakePercent": 0,
+      "rakeCap": 0,
+      "handFeeAmount": 0,
+      "tableFeeAmount": 20,
+      "tableFeeIntervalMinutes": 30,
+      "isPrivate": false,
+      "status": "open",
+      "createdAt": "2026-10-12T16:24:17.030Z",
+      "seats": [],
+      "pot": 0,
+      "tier": "high"
+    },
+    {
+      "id": "tbl-gjakova-50-100",
+      "name": "Gjakova 50/100",
+      "gameType": "texas_holdem",
+      "sb": 50,
+      "bb": 100,
+      "minBuyIn": 2000,
+      "maxBuyIn": 20000,
+      "maxSeats": 9,
+      "feeType": "RAKE",
+      "rakePercent": 4.5,
+      "rakeCap": 50,
+      "handFeeAmount": 0,
+      "tableFeeAmount": 0,
+      "tableFeeIntervalMinutes": 30,
+      "isPrivate": false,
+      "status": "open",
+      "createdAt": "2026-10-12T16:24:17.030Z",
+      "seats": [],
+      "pot": 0,
+      "tier": "high"
+    }
+  ],
+  "pokerHands": [],
+  "pokerRakeStats": {
+    "shopRake": 0,
+    "managerRake": 0,
+    "agentRake": 0,
+    "operatorRake": 0
   }
 }

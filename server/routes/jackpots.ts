@@ -362,8 +362,8 @@ jackpotsRouter.delete("/:id", (req: Request, res: Response) => {
   syncBus.emitChange(
     "jackpots",
     "delete",
-    { id: req.params.id, name: removed.name },
-    req.params.id,
+    { id: String(req.params.id), name: removed.name },
+    String(req.params.id),
     `Jackpot "${removed.name}" was deleted.`
   );
 
