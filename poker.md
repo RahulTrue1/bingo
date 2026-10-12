@@ -425,8 +425,10 @@ The Cash Game Lobby is the central meeting place for players:
 2. **View Modes**:
    * **Group View**: Cards grouped by stake tier with average pot, hands per hour, and waitlist counters.
    * **Table Grid View**: Compact tabular display with real-time seats occupied and commission tags.
-3. **Private Games with Friends**:
-   * Any player or club manager can enter a 6-character private room code (e.g., `7KJ8P9`) to instantly join private clubs.
+3. **Private Games with Friends (Passcode Protected)**:
+   * **Hidden Codes on Cards**: Private table cards never expose the invite code on the card or in the preview pane; they display a sleek `🔒 PRIVATE TABLE · CODE REQUIRED` locked badge.
+   * **Interactive Passcode Modal**: Clicking anywhere on a private table card, "PLAY NOW", or "Open Table" immediately opens an interactive **Private Table Access Modal**, prompting the player to enter the secret 6-character invite code (e.g. `7KJ8P9`). Only entering the correct code unlocks and launches the table.
+   * **Quick Join by Code**: Players who already know their code can also use the top header input to jump directly into the game.
 4. **Create Table Modal**:
    * Players and operators can spawn custom tables on the fly, selecting blinds, buy-in ranges, seat limits, and public/private privacy.
 

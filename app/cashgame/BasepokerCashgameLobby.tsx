@@ -54,6 +54,11 @@ export default function BasepokerCashgameLobby() {
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [blockedAlert, setBlockedAlert] = useState<string | null>(null);
 
+  // Private Table Passcode Modal State
+  const [privateTableToUnlock, setPrivateTableToUnlock] = useState<BasepokerTableItem | null>(null);
+  const [privateCodeInput, setPrivateCodeInput] = useState("");
+  const [privateCodeError, setPrivateCodeError] = useState("");
+
   const isCurrentUserBlocked = useMemo(() => {
     if (!currentUser) return false;
     return (
@@ -171,8 +176,42 @@ export default function BasepokerCashgameLobby() {
       return;
     }
     const target = tables.find((t) => t.id === tableId);
-    const code = target?.inviteCode || target?.id || tableId;
+    if (!target) return;
+
+    // If private table, do not enter directly: prompt for invite code
+    if (target.isPrivate) {
+      setPrivateTableToUnlock(target);
+      setPrivateCodeInput("");
+      setPrivateCodeError("");
+      return;
+    }
+
+    const code = target.inviteCode || target.id || tableId;
     router.push(`/holdem/tables?code=${encodeURIComponent(code)}`);
+  };
+
+  // Submit Private Table Passcode
+  const handleUnlockPrivateTable = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!privateTableToUnlock) return;
+    const cleanInput = privateCodeInput.trim().toUpperCase();
+    const actualCode = (privateTableToUnlock.inviteCode || "").trim().toUpperCase();
+
+    if (!cleanInput) {
+      setPrivateCodeError("Please enter the invite code.");
+      return;
+    }
+
+    if (cleanInput === actualCode) {
+      const target = privateTableToUnlock;
+      const code = target.inviteCode || target.id;
+      setPrivateTableToUnlock(null);
+      setPrivateCodeInput("");
+      setPrivateCodeError("");
+      router.push(`/holdem/tables?code=${encodeURIComponent(code)}`);
+    } else {
+      setPrivateCodeError("Incorrect code. Please enter the valid table code to join.");
+    }
   };
 
   // Join by Invite Code
@@ -404,10 +443,10 @@ export default function BasepokerCashgameLobby() {
                     </span>
                   </div>
 
-                  {/* Private Code Banner */}
-                  {tbl.isPrivate && tbl.inviteCode && (
-                    <div className="bp-card-private-code">
-                      <span>CODE: <b>{tbl.inviteCode}</b></span>
+                  {/* Private Table Lock Indicator (Code hidden, prompt on click) */}
+                  {tbl.isPrivate && (
+                    <div className="bp-card-private-code is-locked">
+                      <span>🔒 <b>PRIVATE TABLE</b> · CODE REQUIRED</span>
                     </div>
                   )}
 
@@ -634,10 +673,10 @@ export default function BasepokerCashgameLobby() {
                     <span className="lbl">Current Seated:</span>
                     <span className="val">{selectedTable.seatsOccupied} Players</span>
                   </div>
-                  {selectedTable.isPrivate && selectedTable.inviteCode && (
+                  {selectedTable.isPrivate && (
                     <div className="bp-detail-row highlight-code">
-                      <span className="lbl">Private Invite Code:</span>
-                      <span className="val code">{selectedTable.inviteCode}</span>
+                      <span className="lbl">Access:</span>
+                      <span className="val code" style={{ color: "#c084fc" }}>🔒 Private (Code Required)</span>
                     </div>
                   )}
                 </div>
@@ -725,6 +764,89 @@ export default function BasepokerCashgameLobby() {
         currentUser={currentUser}
         onAuthSuccess={handleAuthSuccess}
       />
+
+      {/* ================= PRIVATE TABLE PASSCODE PROMPT MODAL ================= */}
+      {privateTableToUnlock && (
+        <div
+          className="bp-modal-overlay"
+          onClick={() => {
+            setPrivateTableToUnlock(null);
+            setPrivateCodeInput("");
+            setPrivateCodeError("");
+          }}
+        >
+          <div className="bp-unlock-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="bp-unlock-header">
+              <div className="bp-unlock-icon">🔒</div>
+              <div className="bp-unlock-title-box">
+                <h3 className="bp-unlock-title">Private Table Access</h3>
+                <span className="bp-unlock-sub">
+                  {privateTableToUnlock.name} • €{privateTableToUnlock.sb}/€{privateTableToUnlock.bb} NLH
+                </span>
+              </div>
+              <button
+                type="button"
+                className="bp-unlock-close"
+                onClick={() => {
+                  setPrivateTableToUnlock(null);
+                  setPrivateCodeInput("");
+                  setPrivateCodeError("");
+                }}
+              >
+                ×
+              </button>
+            </div>
+
+            <form onSubmit={handleUnlockPrivateTable} className="bp-unlock-form">
+              <p className="bp-unlock-desc">
+                This table is private. Please enter the invite code provided by the table host to join.
+              </p>
+
+              <div className="bp-unlock-input-wrap">
+                <label htmlFor="private-table-code-input" className="bp-unlock-label">
+                  Table Invite Code
+                </label>
+                <input
+                  id="private-table-code-input"
+                  type="text"
+                  className="bp-unlock-input"
+                  placeholder="e.g. 7KJ8P9"
+                  maxLength={12}
+                  autoFocus
+                  value={privateCodeInput}
+                  onChange={(e) => {
+                    setPrivateCodeInput(e.target.value.toUpperCase());
+                    if (privateCodeError) setPrivateCodeError("");
+                  }}
+                />
+              </div>
+
+              {privateCodeError && (
+                <div className="bp-unlock-error">
+                  <span>⚠️ {privateCodeError}</span>
+                </div>
+              )}
+
+              <div className="bp-unlock-actions">
+                <button
+                  type="button"
+                  className="bp-unlock-cancel-btn"
+                  onClick={() => {
+                    setPrivateTableToUnlock(null);
+                    setPrivateCodeInput("");
+                    setPrivateCodeError("");
+                  }}
+                >
+                  Cancel
+                </button>
+                <button type="submit" className="bp-unlock-submit-btn">
+                  Unlock & Join
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* ================= INLINE STYLES ================= */}
       <style jsx>{`
@@ -1117,13 +1239,222 @@ export default function BasepokerCashgameLobby() {
         }
 
         .bp-card-private-code {
-          background: rgba(246, 189, 73, 0.15);
-          border: 1px dashed #f6bd49;
+          background: rgba(246, 189, 73, 0.12);
+          border: 1px dashed rgba(246, 189, 73, 0.5);
           border-radius: 6px;
-          padding: 4px 8px;
+          padding: 6px 10px;
           font-size: 11px;
           color: #f6bd49;
           text-align: center;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 6px;
+          letter-spacing: 0.5px;
+          transition: all 0.2s ease;
+        }
+
+        .bp-card-private-code.is-locked {
+          background: rgba(168, 85, 247, 0.15);
+          border: 1px dashed #a855f7;
+          color: #e9d5ff;
+        }
+
+        .bp-card-private-code.is-locked:hover {
+          background: rgba(168, 85, 247, 0.25);
+          border-color: #c084fc;
+        }
+
+        /* Private Table Passcode Modal */
+        .bp-modal-overlay {
+          position: fixed;
+          inset: 0;
+          background: rgba(0, 0, 0, 0.82);
+          backdrop-filter: blur(8px);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          z-index: 99999;
+          padding: 20px;
+        }
+
+        .bp-unlock-modal {
+          background: linear-gradient(180deg, #1f153a 0%, #100b24 100%);
+          border: 1px solid rgba(168, 85, 247, 0.45);
+          border-radius: 18px;
+          max-width: 440px;
+          width: 100%;
+          box-shadow: 0 24px 60px rgba(0, 0, 0, 0.75), 0 0 40px rgba(168, 85, 247, 0.25);
+          overflow: hidden;
+          animation: bpModalPop 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @keyframes bpModalPop {
+          0% {
+            transform: scale(0.94);
+            opacity: 0;
+          }
+          100% {
+            transform: scale(1);
+            opacity: 1;
+          }
+        }
+
+        .bp-unlock-header {
+          display: flex;
+          align-items: center;
+          gap: 14px;
+          padding: 18px 22px;
+          border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+          background: rgba(255, 255, 255, 0.02);
+        }
+
+        .bp-unlock-icon {
+          width: 42px;
+          height: 42px;
+          border-radius: 12px;
+          background: rgba(168, 85, 247, 0.2);
+          border: 1px solid rgba(168, 85, 247, 0.4);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 20px;
+          flex-shrink: 0;
+        }
+
+        .bp-unlock-title-box {
+          flex: 1;
+        }
+
+        .bp-unlock-title {
+          margin: 0;
+          font-size: 16px;
+          font-weight: 800;
+          color: #ffffff;
+        }
+
+        .bp-unlock-sub {
+          font-size: 12px;
+          color: #c4b5fd;
+          font-weight: 500;
+        }
+
+        .bp-unlock-close {
+          background: transparent;
+          border: none;
+          color: #928ca7;
+          font-size: 24px;
+          cursor: pointer;
+          line-height: 1;
+          padding: 4px;
+          transition: color 0.15s;
+        }
+
+        .bp-unlock-close:hover {
+          color: #ffffff;
+        }
+
+        .bp-unlock-form {
+          padding: 22px;
+          display: flex;
+          flex-direction: column;
+          gap: 16px;
+        }
+
+        .bp-unlock-desc {
+          margin: 0;
+          font-size: 13px;
+          line-height: 1.5;
+          color: #a5a2bb;
+        }
+
+        .bp-unlock-input-wrap {
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+        }
+
+        .bp-unlock-label {
+          font-size: 11px;
+          font-weight: 700;
+          color: #e2e0ed;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+        }
+
+        .bp-unlock-input {
+          width: 100%;
+          background: #090616;
+          border: 1.5px solid rgba(168, 85, 247, 0.4);
+          border-radius: 10px;
+          padding: 12px 16px;
+          font-size: 16px;
+          font-weight: 800;
+          color: #f6bd49;
+          letter-spacing: 2px;
+          text-transform: uppercase;
+          outline: none;
+          transition: all 0.2s ease;
+          box-sizing: border-box;
+        }
+
+        .bp-unlock-input:focus {
+          border-color: #a855f7;
+          box-shadow: 0 0 16px rgba(168, 85, 247, 0.35);
+          background: #0d0822;
+        }
+
+        .bp-unlock-error {
+          background: rgba(239, 68, 68, 0.15);
+          border: 1px solid rgba(239, 68, 68, 0.4);
+          color: #fca5a5;
+          font-size: 12px;
+          padding: 10px 12px;
+          border-radius: 8px;
+          font-weight: 600;
+        }
+
+        .bp-unlock-actions {
+          display: flex;
+          align-items: center;
+          justify-content: flex-end;
+          gap: 10px;
+          margin-top: 6px;
+        }
+
+        .bp-unlock-cancel-btn {
+          background: rgba(255, 255, 255, 0.06);
+          border: 1px solid rgba(255, 255, 255, 0.12);
+          color: #d1cddb;
+          padding: 10px 18px;
+          border-radius: 8px;
+          font-size: 13px;
+          font-weight: 700;
+          cursor: pointer;
+          transition: all 0.2s;
+        }
+
+        .bp-unlock-cancel-btn:hover {
+          background: rgba(255, 255, 255, 0.12);
+          color: #fff;
+        }
+
+        .bp-unlock-submit-btn {
+          background: linear-gradient(135deg, #7868ff 0%, #a855f7 100%);
+          border: none;
+          color: #ffffff;
+          padding: 10px 22px;
+          border-radius: 8px;
+          font-size: 13px;
+          font-weight: 800;
+          cursor: pointer;
+          box-shadow: 0 4px 14px rgba(120, 104, 255, 0.4);
+          transition: all 0.2s;
+        }
+
+        .bp-unlock-submit-btn:hover {
+          transform: translateY(-1px);
+          box-shadow: 0 6px 20px rgba(168, 85, 247, 0.5);
         }
 
         /* Mini Oval Felt */
