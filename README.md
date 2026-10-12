@@ -17,6 +17,7 @@ A modern, high-performance, dynamic multiplayer Bingo platform built with **Next
   - [`API_DOCUMENTATION.md`](./API_DOCUMENTATION.md): Complete REST API specification with copy-paste `curl` commands.
   - [`AUTH_WALLET_PLAYER_SYSTEM.md`](./AUTH_WALLET_PLAYER_SYSTEM.md): User authentication modal, dynamic player profile, Backoffice player directory, and real-time operator wallet management.
   - [`TOURNAMENT_SYSTEM.md`](./TOURNAMENT_SYSTEM.md): 5-stage tournament elimination engine and operator bracket controls.
+  - [`poker.md`](./poker.md) / [`POKER_DOCUMENTATION.md`](./POKER_DOCUMENTATION.md): Comprehensive guide to BET888CASH live poker engine, 6 poker variants, provably fair cryptography, player lobbies, and operator backoffice.
 
 ---
 

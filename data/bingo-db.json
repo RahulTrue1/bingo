@@ -431,8 +431,98 @@
       "customRtp": true
     }
   ],
-  "wallet": 108898.5,
+  "wallet": 109048.5,
   "transactions": [
+    {
+      "id": "TXN-810727",
+      "timestamp": "22:35:46",
+      "player": "Ari.R",
+      "room": "Prishtina 2/5",
+      "type": "Poker Bet",
+      "amount": -5,
+      "status": "Completed"
+    },
+    {
+      "id": "TXN-150754",
+      "timestamp": "22:30:53",
+      "player": "Ari.R",
+      "room": "Backoffice Admin",
+      "type": "Deposit",
+      "amount": 25,
+      "status": "Completed"
+    },
+    {
+      "id": "TXN-749746",
+      "timestamp": "22:30:43",
+      "player": "MikaK",
+      "room": "Backoffice Admin",
+      "type": "Deposit",
+      "amount": 25,
+      "status": "Completed"
+    },
+    {
+      "id": "TXN-547527",
+      "timestamp": "22:26:05",
+      "player": "Ari.R",
+      "room": "Gjakova 5/10",
+      "type": "Poker Win",
+      "amount": 80,
+      "status": "Completed"
+    },
+    {
+      "id": "TXN-383323",
+      "timestamp": "22:26:04",
+      "player": "Ari.R",
+      "room": "Gjakova 5/10",
+      "type": "Poker Bet",
+      "amount": -20,
+      "status": "Completed"
+    },
+    {
+      "id": "TXN-439180",
+      "timestamp": "22:10:43",
+      "player": "Ari.R",
+      "room": "Gjakova 5/10",
+      "type": "Poker Win",
+      "amount": 80,
+      "status": "Completed"
+    },
+    {
+      "id": "TXN-781703",
+      "timestamp": "22:10:29",
+      "player": "Ari.R",
+      "room": "Gjakova 5/10",
+      "type": "Poker Bet",
+      "amount": -20,
+      "status": "Completed"
+    },
+    {
+      "id": "TXN-955500",
+      "timestamp": "22:05:54",
+      "player": "Ari.R",
+      "room": "Gjakova 5/10",
+      "type": "Poker Win",
+      "amount": 50,
+      "status": "Completed"
+    },
+    {
+      "id": "TXN-232894",
+      "timestamp": "22:05:53",
+      "player": "Ari.R",
+      "room": "Gjakova 5/10",
+      "type": "Poker Bet",
+      "amount": -20,
+      "status": "Completed"
+    },
+    {
+      "id": "TXN-191390",
+      "timestamp": "22:05:43",
+      "player": "Ari.R",
+      "room": "Gjakova 5/10",
+      "type": "Poker Bet",
+      "amount": -20,
+      "status": "Completed"
+    },
     {
       "id": "TXN-910891",
       "timestamp": "21:27:08",
@@ -20210,7 +20300,7 @@
       "id": "USR-09814",
       "username": "MikaK",
       "tier": "Standard",
-      "balance": 4820,
+      "balance": 4845,
       "gamesPlayed": 420,
       "cardsPurchased": 1100,
       "wins": 48,
@@ -20224,11 +20314,11 @@
       "id": "USR-11804",
       "username": "Ari.R",
       "tier": "Standard",
-      "balance": 108898.5,
+      "balance": 109048.5,
       "gamesPlayed": 128,
       "cardsPurchased": 400,
-      "wins": 20,
-      "totalPrizes": 10330,
+      "wins": 23,
+      "totalPrizes": 10540,
       "restrictions": [],
       "lastLogin": "Just now",
       "status": "Active",
@@ -20554,6 +20644,76 @@
   },
   "auditFeed": [
     {
+      "id": "feed-1791738346622",
+      "type": "player",
+      "title": "Poker Bet",
+      "detail": "Ari.R wagered $5.00 at Prishtina 2/5 (Hand #2912) - Call €5",
+      "time": "22:35"
+    },
+    {
+      "id": "feed-1791738053323",
+      "type": "player",
+      "title": "Admin wallet credit",
+      "detail": "Operator added +$25.00 to Ari.R (Poker chips balance credit)",
+      "time": "22:30"
+    },
+    {
+      "id": "feed-1791738043589",
+      "type": "player",
+      "title": "Admin wallet credit",
+      "detail": "Operator added +$25.00 to MikaK (Poker chips balance credit)",
+      "time": "22:30"
+    },
+    {
+      "id": "feed-1791737765872",
+      "type": "player",
+      "title": "Poker Win",
+      "detail": "Ari.R won $80.00 at Gjakova 5/10 (Hand #3796) - Won by all folds",
+      "time": "22:26"
+    },
+    {
+      "id": "feed-1791737764354",
+      "type": "player",
+      "title": "Poker Bet",
+      "detail": "Ari.R wagered $20.00 at Gjakova 5/10 (Hand #3796) - Call €20",
+      "time": "22:26"
+    },
+    {
+      "id": "feed-1791736843255",
+      "type": "player",
+      "title": "Poker Win",
+      "detail": "Ari.R won $80.00 at Gjakova 5/10 (Hand #3796) - Won by all folds",
+      "time": "22:10"
+    },
+    {
+      "id": "feed-1791736829151",
+      "type": "player",
+      "title": "Poker Bet",
+      "detail": "Ari.R wagered $20.00 at Gjakova 5/10 (Hand #3796) - Call €20",
+      "time": "22:10"
+    },
+    {
+      "id": "feed-1791736554431",
+      "type": "player",
+      "title": "Poker Win",
+      "detail": "Ari.R won $50.00 at Gjakova 5/10 (Hand #3798) - Won by all folds",
+      "time": "22:05"
+    },
+    {
+      "id": "feed-1791736553227",
+      "type": "player",
+      "title": "Poker Bet",
+      "detail": "Ari.R wagered $20.00 at Gjakova 5/10 (Hand #3798) - Call €20",
+      "time": "22:05"
+    },
+    {
+      "id": "feed-1791736543912",
+      "type": "player",
+      "title": "Poker Bet",
+      "detail": "Ari.R wagered $20.00 at Gjakova 5/10 (Hand #3796) - Call €20",
+      "time": "22:05"
+    },
+    {
       "id": "feed-1791734228934",
       "type": "player",
       "title": "Poker Win",
@@ -20832,76 +20992,6 @@
       "title": "Promotion claimed",
       "detail": "Ari.R claimed Happy Hour Bingo",
       "time": "21:24"
-    },
-    {
-      "id": "feed-1791215622146",
-      "type": "player",
-      "title": "Tickets purchased",
-      "detail": "1 card bought for Free Bingo Party ($0.00) by RahulRahulGame_331",
-      "time": "21:23"
-    },
-    {
-      "id": "feed-1791215584289",
-      "type": "alert",
-      "title": "Round restarted",
-      "detail": "Game round reset in diamond-75",
-      "time": "21:23"
-    },
-    {
-      "id": "feed-1791215583495",
-      "type": "claim",
-      "title": "Bingo claim validated",
-      "detail": "Diamond 75 · RahulRahulGame_331 won $1000 on Diamond",
-      "time": "21:23"
-    },
-    {
-      "id": "feed-1791215561377",
-      "type": "player",
-      "title": "Tickets purchased",
-      "detail": "1 card bought for Diamond 75 ($2.00) by RahulRahulGame_331",
-      "time": "21:22"
-    },
-    {
-      "id": "feed-1791215556564",
-      "type": "player",
-      "title": "Promotion claimed",
-      "detail": "Ari.R claimed Happy Hour Bingo",
-      "time": "21:22"
-    },
-    {
-      "id": "feed-1791215544294",
-      "type": "alert",
-      "title": "Round restarted",
-      "detail": "Game round reset in free-party",
-      "time": "21:22"
-    },
-    {
-      "id": "feed-1791215406178",
-      "type": "alert",
-      "title": "Round restarted",
-      "detail": "Game round reset in diamond-75",
-      "time": "21:20"
-    },
-    {
-      "id": "feed-1791215404551",
-      "type": "claim",
-      "title": "Bingo claim validated",
-      "detail": "Diamond 75 · RahulRahulGame_331 won $1000 on Diamond",
-      "time": "21:20"
-    },
-    {
-      "id": "feed-1791215378780",
-      "type": "player",
-      "title": "Tickets purchased",
-      "detail": "1 card bought for Diamond 75 ($2.00) by RahulRahulGame_331",
-      "time": "21:19"
-    },
-    {
-      "id": "feed-1791215299132",
-      "type": "alert",
-      "title": "Round restarted",
-      "detail": "Game round reset in diamond-75",
-      "time": "21:18"
     }
   ],
   "sessions": {
@@ -21190,7 +21280,7 @@
       "username": "Ari.R",
       "userId": "USR-11804",
       "createdAt": "2026-10-11T15:58:08.277Z",
-      "lastSeen": "2026-10-11T15:58:08.350Z"
+      "lastSeen": "2026-10-11T17:05:46.621Z"
     }
   }
 }
