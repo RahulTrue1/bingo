@@ -341,6 +341,16 @@ export default function BasepokerHoldemTablesView() {
             <span>Cash Game Lobby</span>
           </Link>
 
+          <Link
+            href="/poker-guide"
+            className="bp-btn-back-lobby"
+            title="Read Rules & How to Play"
+            style={{ color: "#f6bd49", borderColor: "rgba(246, 189, 73, 0.35)", background: "rgba(246, 189, 73, 0.08)" }}
+          >
+            <span>📖</span>
+            <span>Poker Guide</span>
+          </Link>
+
           <div className="bp-sep" />
 
           {/* Multi-Table Tabs */}

@@ -294,6 +294,30 @@ export default function BasepokerCashgameLobby() {
               Play live poker against players in real-time. Choose your stakes from Micro to High Roller,
               or create your own private table for friends.
             </p>
+            {/* <div style={{ marginTop: 14 }}>
+              <Link
+                href="/poker-guide"
+                className="bp-guide-link"
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 8,
+                  background: "rgba(120, 104, 255, 0.18)",
+                  border: "1px solid rgba(120, 104, 255, 0.4)",
+                  color: "#e2d9ff",
+                  padding: "8px 16px",
+                  borderRadius: 8,
+                  fontSize: 13,
+                  fontWeight: 800,
+                  textDecoration: "none",
+                  transition: "all 0.2s",
+                }}
+              >
+                <span>📖</span>
+                <span>How Poker Works &amp; Rules Guide</span>
+                <span style={{ color: "#f6bd49" }}>→</span>
+              </Link>
+            </div> */}
           </div>
 
           <div className="bp-hero-stats">

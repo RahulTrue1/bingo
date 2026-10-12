@@ -89,6 +89,7 @@ npm run dev
 | **Multi-Table Live Arena** | [`http://localhost:3000/holdem/tables`](http://localhost:3000/holdem/tables) | Active gameplay view with side-by-side table tabs, seat positions, and interactive betting felt. |
 | **Direct Table Deep-Link** | `http://localhost:3000/holdem/tables?code=<tableId_or_inviteCode>` | Direct link to open and sit at any specific table or private club game. |
 | **Poker Quick Redirect** | [`http://localhost:3000/poker`](http://localhost:3000/poker) | Convenient shortcut redirecting straight to `/cashgame`. |
+| **Interactive Poker Guide** | [`http://localhost:3000/poker-guide`](http://localhost:3000/poker-guide) | Dedicated visual guide with interactive hand rankings, 5-round hand flow, betting actions, and private tables. |
 | **Operator Backoffice** | [`http://localhost:3000/poker-backoffice`](http://localhost:3000/poker-backoffice) | Management console for tables, players, live controls, transactions, and commission models. |
 
 ---
