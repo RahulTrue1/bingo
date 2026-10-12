@@ -1,14 +1,14 @@
 "use client";
 
-import React, { useEffect, useRef, useState, useCallback } from "react";
+import React, { useEffect, useRef, useState, useCallback, useMemo } from "react";
 import "./poker.css";
 import { Bet888TableSummary, CardModel } from "./poker-types";
 import { bestHand, buildDeck, cardStr, parseCard, shuffle, VARIANTS, evalName } from "./poker-engine";
 import { Gear, SpeakerHigh, SpeakerSimpleSlash, ChatCircleDots, List } from "@phosphor-icons/react";
 import { apiClient, type WalletTransaction } from "../api-client";
-import { subscribeLivePokerCommand } from "./poker-tables-store";
+import { subscribeLivePokerCommand, sendLivePokerCommand } from "./poker-tables-store";
 
-interface TableSeatPlayer {
+export interface TableSeatPlayer {
   seatNo: number;
   name: string;
   avatarColor: string;
@@ -21,16 +21,37 @@ interface TableSeatPlayer {
   lastAction: string;
 }
 
-interface Bet888LiveTableProps {
+export interface LiveTableTelemetry {
+  stage: string;
+  pot: number;
+  currentBet: number;
+  activeSeat: number;
+  players: TableSeatPlayer[];
+  board: CardModel[];
+  handNo: number;
+  isTablePaused: boolean;
+}
+
+export function suitSymbol(s: number): string {
+  return ["♠", "♥", "♦", "♣"][s] || "♠";
+}
+
+export function rankLabel(r: number): string {
+  return r === 14 ? "A" : r === 13 ? "K" : r === 12 ? "Q" : r === 11 ? "J" : String(r);
+}
+
+export interface Bet888LiveTableProps {
   table: Bet888TableSummary;
   onLeaveTable: (cashedOutStack?: number) => void;
   walletBalance: number;
   userName?: string;
   embedded?: boolean;
+  operatorMode?: boolean;
   onDeductBuyIn?: (amount: number) => void;
   onCreditCashOut?: (amount: number) => void;
   isUserBlocked?: boolean;
   onWalletChange?: (newBalance: number) => void;
+  onTableStateChange?: (state: LiveTableTelemetry) => void;
 }
 
 // Web Audio sound synthesizer for instant zero-dependency sound effects
@@ -173,6 +194,15 @@ export interface HandWinnerInfo {
   wonByFold?: boolean;
 }
 
+function getResolvedPlayerName(userName?: string): string {
+  if (userName && userName !== "You" && userName !== "Hero") return userName;
+  if (typeof window !== "undefined") {
+    const stored = apiClient.auth.getStoredUsername();
+    if (stored) return stored;
+  }
+  return "Ari.R";
+}
+
 function initializeTableState(table: Bet888TableSummary, walletBalance: number, userName: string) {
   // Deterministic seed based on table ID to give each table unique cards and state
   const str = `${table.id || "table"}-${table.name || "cash"}`;
@@ -219,10 +249,11 @@ function initializeTableState(table: Bet888TableSummary, walletBalance: number, 
     deck.pop() || { r: 11, s: 1 },
   ];
 
+  const resolvedHeroName = getResolvedPlayerName(userName);
   const players: TableSeatPlayer[] = [];
   players.push({
     seatNo: 0,
-    name: userName,
+    name: resolvedHeroName,
     avatarColor: "#B08A3E",
     isHero: true,
     stack: heroInitialStack,
@@ -271,10 +302,12 @@ export function Bet888LiveTable({
   walletBalance,
   userName = "You",
   embedded = false,
+  operatorMode = false,
   onDeductBuyIn,
   onCreditCashOut,
   isUserBlocked = false,
   onWalletChange,
+  onTableStateChange,
 }: Bet888LiveTableProps) {
   // Live reactive wallet state
   const [currentWallet, setCurrentWallet] = useState<number>(walletBalance);
@@ -309,10 +342,15 @@ export function Bet888LiveTable({
   const [pot, setPot] = useState(init.pot);
   const [currentBet, setCurrentBet] = useState(init.currentBet);
   const [activeSeat, setActiveSeat] = useState<number>(0); // 0 is Hero
-  const [actionTimeLeft, setActionTimeLeft] = useState(20);
+  const [actionTimeLeft, setActionTimeLeft] = useState(15);
+  const [actionTimeLimit, setActionTimeLimit] = useState(15);
   const [heroHandName, setHeroHandName] = useState("One pair");
   const [soundMuted, setSoundMuted] = useState(false);
   const [isTablePaused, setIsTablePaused] = useState(table.status === "paused");
+
+  useEffect(() => {
+    setIsTablePaused(table.status === "paused");
+  }, [table.status]);
   const [menuOpen, setMenuOpen] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
   const [chatOpen, setChatOpen] = useState(false);
@@ -332,6 +370,18 @@ export function Bet888LiveTable({
 
   // Players seated
   const [players, setPlayers] = useState<TableSeatPlayer[]>(init.players);
+
+  // Effective active user name: prioritize prop, fallback to stored session user
+  const effectiveUsername = useMemo(() => {
+    return getResolvedPlayerName(userName);
+  }, [userName]);
+
+  // Synchronize player 0's name with effectiveUsername whenever it changes
+  useEffect(() => {
+    setPlayers((prev) =>
+      prev.map((p) => (p.isHero ? { ...p, name: effectiveUsername } : p))
+    );
+  }, [effectiveUsername]);
 
   // Deal Next Hand with randomized deck
   const handleDealNextHand = useCallback(() => {
@@ -396,6 +446,22 @@ export function Bet888LiveTable({
     return () => clearInterval(timer);
   }, [stage, winnerInfo, handleDealNextHand]);
 
+  // Dispatch real-time table state to parent backoffice supervisor
+  useEffect(() => {
+    if (onTableStateChange) {
+      onTableStateChange({
+        stage,
+        pot,
+        currentBet,
+        activeSeat,
+        players,
+        board,
+        handNo,
+        isTablePaused,
+      });
+    }
+  }, [stage, pot, currentBet, activeSeat, players, board, handNo, isTablePaused, onTableStateChange]);
+
   // Calculate live hand evaluation for Hero
   useEffect(() => {
     const hero = players.find((p) => p.isHero);
@@ -427,13 +493,13 @@ export function Bet888LiveTable({
           if (activeSeat === 0 && !isUserBlocked && !isTablePaused) {
             handleHeroAction(currentBet === 0 ? "check" : "fold");
           }
-          return 20;
+          return actionTimeLimit;
         }
         return prev - 1;
       });
     }, 1000);
     return () => clearInterval(timer);
-  }, [activeSeat, currentBet, stage, isTablePaused, isUserBlocked]);
+  }, [activeSeat, currentBet, stage, isTablePaused, isUserBlocked, actionTimeLimit]);
 
   // Desktop keyboard hotkeys: Section 16.3 (F = Fold, C = Check/Call, R = Raise)
   useEffect(() => {
@@ -633,24 +699,34 @@ export function Bet888LiveTable({
       const match =
         !cmd.tableId ||
         cmd.tableId === "all" ||
-        cmd.tableId === table.id ||
-        (table.inviteCode && cmd.tableId === table.inviteCode);
+        cmd.tableId.toLowerCase() === table.id.toLowerCase() ||
+        (table.inviteCode && cmd.tableId.toLowerCase() === table.inviteCode.toLowerCase()) ||
+        (table.name && cmd.tableId.toLowerCase() === table.name.toLowerCase());
       if (!match) return;
 
       if (cmd.action === "pause") {
         setIsTablePaused(true);
       } else if (cmd.action === "resume") {
         setIsTablePaused(false);
+      } else if (cmd.action === "set_speed" && typeof cmd.speed === "number") {
+        setActionTimeLimit(cmd.speed);
+        setActionTimeLeft(cmd.speed);
       } else if (cmd.action === "next_street") {
         advanceStreet();
       } else if (cmd.action === "reset_hand") {
         handleDealNextHand();
       } else if (cmd.action === "set_pot" && typeof cmd.pot === "number") {
         setPot(cmd.pot);
+      } else if (cmd.action === "stand") {
+        if (typeof cmd.seat === "number") {
+          setPlayers((prev) => prev.filter((p) => p.seatNo !== cmd.seat));
+        } else {
+          setPlayers((prev) => prev.map((p) => p.isHero ? { ...p, folded: true } : p));
+        }
       }
     });
     return unsub;
-  }, [table.id, table.inviteCode, advanceStreet, handleDealNextHand]);
+  }, [table.id, table.inviteCode, table.name, advanceStreet, handleDealNextHand]);
 
   const advanceTurn = useCallback(() => {
     if (stage === "showdown") return;
@@ -679,6 +755,67 @@ export function Bet888LiveTable({
   useEffect(() => {
     if (stage === "showdown") return;
     if (activeSeat === 0) {
+      if (operatorMode) {
+        // In operator supervision mode: Seat 0 acts automatically so the table never freezes
+        const actingHero = players.find((p) => p.isHero && !p.folded);
+        if (!actingHero) {
+          advanceTurn();
+          return;
+        }
+        const heroDelay = setTimeout(() => {
+          const decisionRoll = Math.random();
+          if (currentBet > 0 && decisionRoll < 0.2) {
+            audio.playCheck();
+            const updated = players.map((p) =>
+              p.isHero ? { ...p, folded: true, lastAction: "FOLD" } : p
+            );
+            setPlayers(updated);
+            const alive = updated.filter((p) => !p.folded);
+            if (alive.length === 1) {
+              triggerWinByFold(alive[0], pot);
+              return;
+            }
+            advanceTurn();
+          } else if (currentBet === 0 || decisionRoll < 0.85) {
+            const callAmt = Math.min(actingHero.stack, currentBet - actingHero.bet);
+            if (callAmt > 0) audio.playChip();
+            else audio.playCheck();
+            setPlayers((prev) =>
+              prev.map((p) =>
+                p.isHero
+                  ? {
+                      ...p,
+                      stack: p.stack - callAmt,
+                      bet: p.bet + callAmt,
+                      lastAction: callAmt > 0 ? `CALL ${callAmt}` : "CHECK",
+                    }
+                  : p
+              )
+            );
+            setPot((p) => p + callAmt);
+            advanceTurn();
+          } else {
+            const raiseVal = Math.min(actingHero.stack, currentBet + table.bb * 2);
+            audio.playChip();
+            setPlayers((prev) =>
+              prev.map((p) =>
+                p.isHero
+                  ? {
+                      ...p,
+                      stack: p.stack - raiseVal,
+                      bet: p.bet + raiseVal,
+                      lastAction: `RAISE ${raiseVal}`,
+                    }
+                  : p
+              )
+            );
+            setCurrentBet(raiseVal);
+            setPot((p) => p + raiseVal);
+            advanceTurn();
+          }
+        }, 1200 + Math.random() * 600);
+        return () => clearTimeout(heroDelay);
+      }
       audio.playTurn();
       return;
     }
@@ -1074,7 +1211,7 @@ export function Bet888LiveTable({
                   return (
                     <div
                       key={p.seatNo}
-                      className={`seat-container ${p.isHero ? "hero-seat" : "opponent-seat"} ${p.folded ? "is-folded" : ""} ${isWinner ? "is-winner" : ""}`}
+                      className={`seat-container ${p.isHero && !operatorMode ? "hero-seat" : "opponent-seat"} ${p.folded ? "is-folded" : ""} ${isWinner ? "is-winner" : ""}`}
                       style={{ left: `${x}%`, top: `${y}%` }}
                     >
                       {isWinner ? (
@@ -1199,8 +1336,8 @@ export function Bet888LiveTable({
                             </div>
                           )}
 
-                          {/* Opponents' Red Card Backs or Showdown Cards */}
-                          {!p.isHero && !p.folded && (
+                          {/* Card Backs or Showdown Cards */}
+                          {(!p.isHero || operatorMode) && !p.folded && (
                             stage === "showdown" ? (
                               <div className="opponent-showdown-cards">
                                 {p.cards.map((c, cIdx) => {
@@ -1226,7 +1363,7 @@ export function Bet888LiveTable({
                           )}
 
                           {/* Hero Face-Up Cards with Live Hand Rank Indicator */}
-                          {p.isHero && !p.folded && (
+                          {p.isHero && !operatorMode && !p.folded && (
                             <div className="hero-hole-cards-display">
                               {p.cards.map((c, cIdx) => {
                                 const isWinning = isWinningCard(c);
@@ -1287,8 +1424,8 @@ export function Bet888LiveTable({
                             </div>
                           </div>
 
-                          {/* Hand Rank under Seat Pill */}
-                          {p.isHero && !p.folded && (
+                          {/* Hand Rank under Seat Pill (only in player mode) */}
+                          {p.isHero && !operatorMode && !p.folded && (
                             <div className="hero-hand-rank-pill">
                               <span>{heroHandName}</span>
                             </div>
@@ -1357,104 +1494,211 @@ export function Bet888LiveTable({
           </div>
         )}
 
-        {/* Action Buttons: FOLD (black), CHECK/CALL (gold outline), BET/RAISE (red), ALL-IN (green) */}
-        <div className="action-buttons-group">
-          <button
-            className="action-btn fold-btn"
-            onClick={() => handleHeroAction("fold")}
-            disabled={isUserBlocked || isTablePaused || hero.folded || activeSeat !== 0 || stage === "showdown"}
-            title="Desktop shortcut: F"
+        {operatorMode ? (
+          <div
+            className="operator-broadcast-bar"
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              padding: "10px 16px",
+              background: "rgba(10, 15, 30, 0.95)",
+              border: "1px solid rgba(255, 255, 255, 0.12)",
+              borderRadius: 10,
+              backdropFilter: "blur(8px)",
+              gap: 12,
+              width: "100%",
+            }}
           >
-            <span style={{ opacity: 0.65, fontSize: "11px", marginRight: "3px" }}>[F]</span> FOLD
-          </button>
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <span
+                style={{
+                  background: "rgba(16, 185, 129, 0.15)",
+                  color: "#10b981",
+                  border: "1px solid rgba(16, 185, 129, 0.3)",
+                  padding: "4px 8px",
+                  borderRadius: 12,
+                  fontSize: 10,
+                  fontWeight: 800,
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 5,
+                  letterSpacing: 0.5,
+                }}
+              >
+                <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#10b981" }} />
+                OPERATOR SUPERVISOR
+              </span>
+              <span style={{ fontSize: 11, color: "#94a3b8" }}>
+                Stage: <b style={{ color: "#fff", textTransform: "uppercase" }}>{stage}</b> · Pot: <b style={{ color: "#f6bd49" }}>€{pot}</b> · Hand #{handNo}
+              </span>
+            </div>
 
-          {canCheck ? (
-            <button
-              className="action-btn check-btn"
-              onClick={() => handleHeroAction("check")}
-              disabled={isUserBlocked || isTablePaused || hero.folded || activeSeat !== 0 || stage === "showdown"}
-              title="Desktop shortcut: C"
-            >
-              <span style={{ opacity: 0.65, fontSize: "11px", marginRight: "3px" }}>[C]</span> CHECK
-            </button>
-          ) : (
-            <button
-              className="action-btn call-btn"
-              onClick={() => handleHeroAction("call")}
-              disabled={isUserBlocked || isTablePaused || hero.folded || activeSeat !== 0 || hero.stack === 0 || stage === "showdown"}
-              title="Desktop shortcut: C"
-            >
-              <span style={{ opacity: 0.65, fontSize: "11px", marginRight: "3px" }}>[C]</span> CALL {toCall.toLocaleString()}
-            </button>
-          )}
+            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+              <button
+                type="button"
+                onClick={() => {
+                  const nextPaused = !isTablePaused;
+                  setIsTablePaused(nextPaused);
+                  sendLivePokerCommand({
+                    tableId: table.id,
+                    action: nextPaused ? "pause" : "resume",
+                  });
+                  apiClient.admin.poker.updateTable(table.id, {
+                    status: nextPaused ? "paused" : "open",
+                  }).catch(() => {});
+                }}
+                style={{
+                  background: isTablePaused ? "#16a34a" : "rgba(245, 158, 11, 0.2)",
+                  border: `1px solid ${isTablePaused ? "#22c55e" : "#f59e0b"}`,
+                  color: isTablePaused ? "#fff" : "#fbbf24",
+                  padding: "6px 12px",
+                  borderRadius: 6,
+                  fontSize: 11,
+                  fontWeight: 700,
+                  cursor: "pointer",
+                }}
+              >
+                {isTablePaused ? "▶ Resume Table" : "⏸ Pause Table"}
+              </button>
 
-          <button
-            className="action-btn bet-btn"
-            onClick={() => handleHeroAction("raise")}
-            disabled={isUserBlocked || isTablePaused || hero.folded || activeSeat !== 0 || hero.stack <= toCall || stage === "showdown"}
-            title="Desktop shortcut: R"
-          >
-            <span style={{ opacity: 0.65, fontSize: "11px", marginRight: "3px" }}>[R]</span> {currentBet === 0 ? "BET" : "RAISE"} {raiseAmount.toLocaleString()}
-          </button>
+              <button
+                type="button"
+                onClick={advanceStreet}
+                style={{
+                  background: "#4f46e5",
+                  border: "1px solid #6366f1",
+                  color: "#fff",
+                  padding: "6px 14px",
+                  borderRadius: 6,
+                  fontSize: 11,
+                  fontWeight: 700,
+                  cursor: "pointer",
+                }}
+              >
+                Deal Next Street ({stage === "preflop" ? "Flop" : stage === "flop" ? "Turn" : stage === "turn" ? "River" : "Showdown"}) →
+              </button>
 
-          <button
-            className="action-btn allin-btn"
-            onClick={() => handleHeroAction("allin")}
-            disabled={isUserBlocked || isTablePaused || hero.folded || activeSeat !== 0 || hero.stack === 0 || stage === "showdown"}
-          >
-            ALL-IN {hero.stack.toLocaleString()}
-          </button>
-        </div>
-
-        {/* Bet Sizing Slider with -, +, Amount, ½ POT and POT presets */}
-        <div className="bet-slider-group">
-          <button
-            className="slider-step-btn"
-            onClick={() => setRaiseAmount((prev) => Math.max(table.bb, prev - table.bb))}
-            disabled={stage === "showdown"}
-          >
-            −
-          </button>
-
-          <div className="slider-range-box">
-            <input
-              type="range"
-              min={Math.max(table.bb, toCall + table.bb)}
-              max={hero.stack}
-              step={table.bb}
-              value={raiseAmount}
-              onChange={(e) => setRaiseAmount(Number(e.target.value))}
-              disabled={stage === "showdown"}
-            />
-            <span className="slider-amount-indicator">
-              🪙 {raiseAmount.toLocaleString()}
-            </span>
+              <button
+                type="button"
+                onClick={handleDealNextHand}
+                style={{
+                  background: "rgba(255, 255, 255, 0.08)",
+                  border: "1px solid rgba(255, 255, 255, 0.15)",
+                  color: "#e2e8f0",
+                  padding: "6px 12px",
+                  borderRadius: 6,
+                  fontSize: 11,
+                  fontWeight: 700,
+                  cursor: "pointer",
+                }}
+              >
+                Re-deal Hand
+              </button>
+            </div>
           </div>
+        ) : (
+          <>
+            {/* Action Buttons: FOLD (black), CHECK/CALL (gold outline), BET/RAISE (red), ALL-IN (green) */}
+            <div className="action-buttons-group">
+              <button
+                className="action-btn fold-btn"
+                onClick={() => handleHeroAction("fold")}
+                disabled={isUserBlocked || isTablePaused || hero.folded || activeSeat !== 0 || stage === "showdown"}
+                title="Desktop shortcut: F"
+              >
+                <span style={{ opacity: 0.65, fontSize: "11px", marginRight: "3px" }}>[F]</span> FOLD
+              </button>
 
-          <button
-            className="slider-step-btn"
-            onClick={() => setRaiseAmount((prev) => Math.min(hero.stack, prev + table.bb))}
-            disabled={stage === "showdown"}
-          >
-            +
-          </button>
+              {canCheck ? (
+                <button
+                  className="action-btn check-btn"
+                  onClick={() => handleHeroAction("check")}
+                  disabled={isUserBlocked || isTablePaused || hero.folded || activeSeat !== 0 || stage === "showdown"}
+                  title="Desktop shortcut: C"
+                >
+                  <span style={{ opacity: 0.65, fontSize: "11px", marginRight: "3px" }}>[C]</span> CHECK
+                </button>
+              ) : (
+                <button
+                  className="action-btn call-btn"
+                  onClick={() => handleHeroAction("call")}
+                  disabled={isUserBlocked || isTablePaused || hero.folded || activeSeat !== 0 || hero.stack === 0 || stage === "showdown"}
+                  title="Desktop shortcut: C"
+                >
+                  <span style={{ opacity: 0.65, fontSize: "11px", marginRight: "3px" }}>[C]</span> CALL {toCall.toLocaleString()}
+                </button>
+              )}
 
-          <button
-            className="slider-preset-chip"
-            onClick={() => setRaiseAmount(Math.min(hero.stack, Math.max(table.bb, Math.floor(pot / 2))))}
-            disabled={stage === "showdown"}
-          >
-            ½ POT
-          </button>
+              <button
+                className="action-btn bet-btn"
+                onClick={() => handleHeroAction("raise")}
+                disabled={isUserBlocked || isTablePaused || hero.folded || activeSeat !== 0 || hero.stack <= toCall || stage === "showdown"}
+                title="Desktop shortcut: R"
+              >
+                <span style={{ opacity: 0.65, fontSize: "11px", marginRight: "3px" }}>[R]</span> {currentBet === 0 ? "BET" : "RAISE"} {raiseAmount.toLocaleString()}
+              </button>
 
-          <button
-            className="slider-preset-chip"
-            onClick={() => setRaiseAmount(Math.min(hero.stack, Math.max(table.bb, pot)))}
-            disabled={stage === "showdown"}
-          >
-            POT
-          </button>
-        </div>
+              <button
+                className="action-btn allin-btn"
+                onClick={() => handleHeroAction("allin")}
+                disabled={isUserBlocked || isTablePaused || hero.folded || activeSeat !== 0 || hero.stack === 0 || stage === "showdown"}
+              >
+                ALL-IN {hero.stack.toLocaleString()}
+              </button>
+            </div>
+
+            {/* Bet Sizing Slider with -, +, Amount, ½ POT and POT presets */}
+            <div className="bet-slider-group">
+              <button
+                className="slider-step-btn"
+                onClick={() => setRaiseAmount((prev) => Math.max(table.bb, prev - table.bb))}
+                disabled={stage === "showdown"}
+              >
+                −
+              </button>
+
+              <div className="slider-range-box">
+                <input
+                  type="range"
+                  min={Math.max(table.bb, toCall + table.bb)}
+                  max={hero.stack}
+                  step={table.bb}
+                  value={raiseAmount}
+                  onChange={(e) => setRaiseAmount(Number(e.target.value))}
+                  disabled={stage === "showdown"}
+                />
+                <span className="slider-amount-indicator">
+                  🪙 {raiseAmount.toLocaleString()}
+                </span>
+              </div>
+
+              <button
+                className="slider-step-btn"
+                onClick={() => setRaiseAmount((prev) => Math.min(hero.stack, prev + table.bb))}
+                disabled={stage === "showdown"}
+              >
+                +
+              </button>
+
+              <button
+                className="slider-preset-chip"
+                onClick={() => setRaiseAmount(Math.min(hero.stack, Math.max(table.bb, Math.floor(pot / 2))))}
+                disabled={stage === "showdown"}
+              >
+                ½ POT
+              </button>
+
+              <button
+                className="slider-preset-chip"
+                onClick={() => setRaiseAmount(Math.min(hero.stack, Math.max(table.bb, pot)))}
+                disabled={stage === "showdown"}
+              >
+                POT
+              </button>
+            </div>
+          </>
+        )}
       </footer>
 
       {/* ================= 4. TABLE MENU DRAWER ================= */}

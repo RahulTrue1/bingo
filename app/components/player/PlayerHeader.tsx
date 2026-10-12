@@ -136,13 +136,13 @@ export function PlayerHeader({
         >
           Games
         </a>
-        <Link
-          href="/casino"
+        {/* <a
+          href="http://14.96.241.250:8005"
           className="main-nav-link"
-          title="BET888CASH Casino &amp; Poker Live"
+          title="Go to Casino Portal"
         >
           Casino
-        </Link>
+        </a> */}
         <button
           className={isBingoActive ? "active" : ""}
           onClick={() => {

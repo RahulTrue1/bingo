@@ -372,7 +372,8 @@ adminRouter.post("/poker/tables", (req: Request, res: Response) => {
 // PATCH /api/admin/poker/tables/:id - Update table settings / pause / resume
 adminRouter.patch("/poker/tables/:id", (req: Request, res: Response) => {
   const targetId = String(req.params.id);
-  const table = store.pokerTables.find((t) => t.id === targetId);
+  const q = targetId.trim().toLowerCase();
+  const table = store.pokerTables.find((t) => t.id.toLowerCase() === q || t.name.toLowerCase() === q);
 
   if (!table) {
     res.status(404).json({ success: false, error: "Table not found" });
@@ -380,8 +381,15 @@ adminRouter.patch("/poker/tables/:id", (req: Request, res: Response) => {
   }
 
   const { status, name, minBuyIn, maxBuyIn, rakePercent, rakeCap, handFeeAmount, tableFeeAmount } = req.body;
-  if (status && ["open", "active", "paused", "closed"].includes(status)) {
-    table.status = status;
+  if (status) {
+    const s = String(status).toLowerCase();
+    if (s === "playing" || s === "open" || s === "active") {
+      table.status = "open";
+    } else if (s === "paused") {
+      table.status = "paused";
+    } else if (s === "closed") {
+      table.status = "closed";
+    }
   }
   if (name) table.name = String(name);
   if (typeof minBuyIn === "number") table.minBuyIn = minBuyIn;
@@ -394,12 +402,12 @@ adminRouter.patch("/poker/tables/:id", (req: Request, res: Response) => {
   store.addAudit("alert", "POKER_TABLE_UPDATED", `Operator updated table ${table.name} (status: ${table.status})`);
   store.save();
 
-  syncBus.emitChange("rooms", "poker-table-updated", { tableId: targetId, table });
+  syncBus.emitChange("rooms", "poker-table-updated", { tableId: table.id, table });
 
   res.json({
     success: true,
     table,
-    message: `Table '${table.name}' updated successfully.`,
+    message: `Table '${table.name}' updated successfully (status: ${table.status}).`,
   });
 });
 

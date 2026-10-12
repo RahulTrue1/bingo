@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
 import {
   BasepokerTableItem,
+  StakeTier,
   INITIAL_BASEPOKER_TABLES,
   getStoredPokerTables,
   findPokerTable,
@@ -20,6 +21,9 @@ export default function BasepokerHoldemTablesView() {
   const router = useRouter();
 
   const codeParam = searchParams?.get("code") || "";
+  const tableIdParam = searchParams?.get("tableId") || "";
+  const initialTarget = tableIdParam || codeParam;
+
   const [allTables, setAllTables] = useState<BasepokerTableItem[]>(() => {
     if (typeof window !== "undefined") {
       return getStoredPokerTables();
@@ -28,7 +32,7 @@ export default function BasepokerHoldemTablesView() {
   });
 
   const [activeTableCode, setActiveTableCode] = useState<string>(() => {
-    if (codeParam) return codeParam;
+    if (initialTarget) return initialTarget;
     if (typeof window !== "undefined") {
       const list = getStoredPokerTables();
       if (list.length > 0) return list[0].inviteCode || list[0].id;
@@ -38,7 +42,7 @@ export default function BasepokerHoldemTablesView() {
 
   const [openTableCodes, setOpenTableCodes] = useState<string[]>(() => {
     const initial =
-      codeParam ||
+      initialTarget ||
       (typeof window !== "undefined"
         ? getStoredPokerTables()[0]?.inviteCode || getStoredPokerTables()[0]?.id
         : "micro-001-002") ||
@@ -56,6 +60,7 @@ export default function BasepokerHoldemTablesView() {
   const [unlockedCodes, setUnlockedCodes] = useState<Set<string>>(() => {
     const initial = new Set<string>();
     if (codeParam) initial.add(codeParam.trim().toLowerCase());
+    if (tableIdParam) initial.add(tableIdParam.trim().toLowerCase());
     return initial;
   });
   const [privateTableToUnlock, setPrivateTableToUnlock] = useState<BasepokerTableItem | null>(null);
@@ -121,25 +126,160 @@ export default function BasepokerHoldemTablesView() {
     if (!currentUser) return false;
     return (
       currentUser.status === "Restricted" ||
-      currentUser.status === "Suspended" ||
-      (currentUser as any).pokerAccess === false
+      currentUser.status === "Suspended"
     );
   }, [currentUser]);
 
-  // Synchronize when codeParam in URL changes
+  // Ensure poker access is enabled for active user
   useEffect(() => {
-    if (!codeParam) return;
-    setActiveTableCode(codeParam);
-    setOpenTableCodes((prev) => {
-      const alreadyOpen = prev.some((c) => c.toLowerCase() === codeParam.toLowerCase());
-      return alreadyOpen ? prev : [...prev, codeParam];
-    });
-  }, [codeParam]);
+    if (currentUser && currentUser.poker_enabled === false) {
+      apiClient.poker.enableAccess(currentUser.username).then(() => {
+        refreshUser();
+      }).catch(() => {});
+    }
+  }, [currentUser, refreshUser]);
 
-  // Listen to store updates (table create/delete from backoffice)
+  // Synchronize server poker tables with local store
+  const loadServerTables = useCallback(async () => {
+    try {
+      const res = await apiClient.poker.getTables();
+      const stored = getStoredPokerTables();
+      if (res?.success && Array.isArray(res.tables)) {
+        const mappedServer: BasepokerTableItem[] = res.tables.map((t: any) => {
+          const tier =
+            t.bb <= 0.1 ? "micro" : t.bb <= 2 ? "low" : t.bb <= 20 ? "medium" : t.bb <= 100 ? "high" : "vip";
+          const feeLabel =
+            t.feeType === "HAND_FEE"
+              ? `€${t.handFeeAmount || 2} / HAND`
+              : t.feeType === "TABLE_FEE"
+              ? `€${t.tableFeeAmount || 20} / ${t.tableFeeIntervalMinutes || 30}MIN`
+              : t.rakeCap
+              ? `RAKE ${t.rakePercent || 5}% (max €${t.rakeCap})`
+              : `RAKE ${t.rakePercent || 5}%`;
+          const theme =
+            t.isPrivate
+              ? "purple"
+              : t.feeType === "HAND_FEE"
+              ? "blue"
+              : t.feeType === "TABLE_FEE"
+              ? "red"
+              : "green";
+
+          return {
+            id: t.id,
+            name: t.name,
+            feeType: t.feeType,
+            feeLabel,
+            sb: t.sb,
+            bb: t.bb,
+            minBuyIn: t.minBuyIn,
+            maxBuyIn: t.maxBuyIn,
+            maxSeats: t.maxSeats,
+            seatsOccupied: (t.seats || []).filter((s: any) => Boolean(s.player)).length,
+            status: t.status === "paused" ? "paused" : t.status === "closed" ? "waiting" : "playing",
+            isPrivate: t.isPrivate,
+            inviteCode: t.inviteCode || "",
+            theme,
+            tier,
+            avgPot: t.pot || t.bb * 8,
+            handsPerHour: 60,
+            waitlist: 0,
+            currency: "EUR",
+            seats: t.seats || [],
+          };
+        });
+
+        const serverIds = new Set(mappedServer.map((s) => s.id));
+        const uniqueStored = stored.filter((st) => !serverIds.has(st.id));
+        setAllTables([...mappedServer, ...uniqueStored]);
+      } else {
+        setAllTables(stored);
+      }
+    } catch (_) {
+      setAllTables(getStoredPokerTables());
+    }
+  }, []);
+
   useEffect(() => {
-    const syncTables = () => {
-      const list = getStoredPokerTables();
+    loadServerTables();
+  }, [loadServerTables]);
+
+  // Synchronize when codeParam or tableIdParam in URL changes
+  useEffect(() => {
+    const target = tableIdParam || codeParam;
+    if (!target) return;
+    setActiveTableCode(target);
+    setOpenTableCodes((prev) => {
+      const alreadyOpen = prev.some((c) => c.toLowerCase() === target.toLowerCase());
+      return alreadyOpen ? prev : [...prev, target];
+    });
+    if (codeParam) {
+      setUnlockedCodes((prev) => {
+        const next = new Set(prev);
+        next.add(codeParam.trim().toLowerCase());
+        if (tableIdParam) next.add(tableIdParam.trim().toLowerCase());
+        return next;
+      });
+    }
+  }, [codeParam, tableIdParam]);
+
+  // Listen to store & server fleet updates (table create/delete/status from backoffice)
+  useEffect(() => {
+    const syncTables = async () => {
+      let list = getStoredPokerTables();
+      try {
+        const res = await apiClient.poker.getTables();
+        if (res?.success && Array.isArray(res.tables)) {
+          const mappedServer: BasepokerTableItem[] = res.tables.map((t: any) => {
+            const tier: StakeTier =
+              t.bb <= 0.1 ? "micro" : t.bb <= 2 ? "low" : t.bb <= 20 ? "medium" : t.bb <= 100 ? "high" : "vip";
+            const feeLabel =
+              t.feeType === "HAND_FEE"
+                ? `€${t.handFeeAmount || 2} / HAND`
+                : t.feeType === "TABLE_FEE"
+                ? `€${t.tableFeeAmount || 20} / ${t.tableFeeIntervalMinutes || 30}MIN`
+                : t.rakeCap
+                ? `RAKE ${t.rakePercent || 5}% (max €${t.rakeCap})`
+                : `RAKE ${t.rakePercent || 5}%`;
+            const theme: "green" | "blue" | "red" | "purple" =
+              t.isPrivate
+                ? "purple"
+                : t.feeType === "HAND_FEE"
+                ? "blue"
+                : t.feeType === "TABLE_FEE"
+                ? "red"
+                : "green";
+
+            return {
+              id: t.id,
+              name: t.name,
+              feeType: t.feeType,
+              feeLabel,
+              sb: t.sb,
+              bb: t.bb,
+              minBuyIn: t.minBuyIn,
+              maxBuyIn: t.maxBuyIn,
+              maxSeats: t.maxSeats,
+              seatsOccupied: (t.seats || []).filter((s: any) => Boolean(s.player)).length,
+              status: t.status === "paused" ? "paused" : t.status === "closed" ? "waiting" : "playing",
+              isPrivate: t.isPrivate,
+              inviteCode: t.inviteCode || "",
+              theme,
+              tier,
+              avgPot: t.pot || t.bb * 8,
+              handsPerHour: 60,
+              waitlist: 0,
+              currency: "EUR",
+              seats: t.seats || [],
+            };
+          });
+          const serverIds = new Set(mappedServer.map((s) => s.id));
+          const serverNames = new Set(mappedServer.map((s) => s.name.toLowerCase()));
+          const uniqueStored = list.filter((st) => !serverIds.has(st.id) && !serverNames.has(st.name.toLowerCase()));
+          list = [...mappedServer, ...uniqueStored];
+        }
+      } catch (_) {}
+
       setAllTables(list);
 
       // Clean up openTableCodes if tables were deleted in backoffice
@@ -158,12 +298,21 @@ export default function BasepokerHoldemTablesView() {
       });
     };
 
+    syncTables();
+
     window.addEventListener("basepoker_tables_updated", syncTables);
     window.addEventListener("storage", syncTables);
+
+    const unsub = apiClient.sync.subscribe((event) => {
+      if (event.entity === "rooms" || event.action?.includes("poker")) {
+        syncTables();
+      }
+    });
 
     return () => {
       window.removeEventListener("basepoker_tables_updated", syncTables);
       window.removeEventListener("storage", syncTables);
+      unsub();
     };
   }, []);
 
@@ -252,17 +401,41 @@ export default function BasepokerHoldemTablesView() {
     router.replace(`/holdem/tables?code=${encodeURIComponent(code)}`);
   };
 
-  const handleUnlockPrivateTable = (e: React.FormEvent) => {
+  const handleUnlockPrivateTable = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!privateTableToUnlock) return;
     const cleanInput = privateCodeInput.trim().toUpperCase();
-    const actualCode = (privateTableToUnlock.inviteCode || "").trim().toUpperCase();
 
     if (!cleanInput) {
       setPrivateCodeError("Please enter the invite code.");
       return;
     }
 
+    try {
+      const res = await apiClient.poker.joinPrivateTable(cleanInput);
+      if (res?.success && res.table) {
+        const table = privateTableToUnlock;
+        const code = cleanInput;
+        setUnlockedCodes((prev) => {
+          const next = new Set(prev);
+          next.add(table.id.toLowerCase());
+          next.add(code.toLowerCase());
+          return next;
+        });
+        if (!openTableCodes.some((c) => c.toLowerCase() === code.toLowerCase() || c.toLowerCase() === table.id.toLowerCase())) {
+          setOpenTableCodes((prev) => [...prev, table.id]);
+        }
+        setActiveTableCode(table.id);
+        setPrivateTableToUnlock(null);
+        setPrivateCodeInput("");
+        setPrivateCodeError("");
+        setShowAddTableModal(false);
+        router.replace(`/holdem/tables?tableId=${encodeURIComponent(table.id)}&code=${encodeURIComponent(code)}`);
+        return;
+      }
+    } catch (_) {}
+
+    const actualCode = (privateTableToUnlock.inviteCode || "").trim().toUpperCase();
     if (cleanInput === actualCode) {
       const table = privateTableToUnlock;
       const code = table.inviteCode || table.id;
@@ -371,6 +544,20 @@ export default function BasepokerHoldemTablesView() {
                 >
                   <span className="bp-tab-spade">♠</span>
                   <span className="bp-tab-name">{tbl?.name || `Table ${code}`}</span>
+                  {tbl?.status === "paused" && (
+                    <span style={{
+                      fontSize: 8,
+                      fontWeight: 800,
+                      padding: "1px 4px",
+                      borderRadius: 3,
+                      background: "rgba(245, 158, 11, 0.2)",
+                      border: "1px solid #f59e0b",
+                      color: "#fbbf24",
+                      marginLeft: 4,
+                    }}>
+                      ⏸ PAUSED
+                    </span>
+                  )}
                   <span className="bp-tab-blinds">
                     {tbl ? `${tbl.sb}/${tbl.bb}` : ""}
                   </span>
@@ -533,7 +720,7 @@ export default function BasepokerHoldemTablesView() {
                   table={tbl}
                   onLeaveTable={handleLeaveTable}
                   walletBalance={wallet}
-                  userName={currentUser?.displayName || currentUser?.username || "Hero"}
+                  userName={currentUser?.displayName || currentUser?.username || apiClient.auth.getStoredUsername() || "Ari.R"}
                   embedded={true}
                   isUserBlocked={isCurrentUserBlocked}
                   onWalletChange={(newBal) => setWallet(newBal)}
@@ -589,6 +776,19 @@ export default function BasepokerHoldemTablesView() {
                           </span>
                         ) : (
                           <span className={`tag tag-${tbl.theme}`}>{tbl.feeLabel}</span>
+                        )}
+                        {tbl.status === "paused" && (
+                          <span
+                            className="tag"
+                            style={{
+                              background: "rgba(245,158,11,0.2)",
+                              color: "#fbbf24",
+                              border: "1px solid #f59e0b",
+                              fontWeight: 800,
+                            }}
+                          >
+                            ⏸ PAUSED
+                          </span>
                         )}
                       </div>
                       <div className="sub">

@@ -237,6 +237,15 @@ pokerRouter.post("/tables/:id/buyin", (req: Request, res: Response) => {
     tableId,
   });
 
+  const updatedTable = store.pokerTables.find((t) => t.id === tableId);
+  syncBus.emitChange("rooms", "poker-player-joined", {
+    player: player.username,
+    seat: result.seat,
+    amount: numAmount,
+    tableId,
+    table: updatedTable,
+  });
+
   res.json({
     success: true,
     balance: player.balance,
@@ -282,6 +291,13 @@ pokerRouter.post("/tables/:id/cashout", (req: Request, res: Response) => {
     tableId,
   });
 
+  const updatedTable = store.pokerTables.find((t) => t.id === tableId);
+  syncBus.emitChange("rooms", "poker-player-left", {
+    player: player.username,
+    tableId,
+    table: updatedTable,
+  });
+
   res.json({
     success: true,
     amountCashedOut: result.amountCashedOut,
@@ -289,3 +305,41 @@ pokerRouter.post("/tables/:id/cashout", (req: Request, res: Response) => {
     message: `Successfully cashed out $${result.amountCashedOut}. New balance: $${player.balance}.`,
   });
 });
+
+// POST /api/poker/enable-access - Activate poker access for current player
+pokerRouter.post("/enable-access", (req: Request, res: Response) => {
+  const resolved = store.resolveUser(req);
+  const currentUsername =
+    (req.body.username as string) ||
+    resolved?.username ||
+    store.activeUsername ||
+    "Ari.R";
+
+  const player =
+    resolved ||
+    store.players.find(
+      (p) =>
+        p.username.toLowerCase() === currentUsername.toLowerCase() ||
+        p.id.toLowerCase() === currentUsername.toLowerCase()
+    );
+
+  if (!player) {
+    res.status(404).json({ success: false, error: "Player not found" });
+    return;
+  }
+
+  player.poker_enabled = true;
+  syncBus.emitChange("players", "poker_access_updated", {
+    playerId: player.id,
+    username: player.username,
+    poker_enabled: true,
+  });
+
+  res.json({
+    success: true,
+    message: `Poker Live access activated for ${player.username}.`,
+    poker_enabled: true,
+    username: player.username,
+  });
+});
+

@@ -174,7 +174,7 @@ export function PlayersTable({ openAction }: { openAction: (action: AdminAction)
                       alignItems: "center",
                       gap: "4px",
                     }}
-                    title={player.poker_enabled ? "Poker Live aktiv - Kliko për të çaktivizuar" : "Poker Live jo aktiv - Kliko për të aktivizuar"}
+                    title={player.poker_enabled ? "Poker Online Active - Click to disable" : "Poker Online Disabled - Click to enable"}
                   >
                     <span style={{ fontSize: "9px" }}>{player.poker_enabled ? "●" : "○"}</span>
                     {player.poker_enabled ? "Enabled" : "Disabled"}

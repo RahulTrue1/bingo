@@ -760,7 +760,7 @@ const defaultPlayers: PlayerProfile[] = [
     lastLogin: "Today · 14:29",
     status: "Active",
     password: "QueenBingo#2026",
-    poker_enabled: false,
+    poker_enabled: true,
   },
   {
     id: "USR-09814",
@@ -775,7 +775,7 @@ const defaultPlayers: PlayerProfile[] = [
     lastLogin: "Today · 14:18",
     status: "Active",
     password: "MikaWin#2026",
-    poker_enabled: false,
+    poker_enabled: true,
   },
   {
     id: "USR-11804",
@@ -790,7 +790,7 @@ const defaultPlayers: PlayerProfile[] = [
     lastLogin: "Today · 14:21",
     status: "Active",
     password: "demo123",
-    poker_enabled: false,
+    poker_enabled: true,
   },
   {
     id: "USR-07226",

@@ -104,6 +104,13 @@ function AdminPlayerDrawer({
   const handleAction = async (item: string) => {
     const target = player?.id || action.label || "Ari.R";
     try {
+      if (item === "Enable Poker Online" || item === "Disable Poker Online") {
+        const nextState = item === "Enable Poker Online";
+        await apiClient.admin.updatePlayerPokerAccess(target, nextState);
+        setPlayer((prev) => (prev ? { ...prev, poker_enabled: nextState } : null));
+        notify(`Poker Online ${nextState ? "Enabled" : "Disabled"} for ${player?.username ?? action.label}.`);
+        return;
+      }
       const res = await apiClient.admin.playerAction(target, item);
       if (res?.player) {
         setPlayer({
@@ -287,6 +294,7 @@ function AdminPlayerDrawer({
             {[
               status === "Active" ? "Block" : "Activate / Unblock",
               status === "Suspended" ? "Activate / Unblock" : "Suspend",
+              player?.poker_enabled ? "Disable Poker Online" : "Enable Poker Online",
               "Restrict Bingo",
               "Add Bonus Card",
               "Add Promotional Ticket",
@@ -297,6 +305,17 @@ function AdminPlayerDrawer({
               <button
                 key={item}
                 onClick={() => handleAction(item)}
+                style={
+                  item.includes("Poker")
+                    ? {
+                        background: player?.poker_enabled
+                          ? "rgba(239, 68, 68, 0.15)"
+                          : "rgba(34, 197, 94, 0.15)",
+                        borderColor: player?.poker_enabled ? "#ef4444" : "#22c55e",
+                        color: player?.poker_enabled ? "#fca5a5" : "#86efac",
+                      }
+                    : undefined
+                }
               >
                 {item}
               </button>

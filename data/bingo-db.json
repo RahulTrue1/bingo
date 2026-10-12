@@ -431,8 +431,485 @@
       "customRtp": true
     }
   ],
-  "wallet": 98,
+  "wallet": 109794.34,
   "transactions": [
+    {
+      "id": "TXN-631951",
+      "timestamp": "00:29:12",
+      "player": "Ari.R",
+      "room": "Tirana 1/2",
+      "type": "POKER_BUYIN",
+      "amount": -40,
+      "status": "Completed"
+    },
+    {
+      "id": "TXN-558830",
+      "timestamp": "00:26:24",
+      "player": "Rahul Pro",
+      "room": "Prishtina 5/10",
+      "type": "Poker Win",
+      "amount": 0.1,
+      "status": "Completed"
+    },
+    {
+      "id": "TXN-797224",
+      "timestamp": "00:26:19",
+      "player": "Rahul Pro",
+      "room": "Prishtina 5/10",
+      "type": "Poker Bet",
+      "amount": -0.04,
+      "status": "Completed"
+    },
+    {
+      "id": "TXN-916866",
+      "timestamp": "00:26:06",
+      "player": "Rahul Pro",
+      "room": "Prishtina 5/10",
+      "type": "Poker Bet",
+      "amount": -0.02,
+      "status": "Completed"
+    },
+    {
+      "id": "TXN-718728",
+      "timestamp": "00:25:58",
+      "player": "RahulRahulGame_331",
+      "room": "Prishtina 5/10",
+      "type": "POKER_BUYIN",
+      "amount": -200,
+      "status": "Completed"
+    },
+    {
+      "id": "TXN-906275",
+      "timestamp": "00:04:48",
+      "player": "RahulPass_308",
+      "room": "Prishtina 5/10",
+      "type": "Poker Win",
+      "amount": 60,
+      "status": "Completed"
+    },
+    {
+      "id": "TXN-388861",
+      "timestamp": "00:00:00",
+      "player": "Rahul Password VIP",
+      "room": "Prishtina 5/10",
+      "type": "Poker Bet",
+      "amount": -1.98,
+      "status": "Completed"
+    },
+    {
+      "id": "TXN-740892",
+      "timestamp": "23:59:49",
+      "player": "Rahul Password VIP",
+      "room": "Prishtina 5/10",
+      "type": "Poker Bet",
+      "amount": -0.02,
+      "status": "Completed"
+    },
+    {
+      "id": "TXN-300176",
+      "timestamp": "23:58:46",
+      "player": "Rahul Password VIP",
+      "room": "Prishtina 5/10",
+      "type": "Poker Win",
+      "amount": 90,
+      "status": "Completed"
+    },
+    {
+      "id": "TXN-617448",
+      "timestamp": "23:58:41",
+      "player": "RahulPass_308",
+      "room": "Prishtina 5/10",
+      "type": "Poker Win",
+      "amount": 50,
+      "status": "Completed"
+    },
+    {
+      "id": "TXN-916625",
+      "timestamp": "23:58:34",
+      "player": "Rahul Password VIP",
+      "room": "Prishtina 5/10",
+      "type": "Poker Bet",
+      "amount": -20,
+      "status": "Completed"
+    },
+    {
+      "id": "TXN-222387",
+      "timestamp": "23:58:13",
+      "player": "Rahul Password VIP",
+      "room": "Prishtina 5/10",
+      "type": "Poker Bet",
+      "amount": -20,
+      "status": "Completed"
+    },
+    {
+      "id": "TXN-155954",
+      "timestamp": "23:58:04",
+      "player": "Rahul Password VIP",
+      "room": "Prishtina 5/10",
+      "type": "Poker Bet",
+      "amount": -1.98,
+      "status": "Completed"
+    },
+    {
+      "id": "TXN-411743",
+      "timestamp": "23:57:52",
+      "player": "Rahul Password VIP",
+      "room": "Prishtina 5/10",
+      "type": "Poker Bet",
+      "amount": -0.02,
+      "status": "Completed"
+    },
+    {
+      "id": "TXN-678271",
+      "timestamp": "23:55:12",
+      "player": "Rahul Password VIP",
+      "room": "Prishtina 5/10",
+      "type": "Poker Bet",
+      "amount": -1.98,
+      "status": "Completed"
+    },
+    {
+      "id": "TXN-517622",
+      "timestamp": "23:54:58",
+      "player": "Rahul Password VIP",
+      "room": "Prishtina 5/10",
+      "type": "Poker Bet",
+      "amount": -0.02,
+      "status": "Completed"
+    },
+    {
+      "id": "TXN-757931",
+      "timestamp": "23:54:35",
+      "player": "Rahul Password VIP",
+      "room": "Tirana 1/2",
+      "type": "Poker Bet",
+      "amount": -0.02,
+      "status": "Completed"
+    },
+    {
+      "id": "TXN-268024",
+      "timestamp": "23:46:11",
+      "player": "NovaPlayer_4106",
+      "room": "Tirana 1/2",
+      "type": "Poker Bet",
+      "amount": -1.96,
+      "status": "Completed"
+    },
+    {
+      "id": "TXN-307785",
+      "timestamp": "23:45:30",
+      "player": "NovaPlayer_4106",
+      "room": "Tirana 1/2",
+      "type": "Poker Bet",
+      "amount": -0.02,
+      "status": "Completed"
+    },
+    {
+      "id": "TXN-817234",
+      "timestamp": "23:38:12",
+      "player": "NovaPlayer_4106",
+      "room": "Tirana 1/2",
+      "type": "Poker Bet",
+      "amount": -0.02,
+      "status": "Completed"
+    },
+    {
+      "id": "TXN-971786",
+      "timestamp": "23:37:42",
+      "player": "NovaPlayer_4106",
+      "room": "Gjakova High Stakes",
+      "type": "Poker Bet",
+      "amount": -1.98,
+      "status": "Completed"
+    },
+    {
+      "id": "TXN-897399",
+      "timestamp": "23:37:35",
+      "player": "NovaPlayer_4106",
+      "room": "Gjakova High Stakes",
+      "type": "Poker Bet",
+      "amount": -0.02,
+      "status": "Completed"
+    },
+    {
+      "id": "TXN-320147",
+      "timestamp": "23:34:04",
+      "player": "NovaPlayer_4106",
+      "room": "Tirana 1/2",
+      "type": "Poker Bet",
+      "amount": -2,
+      "status": "Completed"
+    },
+    {
+      "id": "TXN-379377",
+      "timestamp": "23:29:45",
+      "player": "NovaPlayer_4106",
+      "room": "Gjakova High Stakes",
+      "type": "Poker Bet",
+      "amount": -2,
+      "status": "Completed"
+    },
+    {
+      "id": "TXN-787708",
+      "timestamp": "23:29:09",
+      "player": "NovaPlayer_4106",
+      "room": "Gjakova High Stakes",
+      "type": "Poker Bet",
+      "amount": -0.02,
+      "status": "Completed"
+    },
+    {
+      "id": "TXN-916440",
+      "timestamp": "23:26:58",
+      "player": "Ari.R",
+      "room": "Tirana 1/2",
+      "type": "Poker Bet",
+      "amount": -2,
+      "status": "Completed"
+    },
+    {
+      "id": "TXN-231740",
+      "timestamp": "23:26:37",
+      "player": "Ari.R",
+      "room": "Gjakova High Stakes",
+      "type": "Poker Bet",
+      "amount": -1.98,
+      "status": "Completed"
+    },
+    {
+      "id": "TXN-107497",
+      "timestamp": "23:26:31",
+      "player": "Ari.R",
+      "room": "Gjakova High Stakes",
+      "type": "Poker Bet",
+      "amount": -0.02,
+      "status": "Completed"
+    },
+    {
+      "id": "TXN-184649",
+      "timestamp": "23:25:49",
+      "player": "Ari.R",
+      "room": "Gjakova High Stakes",
+      "type": "Poker Bet",
+      "amount": -1.98,
+      "status": "Completed"
+    },
+    {
+      "id": "TXN-802107",
+      "timestamp": "23:25:40",
+      "player": "Ari.R",
+      "room": "Gjakova High Stakes",
+      "type": "Poker Bet",
+      "amount": -0.02,
+      "status": "Completed"
+    },
+    {
+      "id": "TXN-956713",
+      "timestamp": "23:19:32",
+      "player": "Ari.R",
+      "room": "Gjakova High Stakes",
+      "type": "Poker Bet",
+      "amount": -0.02,
+      "status": "Completed"
+    },
+    {
+      "id": "TXN-339851",
+      "timestamp": "23:16:37",
+      "player": "Ari.R",
+      "room": "Tirana 1/2",
+      "type": "Poker Win",
+      "amount": 0.12,
+      "status": "Completed"
+    },
+    {
+      "id": "TXN-555605",
+      "timestamp": "23:16:35",
+      "player": "Ari.R",
+      "room": "Tirana 1/2",
+      "type": "Poker Bet",
+      "amount": -0.04,
+      "status": "Completed"
+    },
+    {
+      "id": "TXN-190989",
+      "timestamp": "23:16:33",
+      "player": "Ari.R",
+      "room": "Tirana 1/2",
+      "type": "Poker Bet",
+      "amount": -0.04,
+      "status": "Completed"
+    },
+    {
+      "id": "TXN-571390",
+      "timestamp": "23:16:18",
+      "player": "Ari.R",
+      "room": "Tirana 1/2",
+      "type": "Poker Bet",
+      "amount": -0.02,
+      "status": "Completed"
+    },
+    {
+      "id": "TXN-870486",
+      "timestamp": "23:10:53",
+      "player": "Ari.R",
+      "room": "Micro NLH 0.01/0.02",
+      "type": "Poker Bet",
+      "amount": -0.02,
+      "status": "Completed"
+    },
+    {
+      "id": "TXN-318009",
+      "timestamp": "23:10:43",
+      "player": "Ari.R",
+      "room": "Tirana 1/2",
+      "type": "Poker Bet",
+      "amount": -0.02,
+      "status": "Completed"
+    },
+    {
+      "id": "TXN-920572",
+      "timestamp": "23:07:14",
+      "player": "Hero",
+      "room": "Micro NLH 0.01/0.02",
+      "type": "Poker Bet",
+      "amount": -0.02,
+      "status": "Completed"
+    },
+    {
+      "id": "TXN-748493",
+      "timestamp": "23:06:44",
+      "player": "Ari.R",
+      "room": "Monaco Elite 100/200",
+      "type": "Poker Bet",
+      "amount": -200,
+      "status": "Completed"
+    },
+    {
+      "id": "TXN-762502",
+      "timestamp": "22:58:12",
+      "player": "Ari.R",
+      "room": "Micro NLH 0.01/0.02",
+      "type": "Poker Bet",
+      "amount": -0.04,
+      "status": "Completed"
+    },
+    {
+      "id": "TXN-820009",
+      "timestamp": "22:58:05",
+      "player": "Ari.R",
+      "room": "Micro NLH 0.01/0.02",
+      "type": "Poker Bet",
+      "amount": -0.04,
+      "status": "Completed"
+    },
+    {
+      "id": "TXN-685770",
+      "timestamp": "22:57:33",
+      "player": "Ari.R",
+      "room": "Micro NLH 0.01/0.02",
+      "type": "Poker Bet",
+      "amount": -0.039999999999999994,
+      "status": "Completed"
+    },
+    {
+      "id": "TXN-854204",
+      "timestamp": "22:57:26",
+      "player": "Ari.R",
+      "room": "Micro NLH 0.01/0.02",
+      "type": "Poker Bet",
+      "amount": -0.02,
+      "status": "Completed"
+    },
+    {
+      "id": "TXN-976393",
+      "timestamp": "22:52:35",
+      "player": "NovaPlayer_2118",
+      "room": "Prizren 1/2 Heads-Up",
+      "type": "Poker Win",
+      "amount": 8,
+      "status": "Completed"
+    },
+    {
+      "id": "TXN-571443",
+      "timestamp": "22:52:34",
+      "player": "NovaPlayer_2118",
+      "room": "Prizren 1/2 Heads-Up",
+      "type": "Poker Bet",
+      "amount": -2,
+      "status": "Completed"
+    },
+    {
+      "id": "TXN-882588",
+      "timestamp": "22:51:58",
+      "player": "NovaPlayer_2118",
+      "room": "Prizren 1/2 Heads-Up",
+      "type": "Poker Win",
+      "amount": 8,
+      "status": "Completed"
+    },
+    {
+      "id": "TXN-866187",
+      "timestamp": "22:51:54",
+      "player": "NovaPlayer_2118",
+      "room": "Prizren 1/2 Heads-Up",
+      "type": "Poker Bet",
+      "amount": -4,
+      "status": "Completed"
+    },
+    {
+      "id": "TXN-174320",
+      "timestamp": "22:51:48",
+      "player": "NovaPlayer_2118",
+      "room": "Prizren 1/2 Heads-Up",
+      "type": "Poker Bet",
+      "amount": -2,
+      "status": "Completed"
+    },
+    {
+      "id": "TXN-991292",
+      "timestamp": "22:46:12",
+      "player": "Ari.R",
+      "room": "Tirana 1/2",
+      "type": "Poker Bet",
+      "amount": -1.96,
+      "status": "Completed"
+    },
+    {
+      "id": "TXN-505900",
+      "timestamp": "22:46:02",
+      "player": "Ari.R",
+      "room": "Tirana 1/2",
+      "type": "Poker Bet",
+      "amount": -0.04,
+      "status": "Completed"
+    },
+    {
+      "id": "TXN-678073",
+      "timestamp": "22:45:42",
+      "player": "Ari.R",
+      "room": "Tirana 1/2",
+      "type": "Poker Bet",
+      "amount": -0.02,
+      "status": "Completed"
+    },
+    {
+      "id": "TXN-720174",
+      "timestamp": "22:15:00",
+      "player": "NovaPlayer_2118",
+      "room": "Prishtina 2/5",
+      "type": "Poker Win",
+      "amount": 66,
+      "status": "Completed"
+    },
+    {
+      "id": "TXN-117936",
+      "timestamp": "22:14:53",
+      "player": "NovaPlayer_2118",
+      "room": "Prishtina 2/5",
+      "type": "Poker Bet",
+      "amount": -14,
+      "status": "Completed"
+    },
     {
       "id": "TXN-232648",
       "timestamp": "22:14:14",
@@ -20666,7 +21143,7 @@
       "status": "Active",
       "password": "QueenBingo#2026",
       "totalEntry": 56.5,
-      "poker_enabled": false
+      "poker_enabled": true
     },
     {
       "id": "USR-09814",
@@ -20681,23 +21158,23 @@
       "lastLogin": "Just now",
       "status": "Active",
       "password": "MikaWin#2026",
-      "poker_enabled": false
+      "poker_enabled": true
     },
     {
       "id": "USR-11804",
       "username": "Ari.R",
       "tier": "Standard",
-      "balance": 110042.56,
+      "balance": 109794.34,
       "gamesPlayed": 128,
       "cardsPurchased": 400,
-      "wins": 28,
-      "totalPrizes": 12978.12,
+      "wins": 29,
+      "totalPrizes": 12978.240000000002,
       "restrictions": [],
       "lastLogin": "Just now",
       "status": "Active",
       "password": "demo123",
       "totalEntry": 490,
-      "poker_enabled": false
+      "poker_enabled": true
     },
     {
       "id": "USR-07226",
@@ -20716,7 +21193,7 @@
       "status": "Restricted",
       "totalEntry": 30,
       "password": "RiskItAll#77",
-      "poker_enabled": false
+      "poker_enabled": true
     },
     {
       "id": "USR-68648",
@@ -20735,7 +21212,7 @@
       "status": "Active",
       "totalEntry": 67,
       "password": "RahulSecretPass@77",
-      "poker_enabled": false
+      "poker_enabled": true
     },
     {
       "id": "USR-58063",
@@ -20754,7 +21231,7 @@
       "status": "Active",
       "password": "demo123",
       "totalEntry": 22,
-      "poker_enabled": false
+      "poker_enabled": true
     },
     {
       "id": "USR-27684",
@@ -20763,16 +21240,16 @@
       "email": "novaplayer_2118@trueigtech.com",
       "joinedDate": "Sep 19, 2026",
       "tier": "Standard",
-      "balance": 29,
+      "balance": 89,
       "gamesPlayed": 0,
       "cardsPurchased": 1,
-      "wins": 0,
-      "totalPrizes": 0,
+      "wins": 3,
+      "totalPrizes": 82,
       "restrictions": [],
       "lastLogin": "Just now",
       "status": "Active",
       "password": "demo123",
-      "poker_enabled": false,
+      "poker_enabled": true,
       "totalEntry": 50
     },
     {
@@ -20791,7 +21268,7 @@
       "lastLogin": "Just now",
       "status": "Active",
       "password": "demo123",
-      "poker_enabled": false
+      "poker_enabled": true
     },
     {
       "id": "USR-44839",
@@ -20800,7 +21277,7 @@
       "email": "novaplayer_4106@trueigtech.com",
       "joinedDate": "Sep 19, 2026",
       "tier": "Standard",
-      "balance": 244,
+      "balance": 235.98,
       "gamesPlayed": 0,
       "cardsPurchased": 3,
       "wins": 0,
@@ -20810,7 +21287,7 @@
       "status": "Active",
       "totalEntry": 6,
       "password": "demo123",
-      "poker_enabled": false
+      "poker_enabled": true
     },
     {
       "id": "USR-37175",
@@ -20829,7 +21306,7 @@
       "status": "Active",
       "totalEntry": 6,
       "password": "demo123",
-      "poker_enabled": false
+      "poker_enabled": true
     },
     {
       "id": "USR-22034",
@@ -20848,7 +21325,7 @@
       "status": "Active",
       "totalEntry": 88,
       "password": "RahulSecretPass@77",
-      "poker_enabled": false
+      "poker_enabled": true
     },
     {
       "id": "USR-30800",
@@ -20857,17 +21334,17 @@
       "email": "rahulrahulgame_331@player.trueigtech.com",
       "joinedDate": "Sep 19, 2026",
       "tier": "Standard",
-      "balance": 6142,
+      "balance": 5942.04,
       "gamesPlayed": 0,
       "cardsPurchased": 25,
-      "wins": 3,
-      "totalPrizes": 6188,
+      "wins": 4,
+      "totalPrizes": 6188.1,
       "restrictions": [],
       "lastLogin": "Just now",
       "status": "Active",
       "password": "RahulSecretPass@77",
       "totalEntry": 146,
-      "poker_enabled": false
+      "poker_enabled": true
     },
     {
       "id": "USR-99125",
@@ -20885,7 +21362,7 @@
       "restrictions": [],
       "lastLogin": "Just now",
       "status": "Active",
-      "poker_enabled": false
+      "poker_enabled": true
     },
     {
       "id": "USR-45005",
@@ -20903,7 +21380,7 @@
       "restrictions": [],
       "lastLogin": "Just now",
       "status": "Active",
-      "poker_enabled": false
+      "poker_enabled": true
     },
     {
       "id": "USR-32285",
@@ -20913,15 +21390,15 @@
       "email": "rahulpass_308@player.trueigtech.com",
       "joinedDate": "Sep 19, 2026",
       "tier": "Standard",
-      "balance": 3600,
+      "balance": 3753.98,
       "gamesPlayed": 0,
       "cardsPurchased": 0,
-      "wins": 1,
-      "totalPrizes": 3600,
+      "wins": 4,
+      "totalPrizes": 3800,
       "restrictions": [],
       "lastLogin": "Just now",
       "status": "Active",
-      "poker_enabled": false
+      "poker_enabled": true
     },
     {
       "id": "USR-29218",
@@ -20939,7 +21416,7 @@
       "restrictions": [],
       "lastLogin": "Just now",
       "status": "Active",
-      "poker_enabled": false
+      "poker_enabled": true
     },
     {
       "id": "USR-95304",
@@ -20957,7 +21434,7 @@
       "restrictions": [],
       "lastLogin": "Just now",
       "status": "Active",
-      "poker_enabled": false
+      "poker_enabled": true
     },
     {
       "id": "USR-94766",
@@ -20976,7 +21453,7 @@
       "lastLogin": "Just now",
       "status": "Active",
       "totalEntry": 20,
-      "poker_enabled": false
+      "poker_enabled": true
     },
     {
       "id": "USR-52778",
@@ -20994,7 +21471,7 @@
       "restrictions": [],
       "lastLogin": "Just now",
       "status": "Active",
-      "poker_enabled": false
+      "poker_enabled": true
     },
     {
       "id": "USR-84011",
@@ -21013,7 +21490,7 @@
       "lastLogin": "Just now",
       "status": "Active",
       "totalEntry": 1.5,
-      "poker_enabled": false
+      "poker_enabled": true
     }
   ],
   "settings": {
@@ -21036,354 +21513,354 @@
   },
   "auditFeed": [
     {
-      "id": "feed-1791823454549",
+      "id": "feed-1791831552033",
       "type": "player",
-      "title": "Poker Bet",
-      "detail": "NovaPlayer_2118 wagered $14.00 at Prishtina 2/5 (Hand #2912) - Raise €14",
-      "time": "22:14"
+      "title": "POKER_BUYIN",
+      "detail": "Ari.R bought into Tirana 1/2 for $40",
+      "time": "00:29"
     },
     {
-      "id": "feed-1791823447469",
-      "type": "player",
-      "title": "Poker Bet",
-      "detail": "NovaPlayer_2118 wagered $5.00 at Prishtina 2/5 (Hand #2912) - Call €5",
-      "time": "22:14"
+      "id": "feed-1791831521948",
+      "type": "alert",
+      "title": "POKER_TABLE_UPDATED",
+      "detail": "Operator updated table Gjakova High Stakes (status: open)",
+      "time": "00:28"
     },
     {
-      "id": "feed-1791823233482",
-      "type": "player",
-      "title": "Tickets purchased",
-      "detail": "1 card bought for Mega Trueig Jackpot ($50.00) by NovaPlayer_2118",
-      "time": "22:10"
+      "id": "feed-1791831507173",
+      "type": "alert",
+      "title": "POKER_TABLE_UPDATED",
+      "detail": "Operator updated table Gjakova High Stakes (status: paused)",
+      "time": "00:28"
     },
     {
-      "id": "feed-1791823041120",
-      "type": "player",
-      "title": "Poker Bet",
-      "detail": "Rahul wagered $206.00 at Prizren 1/2 Heads-Up (Hand #8311) - All-in €206",
-      "time": "22:07"
+      "id": "feed-1791831421142",
+      "type": "alert",
+      "title": "POKER_TABLE_UPDATED",
+      "detail": "Operator updated table Gjakova High Stakes (status: open)",
+      "time": "00:27"
     },
     {
-      "id": "feed-1791823033346",
+      "id": "feed-1791831420010",
+      "type": "alert",
+      "title": "POKER_TABLE_UPDATED",
+      "detail": "Operator updated table Tirana 1/2 (status: open)",
+      "time": "00:27"
+    },
+    {
+      "id": "feed-1791831384397",
       "type": "player",
       "title": "Poker Win",
-      "detail": "Rahul won $10.00 at Prizren 1/2 Heads-Up (Hand #8309) - Won by all folds",
-      "time": "22:07"
+      "detail": "Rahul Pro won $0.10 at Prishtina 5/10 (Hand #5318) - Won by all folds",
+      "time": "00:26"
     },
     {
-      "id": "feed-1791823031948",
+      "id": "feed-1791831379932",
       "type": "player",
       "title": "Poker Bet",
-      "detail": "Rahul wagered $4.00 at Prizren 1/2 Heads-Up (Hand #8309) - Raise €4",
-      "time": "22:07"
+      "detail": "Rahul Pro wagered $0.04 at Prishtina 5/10 (Hand #5318) - Raise €0.04",
+      "time": "00:26"
     },
     {
-      "id": "feed-1791822947100",
-      "type": "player",
-      "title": "Poker Win",
-      "detail": "Rahul won $7.00 at Prizren 1/2 Heads-Up (Hand #8313) - Won by all folds",
-      "time": "22:05"
-    },
-    {
-      "id": "feed-1791822945947",
+      "id": "feed-1791831366103",
       "type": "player",
       "title": "Poker Bet",
-      "detail": "Rahul wagered $4.00 at Prizren 1/2 Heads-Up (Hand #8313) - Raise €4",
-      "time": "22:05"
+      "detail": "Rahul Pro wagered $0.02 at Prishtina 5/10 (Hand #5318) - Call €0.02",
+      "time": "00:26"
     },
     {
-      "id": "feed-1791822903763",
+      "id": "feed-1791831358973",
       "type": "player",
-      "title": "Poker Win",
-      "detail": "Rahul won $8.00 at Prizren 1/2 Heads-Up (Hand #8309) - Won by all folds",
-      "time": "22:05"
+      "title": "POKER_BUYIN",
+      "detail": "RahulRahulGame_331 bought into Prishtina 5/10 for $200",
+      "time": "00:25"
     },
     {
-      "id": "feed-1791822901781",
-      "type": "player",
-      "title": "Poker Bet",
-      "detail": "Rahul wagered $4.00 at Prizren 1/2 Heads-Up (Hand #8309) - Raise €4",
-      "time": "22:05"
+      "id": "feed-1791830549284",
+      "type": "alert",
+      "title": "POKER_TABLE_UPDATED",
+      "detail": "Operator updated table Gjakova High Stakes (status: paused)",
+      "time": "00:12"
     },
     {
-      "id": "feed-1791822893751",
-      "type": "player",
-      "title": "Poker Bet",
-      "detail": "Rahul wagered $2.00 at Prizren 1/2 Heads-Up (Hand #8309) - Call €2",
-      "time": "22:04"
+      "id": "feed-1791830548356",
+      "type": "alert",
+      "title": "POKER_TABLE_UPDATED",
+      "detail": "Operator updated table Gjakova High Stakes (status: paused)",
+      "time": "00:12"
     },
     {
-      "id": "feed-1791822854547",
-      "type": "player",
-      "title": "Poker Bet",
-      "detail": "Ari.R wagered $2.00 at Prizren 1/2 Heads-Up (Hand #8311) - Call €2",
-      "time": "22:04"
+      "id": "feed-1791830548131",
+      "type": "alert",
+      "title": "POKER_TABLE_UPDATED",
+      "detail": "Operator updated table Gjakova High Stakes (status: paused)",
+      "time": "00:12"
     },
     {
-      "id": "feed-1791822852960",
-      "type": "player",
-      "title": "Poker Bet",
-      "detail": "NovaPlayer_2118 wagered $2.00 at Prizren 1/2 Heads-Up (Hand #8309) - Call €2",
-      "time": "22:04"
+      "id": "feed-1791830547695",
+      "type": "alert",
+      "title": "POKER_TABLE_UPDATED",
+      "detail": "Operator updated table Gjakova High Stakes (status: paused)",
+      "time": "00:12"
     },
     {
-      "id": "feed-1791822846066",
-      "type": "player",
-      "title": "Poker Win",
-      "detail": "Ari.R won $8.00 at Prizren 1/2 Heads-Up (Hand #8309) - Won by all folds",
-      "time": "22:04"
+      "id": "feed-1791830547480",
+      "type": "alert",
+      "title": "POKER_TABLE_UPDATED",
+      "detail": "Operator updated table Gjakova High Stakes (status: paused)",
+      "time": "00:12"
     },
     {
-      "id": "feed-1791822844168",
-      "type": "player",
-      "title": "Poker Bet",
-      "detail": "Ari.R wagered $2.00 at Prizren 1/2 Heads-Up (Hand #8309) - Call €2",
-      "time": "22:04"
+      "id": "feed-1791830546535",
+      "type": "alert",
+      "title": "POKER_TABLE_UPDATED",
+      "detail": "Operator updated table Gjakova High Stakes (status: paused)",
+      "time": "00:12"
     },
     {
-      "id": "feed-1791822600803",
-      "type": "player",
-      "title": "Poker Win",
-      "detail": "Ari.R won $0.12 at Micro NLH 0.01/0.02 (Hand #5318) - Won by all folds",
-      "time": "22:00"
+      "id": "feed-1791830424560",
+      "type": "alert",
+      "title": "POKER_TABLE_UPDATED",
+      "detail": "Operator updated table Tirana 1/2 (status: paused)",
+      "time": "00:10"
     },
     {
-      "id": "feed-1791822596946",
-      "type": "player",
-      "title": "Poker Bet",
-      "detail": "Ari.R wagered $0.04 at Micro NLH 0.01/0.02 (Hand #5318) - Call €0.039999999999999994",
-      "time": "21:59"
+      "id": "feed-1791830424168",
+      "type": "alert",
+      "title": "POKER_TABLE_UPDATED",
+      "detail": "Operator updated table Tirana 1/2 (status: paused)",
+      "time": "00:10"
     },
     {
-      "id": "feed-1791822590158",
-      "type": "player",
-      "title": "Poker Bet",
-      "detail": "Ari.R wagered $0.02 at Micro NLH 0.01/0.02 (Hand #5318) - Call €0.02",
-      "time": "21:59"
+      "id": "feed-1791830423944",
+      "type": "alert",
+      "title": "POKER_TABLE_UPDATED",
+      "detail": "Operator updated table Tirana 1/2 (status: paused)",
+      "time": "00:10"
     },
     {
-      "id": "feed-1791822316658",
-      "type": "player",
-      "title": "Poker Win",
-      "detail": "Ari.R won $2300.00 at Monaco Elite 100/200 (Hand #3853) - Won by all folds",
-      "time": "21:55"
+      "id": "feed-1791830423448",
+      "type": "alert",
+      "title": "POKER_TABLE_UPDATED",
+      "detail": "Operator updated table Tirana 1/2 (status: paused)",
+      "time": "00:10"
     },
     {
-      "id": "feed-1791822311445",
-      "type": "player",
-      "title": "Poker Bet",
-      "detail": "Ari.R wagered $400.00 at Monaco Elite 100/200 (Hand #3853) - Raise €400",
-      "time": "21:55"
+      "id": "feed-1791830423013",
+      "type": "alert",
+      "title": "POKER_TABLE_UPDATED",
+      "detail": "Operator updated table Tirana 1/2 (status: paused)",
+      "time": "00:10"
     },
     {
-      "id": "feed-1791822307032",
-      "type": "player",
-      "title": "Poker Bet",
-      "detail": "Ari.R wagered $400.00 at Monaco Elite 100/200 (Hand #3853) - Call €400",
-      "time": "21:55"
+      "id": "feed-1791830422113",
+      "type": "alert",
+      "title": "POKER_TABLE_UPDATED",
+      "detail": "Operator updated table Tirana 1/2 (status: paused)",
+      "time": "00:10"
     },
     {
-      "id": "feed-1791822301362",
-      "type": "player",
-      "title": "Poker Bet",
-      "detail": "Ari.R wagered $400.00 at Monaco Elite 100/200 (Hand #3853) - Raise €400",
-      "time": "21:55"
+      "id": "feed-1791830370279",
+      "type": "alert",
+      "title": "POKER_TABLE_UPDATED",
+      "detail": "Operator updated table Gjakova High Stakes (status: paused)",
+      "time": "00:09"
     },
     {
-      "id": "feed-1791822288220",
-      "type": "player",
-      "title": "Poker Bet",
-      "detail": "Ari.R wagered $200.00 at Monaco Elite 100/200 (Hand #3853) - Call €200",
-      "time": "21:54"
+      "id": "feed-1791830369477",
+      "type": "alert",
+      "title": "POKER_TABLE_UPDATED",
+      "detail": "Operator updated table Gjakova High Stakes (status: paused)",
+      "time": "00:09"
     },
     {
-      "id": "feed-1791821570809",
-      "type": "player",
-      "title": "Poker Win",
-      "detail": "Ari.R won $50.00 at Gjakova 5/10 (Hand #3798) - Won by all folds",
-      "time": "21:42"
+      "id": "feed-1791830294793",
+      "type": "alert",
+      "title": "POKER_TABLE_UPDATED",
+      "detail": "Operator updated table Tirana 1/2 (status: paused)",
+      "time": "00:08"
     },
     {
-      "id": "feed-1791821568827",
-      "type": "player",
-      "title": "Poker Bet",
-      "detail": "Ari.R wagered $20.00 at Gjakova 5/10 (Hand #3798) - Call €20",
-      "time": "21:42"
+      "id": "feed-1791830291619",
+      "type": "alert",
+      "title": "POKER_TABLE_UPDATED",
+      "detail": "Operator updated table Gjakova High Stakes (status: paused)",
+      "time": "00:08"
     },
     {
-      "id": "feed-1791821562656",
-      "type": "player",
-      "title": "Poker Win",
-      "detail": "Ari.R won $80.00 at Gjakova 5/10 (Hand #3796) - Won by all folds",
-      "time": "21:42"
+      "id": "feed-1791830285201",
+      "type": "alert",
+      "title": "POKER_TABLE_UPDATED",
+      "detail": "Operator updated table Tirana 1/2 (status: paused)",
+      "time": "00:08"
     },
     {
-      "id": "feed-1791821555850",
-      "type": "player",
-      "title": "Poker Bet",
-      "detail": "Ari.R wagered $20.00 at Gjakova 5/10 (Hand #3796) - Call €20",
-      "time": "21:42"
+      "id": "feed-1791830285001",
+      "type": "alert",
+      "title": "POKER_TABLE_UPDATED",
+      "detail": "Operator updated table Tirana 1/2 (status: paused)",
+      "time": "00:08"
     },
     {
-      "id": "feed-1791738346622",
-      "type": "player",
-      "title": "Poker Bet",
-      "detail": "Ari.R wagered $5.00 at Prishtina 2/5 (Hand #2912) - Call €5",
-      "time": "22:35"
+      "id": "feed-1791830284793",
+      "type": "alert",
+      "title": "POKER_TABLE_UPDATED",
+      "detail": "Operator updated table Tirana 1/2 (status: paused)",
+      "time": "00:08"
     },
     {
-      "id": "feed-1791738053323",
-      "type": "player",
-      "title": "Admin wallet credit",
-      "detail": "Operator added +$25.00 to Ari.R (Poker chips balance credit)",
-      "time": "22:30"
+      "id": "feed-1791830284155",
+      "type": "alert",
+      "title": "POKER_TABLE_UPDATED",
+      "detail": "Operator updated table Tirana 1/2 (status: paused)",
+      "time": "00:08"
     },
     {
-      "id": "feed-1791738043589",
-      "type": "player",
-      "title": "Admin wallet credit",
-      "detail": "Operator added +$25.00 to MikaK (Poker chips balance credit)",
-      "time": "22:30"
+      "id": "feed-1791830216366",
+      "type": "alert",
+      "title": "POKER_TABLE_UPDATED",
+      "detail": "Operator updated table Tirana 1/2 (status: paused)",
+      "time": "00:06"
     },
     {
-      "id": "feed-1791737765872",
-      "type": "player",
-      "title": "Poker Win",
-      "detail": "Ari.R won $80.00 at Gjakova 5/10 (Hand #3796) - Won by all folds",
-      "time": "22:26"
+      "id": "feed-1791830216207",
+      "type": "alert",
+      "title": "POKER_TABLE_UPDATED",
+      "detail": "Operator updated table Tirana 1/2 (status: paused)",
+      "time": "00:06"
     },
     {
-      "id": "feed-1791737764354",
-      "type": "player",
-      "title": "Poker Bet",
-      "detail": "Ari.R wagered $20.00 at Gjakova 5/10 (Hand #3796) - Call €20",
-      "time": "22:26"
+      "id": "feed-1791830216018",
+      "type": "alert",
+      "title": "POKER_TABLE_UPDATED",
+      "detail": "Operator updated table Tirana 1/2 (status: paused)",
+      "time": "00:06"
     },
     {
-      "id": "feed-1791736843255",
-      "type": "player",
-      "title": "Poker Win",
-      "detail": "Ari.R won $80.00 at Gjakova 5/10 (Hand #3796) - Won by all folds",
-      "time": "22:10"
+      "id": "feed-1791830215831",
+      "type": "alert",
+      "title": "POKER_TABLE_UPDATED",
+      "detail": "Operator updated table Tirana 1/2 (status: paused)",
+      "time": "00:06"
     },
     {
-      "id": "feed-1791736829151",
-      "type": "player",
-      "title": "Poker Bet",
-      "detail": "Ari.R wagered $20.00 at Gjakova 5/10 (Hand #3796) - Call €20",
-      "time": "22:10"
+      "id": "feed-1791830215456",
+      "type": "alert",
+      "title": "POKER_TABLE_UPDATED",
+      "detail": "Operator updated table Tirana 1/2 (status: paused)",
+      "time": "00:06"
     },
     {
-      "id": "feed-1791736554431",
-      "type": "player",
-      "title": "Poker Win",
-      "detail": "Ari.R won $50.00 at Gjakova 5/10 (Hand #3798) - Won by all folds",
-      "time": "22:05"
+      "id": "feed-1791830214744",
+      "type": "alert",
+      "title": "POKER_TABLE_UPDATED",
+      "detail": "Operator updated table Tirana 1/2 (status: paused)",
+      "time": "00:06"
     },
     {
-      "id": "feed-1791736553227",
-      "type": "player",
-      "title": "Poker Bet",
-      "detail": "Ari.R wagered $20.00 at Gjakova 5/10 (Hand #3798) - Call €20",
-      "time": "22:05"
+      "id": "feed-1791830193247",
+      "type": "alert",
+      "title": "POKER_TABLE_CLOSED",
+      "detail": "Table Gjakova High Stakes closed by Admin Operator. Refunded 0 players for total $0",
+      "time": "00:06"
     },
     {
-      "id": "feed-1791736543912",
-      "type": "player",
-      "title": "Poker Bet",
-      "detail": "Ari.R wagered $20.00 at Gjakova 5/10 (Hand #3796) - Call €20",
-      "time": "22:05"
+      "id": "feed-1791830186527",
+      "type": "alert",
+      "title": "POKER_TABLE_UPDATED",
+      "detail": "Operator updated table Gjakova High Stakes (status: paused)",
+      "time": "00:06"
     },
     {
-      "id": "feed-1791734228934",
-      "type": "player",
-      "title": "Poker Win",
-      "detail": "Rahul Password VIP won $3600.00 at Gjakova 5/10 (Hand #2487) - Won by all folds",
-      "time": "21:27"
+      "id": "feed-1791830179016",
+      "type": "alert",
+      "title": "POKER_TABLE_CLOSED",
+      "detail": "Table Gjakova High Stakes closed by Admin Operator. Refunded 0 players for total $0",
+      "time": "00:06"
     },
     {
-      "id": "feed-1791734225230",
-      "type": "player",
-      "title": "Poker Bet",
-      "detail": "Rahul Password VIP wagered $1000.00 at Gjakova 5/10 (Hand #2487) - Raise €1000",
-      "time": "21:27"
+      "id": "feed-1791830173106",
+      "type": "alert",
+      "title": "POKER_TABLE_UPDATED",
+      "detail": "Operator updated table Gjakova High Stakes (status: paused)",
+      "time": "00:06"
     },
     {
-      "id": "feed-1791734222249",
-      "type": "player",
-      "title": "Poker Bet",
-      "detail": "Rahul Password VIP wagered $500.00 at Gjakova 5/10 (Hand #2487) - Call €500",
-      "time": "21:27"
+      "id": "feed-1791830172556",
+      "type": "alert",
+      "title": "POKER_TABLE_UPDATED",
+      "detail": "Operator updated table Gjakova High Stakes (status: paused)",
+      "time": "00:06"
     },
     {
-      "id": "feed-1791733815186",
-      "type": "player",
-      "title": "Poker Win",
-      "detail": "Ari.R won $4270.00 at Gjakova 5/10 (Hand #2487) - Straight, Ace high",
-      "time": "21:20"
+      "id": "feed-1791830170350",
+      "type": "alert",
+      "title": "POKER_TABLE_UPDATED",
+      "detail": "Operator updated table Tirana 1/2 (status: paused)",
+      "time": "00:06"
     },
     {
-      "id": "feed-1791733811847",
-      "type": "player",
-      "title": "Poker Bet",
-      "detail": "Ari.R wagered $320.00 at Gjakova 5/10 (Hand #2487) - Raise €320",
-      "time": "21:20"
+      "id": "feed-1791830170168",
+      "type": "alert",
+      "title": "POKER_TABLE_UPDATED",
+      "detail": "Operator updated table Tirana 1/2 (status: paused)",
+      "time": "00:06"
     },
     {
-      "id": "feed-1791733810133",
-      "type": "player",
-      "title": "Poker Bet",
-      "detail": "Ari.R wagered $1680.00 at Gjakova 5/10 (Hand #2487) - Raise €1680",
-      "time": "21:20"
+      "id": "feed-1791830170005",
+      "type": "alert",
+      "title": "POKER_TABLE_UPDATED",
+      "detail": "Operator updated table Tirana 1/2 (status: paused)",
+      "time": "00:06"
     },
     {
-      "id": "feed-1791733800148",
-      "type": "player",
-      "title": "Poker Bet",
-      "detail": "Ari.R wagered $500.00 at Gjakova 5/10 (Hand #2487) - Call €500",
-      "time": "21:20"
+      "id": "feed-1791830169826",
+      "type": "alert",
+      "title": "POKER_TABLE_UPDATED",
+      "detail": "Operator updated table Tirana 1/2 (status: paused)",
+      "time": "00:06"
     },
     {
-      "id": "feed-1791733784726",
-      "type": "player",
-      "title": "Poker Bet",
-      "detail": "Ari.R wagered $10.00 at VIP Private Friends Club (Hand #2489) - Call €10",
-      "time": "21:19"
+      "id": "feed-1791830169515",
+      "type": "alert",
+      "title": "POKER_TABLE_UPDATED",
+      "detail": "Operator updated table Tirana 1/2 (status: paused)",
+      "time": "00:06"
     },
     {
-      "id": "feed-1791733776073",
-      "type": "player",
-      "title": "Poker Win",
-      "detail": "Ari.R won $3220.00 at VIP Private Friends Club (Hand #2487) - Straight, Ace high",
-      "time": "21:19"
+      "id": "feed-1791830169357",
+      "type": "alert",
+      "title": "POKER_TABLE_UPDATED",
+      "detail": "Operator updated table Tirana 1/2 (status: paused)",
+      "time": "00:06"
     },
     {
-      "id": "feed-1791733764957",
-      "type": "player",
-      "title": "Poker Bet",
-      "detail": "Ari.R wagered $500.00 at VIP Private Friends Club (Hand #2487) - All-in €500",
-      "time": "21:19"
+      "id": "feed-1791830169173",
+      "type": "alert",
+      "title": "POKER_TABLE_UPDATED",
+      "detail": "Operator updated table Tirana 1/2 (status: paused)",
+      "time": "00:06"
     },
     {
-      "id": "feed-1791733759829",
-      "type": "player",
-      "title": "Poker Bet",
-      "detail": "Ari.R wagered $250.00 at VIP Private Friends Club (Hand #2487) - Raise €250",
-      "time": "21:19"
+      "id": "feed-1791830168990",
+      "type": "alert",
+      "title": "POKER_TABLE_UPDATED",
+      "detail": "Operator updated table Tirana 1/2 (status: paused)",
+      "time": "00:06"
     },
     {
-      "id": "feed-1791733754258",
-      "type": "player",
-      "title": "Poker Bet",
-      "detail": "Ari.R wagered $250.00 at VIP Private Friends Club (Hand #2487) - Raise €250",
-      "time": "21:19"
+      "id": "feed-1791830168624",
+      "type": "alert",
+      "title": "POKER_TABLE_UPDATED",
+      "detail": "Operator updated table Tirana 1/2 (status: paused)",
+      "time": "00:06"
     },
     {
-      "id": "feed-1791733736282",
-      "type": "player",
-      "title": "Poker Bet",
-      "detail": "Ari.R wagered $500.00 at VIP Private Friends Club (Hand #2487) - Call €500",
-      "time": "21:18"
+      "id": "feed-1791830168045",
+      "type": "alert",
+      "title": "POKER_TABLE_UPDATED",
+      "detail": "Operator updated table Tirana 1/2 (status: paused)",
+      "time": "00:06"
     }
   ],
   "sessions": {
@@ -21693,10 +22170,117 @@
       "username": "NovaPlayer_2118",
       "userId": "USR-27684",
       "createdAt": "2026-10-12T16:37:48.894Z",
-      "lastSeen": "2026-10-12T16:44:14.549Z"
+      "lastSeen": "2026-10-12T17:04:18.281Z"
+    },
+    "tig_sess_jp8sfc7q_1791824664472": {
+      "token": "tig_sess_jp8sfc7q_1791824664472",
+      "username": "Ari.R",
+      "userId": "USR-11804",
+      "createdAt": "2026-10-12T17:04:24.472Z",
+      "lastSeen": "2026-10-12T17:16:33.961Z"
+    },
+    "tig_sess_eh42x6ao_1791825397407": {
+      "token": "tig_sess_eh42x6ao_1791825397407",
+      "username": "TrueigQueen",
+      "userId": "USR-10482",
+      "createdAt": "2026-10-12T17:16:37.407Z",
+      "lastSeen": "2026-10-12T17:18:31.509Z"
+    },
+    "tig_sess_a4olczdf_1791825523807": {
+      "token": "tig_sess_a4olczdf_1791825523807",
+      "username": "NovaPlayer_2118",
+      "userId": "USR-27684",
+      "createdAt": "2026-10-12T17:18:43.807Z",
+      "lastSeen": "2026-10-12T17:22:46.158Z"
+    },
+    "tig_sess_74vwjw2g_1791825773004": {
+      "token": "tig_sess_74vwjw2g_1791825773004",
+      "username": "NovaPlayer_5634",
+      "userId": "USR-37175",
+      "createdAt": "2026-10-12T17:22:53.004Z",
+      "lastSeen": "2026-10-12T17:25:09.365Z"
+    },
+    "tig_sess_l2n30nyz_1791825914255": {
+      "token": "tig_sess_l2n30nyz_1791825914255",
+      "username": "PassUser1",
+      "userId": "USR-99125",
+      "createdAt": "2026-10-12T17:25:14.255Z",
+      "lastSeen": "2026-10-12T17:25:16.967Z"
+    },
+    "tig_sess_3qtt48c2_1791825931586": {
+      "token": "tig_sess_3qtt48c2_1791825931586",
+      "username": "Ari.R",
+      "userId": "USR-11804",
+      "createdAt": "2026-10-12T17:25:31.586Z",
+      "lastSeen": "2026-10-12T17:36:44.561Z"
+    },
+    "tig_sess_kljvaojm_1791826616329": {
+      "token": "tig_sess_kljvaojm_1791826616329",
+      "username": "NovaPlayer_2118",
+      "userId": "USR-27684",
+      "createdAt": "2026-10-12T17:36:56.329Z",
+      "lastSeen": "2026-10-12T17:37:07.979Z"
+    },
+    "tig_sess_xwu8clql_1791826632405": {
+      "token": "tig_sess_xwu8clql_1791826632405",
+      "username": "Ari.R",
+      "userId": "USR-11804",
+      "createdAt": "2026-10-12T17:37:12.405Z",
+      "lastSeen": "2026-10-12T17:56:58.728Z"
+    },
+    "tig_sess_jyoxlyr4_1791827824089": {
+      "token": "tig_sess_jyoxlyr4_1791827824089",
+      "username": "NovaPlayer_4106",
+      "userId": "USR-44839",
+      "createdAt": "2026-10-12T17:57:04.089Z",
+      "lastSeen": "2026-10-12T18:19:59.292Z"
+    },
+    "tig_sess_2uirqzpw_1791829337573": {
+      "token": "tig_sess_2uirqzpw_1791829337573",
+      "username": "RiskyB",
+      "userId": "USR-07226",
+      "createdAt": "2026-10-12T18:22:17.573Z",
+      "lastSeen": "2026-10-12T18:22:42.541Z"
+    },
+    "tig_sess_ublz94sd_1791829468343": {
+      "token": "tig_sess_ublz94sd_1791829468343",
+      "username": "RahulPass_308",
+      "userId": "USR-32285",
+      "createdAt": "2026-10-12T18:24:28.343Z",
+      "lastSeen": "2026-10-12T18:45:26.097Z"
+    },
+    "tig_sess_805a0kn4_1791830734794": {
+      "token": "tig_sess_805a0kn4_1791830734794",
+      "username": "RahulRahulGame_331",
+      "userId": "USR-30800",
+      "createdAt": "2026-10-12T18:45:34.794Z",
+      "lastSeen": "2026-10-12T18:57:45.839Z"
     }
   },
   "pokerTables": [
+    {
+      "id": "tbl-adm-mv5jkcw3-0faf",
+      "name": "Gjakova High Stakes",
+      "gameType": "texas_holdem",
+      "sb": 10,
+      "bb": 20,
+      "minBuyIn": 400,
+      "maxBuyIn": 4000,
+      "maxSeats": 6,
+      "feeType": "RAKE",
+      "rakePercent": 5,
+      "rakeCap": 25,
+      "handFeeAmount": 2,
+      "tableFeeAmount": 20,
+      "tableFeeIntervalMinutes": 30,
+      "isPrivate": false,
+      "status": "open",
+      "createdBy": "Admin",
+      "createdAt": "2026-10-12T17:44:15.939Z",
+      "seats": [],
+      "pot": 0,
+      "tier": "mid"
+    },
     {
       "id": "tbl-tirana-1-2",
       "name": "Tirana 1/2",
@@ -21715,7 +22299,17 @@
       "isPrivate": false,
       "status": "open",
       "createdAt": "2026-10-12T16:24:17.030Z",
-      "seats": [],
+      "seats": [
+        {
+          "seatNo": 1,
+          "player": "Ari.R",
+          "stack": 40,
+          "bet": 0,
+          "folded": false,
+          "sittingOut": false,
+          "joinedAt": "2026-10-12T18:59:12.033Z"
+        }
+      ],
       "pot": 0,
       "tier": "low"
     },
@@ -21737,7 +22331,17 @@
       "isPrivate": false,
       "status": "open",
       "createdAt": "2026-10-12T16:24:17.030Z",
-      "seats": [],
+      "seats": [
+        {
+          "seatNo": 1,
+          "player": "RahulRahulGame_331",
+          "stack": 200,
+          "bet": 0,
+          "folded": false,
+          "sittingOut": false,
+          "joinedAt": "2026-10-12T18:55:58.973Z"
+        }
+      ],
       "pot": 0,
       "tier": "mid"
     },

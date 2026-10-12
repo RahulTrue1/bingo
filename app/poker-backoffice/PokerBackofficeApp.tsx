@@ -22,7 +22,152 @@ import {
   sendLivePokerCommand,
 } from "../poker/poker-tables-store";
 
-import { apiClient, type WalletTransaction, type PlayerModel } from "../api-client";
+import {
+  apiClient,
+  type WalletTransaction,
+  type PlayerModel,
+  type PokerReconciliationApiModel,
+  type PokerTableApiModel,
+} from "../api-client";
+import {
+  Bet888LiveTable,
+  type TableSeatPlayer,
+  type LiveTableTelemetry,
+  rankLabel,
+  suitSymbol,
+} from "../poker/Bet888LiveTable";
+
+function PaginationBar({
+  currentPage,
+  totalPages,
+  totalItems,
+  pageSize,
+  onPageChange,
+  itemLabel = "items",
+}: {
+  currentPage: number;
+  totalPages: number;
+  totalItems: number;
+  pageSize: number;
+  onPageChange: (p: number) => void;
+  itemLabel?: string;
+}) {
+  const startItem = totalItems === 0 ? 0 : (currentPage - 1) * pageSize + 1;
+  const endItem = Math.min(totalItems, currentPage * pageSize);
+
+  if (totalItems <= pageSize) {
+    return (
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 18px", borderTop: "1px solid #edf0f5", fontSize: 12, color: "#6b7280", background: "#fcfdfe" }}>
+        <span>Showing all <b>{totalItems}</b> {itemLabel} (Page 1 of 1)</span>
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 18px", borderTop: "1px solid #edf0f5", fontSize: 12, background: "#fcfdfe", flexWrap: "wrap", gap: 8 }}>
+      <span style={{ color: "#6b7280" }}>
+        Showing <b>{startItem}</b> to <b>{endItem}</b> of <b>{totalItems}</b> {itemLabel}
+      </span>
+      <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+        <button
+          type="button"
+          disabled={currentPage <= 1}
+          onClick={() => onPageChange(currentPage - 1)}
+          style={{
+            padding: "4px 10px",
+            borderRadius: 5,
+            border: "1px solid #dcdfe6",
+            background: currentPage <= 1 ? "#f3f4f6" : "#fff",
+            color: currentPage <= 1 ? "#9ca3af" : "#374151",
+            cursor: currentPage <= 1 ? "not-allowed" : "pointer",
+            fontWeight: 600,
+            fontSize: 11,
+          }}
+        >
+          &laquo; Prev
+        </button>
+        {(() => {
+          const getPageNumbers = () => {
+            if (totalPages <= 7) {
+              return Array.from({ length: totalPages }, (_, i) => i + 1);
+            }
+            const pages: (number | string)[] = [];
+            if (currentPage <= 4) {
+              for (let i = 1; i <= 5; i++) pages.push(i);
+              pages.push("...");
+              pages.push(totalPages);
+            } else if (currentPage >= totalPages - 3) {
+              pages.push(1);
+              pages.push("...");
+              for (let i = totalPages - 4; i <= totalPages; i++) pages.push(i);
+            } else {
+              pages.push(1);
+              pages.push("...");
+              pages.push(currentPage - 1);
+              pages.push(currentPage);
+              pages.push(currentPage + 1);
+              pages.push("...");
+              pages.push(totalPages);
+            }
+            return pages;
+          };
+
+          return getPageNumbers().map((p, idx) => {
+            if (p === "...") {
+              return (
+                <span key={`dots-${idx}`} style={{ padding: "0 4px", color: "#9ca3af", fontSize: 12 }}>
+                  …
+                </span>
+              );
+            }
+            const pageNum = Number(p);
+            const isActive = pageNum === currentPage;
+            return (
+              <button
+                key={pageNum}
+                type="button"
+                onClick={() => onPageChange(pageNum)}
+                style={{
+                  width: 28,
+                  height: 28,
+                  borderRadius: 5,
+                  border: isActive ? "1px solid #6b59df" : "1px solid #dcdfe6",
+                  background: isActive ? "#6b59df" : "#fff",
+                  color: isActive ? "#fff" : "#374151",
+                  cursor: "pointer",
+                  fontWeight: isActive ? 800 : 600,
+                  fontSize: 11,
+                  display: "inline-flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                {pageNum}
+              </button>
+            );
+          });
+        })()}
+        <button
+          type="button"
+          disabled={currentPage >= totalPages}
+          onClick={() => onPageChange(currentPage + 1)}
+          style={{
+            padding: "4px 10px",
+            borderRadius: 5,
+            border: "1px solid #dcdfe6",
+            background: currentPage >= totalPages ? "#f3f4f6" : "#fff",
+            color: currentPage >= totalPages ? "#9ca3af" : "#374151",
+            cursor: currentPage >= totalPages ? "not-allowed" : "pointer",
+            fontWeight: 600,
+            fontSize: 11,
+          }}
+        >
+          Next &raquo;
+        </button>
+      </div>
+    </div>
+  );
+}
 
 export const pokerAdminNav = [
   ["dashboard", "Overview & KPIs", "⌂"],
@@ -84,6 +229,26 @@ export default function PokerBackofficeApp() {
   const [livePot, setLivePot] = useState<number>(145);
   const [actionSpeed, setActionSpeed] = useState("Normal · 15 sec");
   const [liveCommunityCards, setLiveCommunityCards] = useState<string[]>(["A♠", "K♥", "Q♦"]);
+  const [liveTelemetry, setLiveTelemetry] = useState<LiveTableTelemetry | null>(null);
+  const [liveTableSearch, setLiveTableSearch] = useState<string>("");
+  const [showSimulatorBots, setShowSimulatorBots] = useState(false);
+
+  // Active logged-in player identifier (synchronizes Ari.R or logged-in user across user and admin side)
+  const activeHeroName = useMemo(() => {
+    if (typeof window !== "undefined") {
+      const stored = apiClient.auth.getStoredUsername();
+      if (stored) return stored;
+      try {
+        const u = localStorage.getItem("bingo_user") || localStorage.getItem("bet888_user");
+        if (u) {
+          const parsed = JSON.parse(u);
+          if (parsed.username) return parsed.username;
+          if (parsed.displayName) return parsed.displayName;
+        }
+      } catch (_) {}
+    }
+    return "Ari.R";
+  }, []);
 
   // Transactions Ledger State (All Players)
   const [txList, setTxList] = useState<WalletTransaction[]>([]);
@@ -98,6 +263,88 @@ export default function PokerBackofficeApp() {
   const [addFundsAmount, setAddFundsAmount] = useState<number>(100);
   const [addFundsReason, setAddFundsReason] = useState<string>("Poker chips balance credit");
   const [playerStatusFilter, setPlayerStatusFilter] = useState<string>("all");
+  const [playerPokerFilter, setPlayerPokerFilter] = useState<string>("all");
+
+  // Pagination State (Default 10 items per page across all lists per spec)
+  const [tablePage, setTablePage] = useState(1);
+  const tablePageSize = 10;
+  const [playerPage, setPlayerPage] = useState(1);
+  const playerPageSize = 10;
+  const [txPage, setTxPage] = useState(1);
+  const txPageSize = 10;
+
+  // Server Invariant & Fleet Synchronization (Section 9.4 & 10.1)
+  const [serverReconciliation, setServerReconciliation] = useState<PokerReconciliationApiModel | null>(null);
+
+  const loadServerTablesAndRecon = useCallback(async () => {
+    try {
+      const res = await apiClient.admin.poker.tables();
+      if (res?.success) {
+        if (res.reconciliation) {
+          setServerReconciliation(res.reconciliation);
+        }
+        if (Array.isArray(res.tables)) {
+          const mappedServer: BasepokerTableItem[] = res.tables.map((t: any) => {
+            const tier: StakeTier =
+              t.bb <= 0.1 ? "micro" : t.bb <= 2 ? "low" : t.bb <= 20 ? "medium" : t.bb <= 100 ? "high" : "vip";
+            const feeLabel =
+              t.feeType === "HAND_FEE"
+                ? `€${t.handFeeAmount || 2} / HAND`
+                : t.feeType === "TABLE_FEE"
+                ? `€${t.tableFeeAmount || 20} / ${t.tableFeeIntervalMinutes || 30}MIN`
+                : t.rakeCap
+                ? `RAKE ${t.rakePercent || 5}% (max €${t.rakeCap})`
+                : `RAKE ${t.rakePercent || 5}%`;
+            const theme: "green" | "blue" | "red" | "purple" =
+              t.isPrivate
+                ? "purple"
+                : t.feeType === "HAND_FEE"
+                ? "blue"
+                : t.feeType === "TABLE_FEE"
+                ? "red"
+                : "green";
+
+            return {
+              id: t.id,
+              name: t.name,
+              feeType: t.feeType,
+              feeLabel,
+              sb: t.sb,
+              bb: t.bb,
+              minBuyIn: t.minBuyIn,
+              maxBuyIn: t.maxBuyIn,
+              maxSeats: t.maxSeats,
+              seatsOccupied: (t.seats || []).filter((s: any) => Boolean(s.player)).length,
+              status: t.status === "paused" ? "paused" : t.status === "closed" ? "waiting" : "playing",
+              isPrivate: Boolean(t.isPrivate),
+              inviteCode: t.inviteCode || "",
+              theme,
+              tier,
+              avgPot: t.pot || t.bb * 8,
+              handsPerHour: 60,
+              waitlist: 0,
+              currency: "EUR",
+              seats: t.seats || [],
+            };
+          });
+
+          const stored = getStoredPokerTables();
+          const serverIds = new Set(mappedServer.map((s) => s.id));
+          const serverNames = new Set(mappedServer.map((s) => s.name.toLowerCase()));
+          const uniqueStored = stored.filter((st) => !serverIds.has(st.id) && !serverNames.has(st.name.toLowerCase()));
+          const combined = [...mappedServer, ...uniqueStored];
+
+          setTables(combined);
+          if (combined.length > 0 && !selectedTableId) {
+            setSelectedTableId(combined[0].id);
+          }
+          return;
+        }
+      }
+    } catch (_) {}
+    const stored = getStoredPokerTables();
+    setTables(stored);
+  }, [selectedTableId]);
 
   const loadAdminPlayers = useCallback(() => {
     apiClient.admin.players().then((list) => {
@@ -128,19 +375,15 @@ export default function PokerBackofficeApp() {
 
   // Sync Data on Mount & Events
   const refreshData = useCallback(() => {
-    const loadedTables = getStoredPokerTables();
     const loadedPlayers = getStoredPokerPlayers();
     const loadedRules = getStoredCommissionSettings();
-    setTables(loadedTables);
     setPlayers(loadedPlayers);
     setCommissionRules(loadedRules);
     setRulesForm(loadedRules);
     loadTransactions();
     loadAdminPlayers();
-    if (loadedTables.length > 0 && !selectedTableId) {
-      setSelectedTableId(loadedTables[0].id);
-    }
-  }, [selectedTableId, loadTransactions, loadAdminPlayers]);
+    loadServerTablesAndRecon();
+  }, [loadTransactions, loadAdminPlayers, loadServerTablesAndRecon]);
 
   useEffect(() => {
     setMounted(true);
@@ -150,9 +393,18 @@ export default function PokerBackofficeApp() {
       refreshData();
     };
 
+    const handlePlayerJoined = (e: Event) => {
+      loadServerTablesAndRecon();
+      const custom = e as CustomEvent<{ player: string; tableId: string }>;
+      if (custom.detail?.player) {
+        showToast(`Live update: Player ${custom.detail.player} joined table!`, "info");
+      }
+    };
+
     window.addEventListener("basepoker_tables_updated", handleStorageUpdate);
     window.addEventListener("basepoker_players_updated", handleStorageUpdate);
     window.addEventListener("basepoker_commission_updated", handleStorageUpdate);
+    window.addEventListener("basepoker_player_joined", handlePlayerJoined);
     window.addEventListener("storage", handleStorageUpdate);
 
     const unsubSync = apiClient.sync.subscribe((event) => {
@@ -160,16 +412,20 @@ export default function PokerBackofficeApp() {
         loadTransactions();
         loadAdminPlayers();
       }
+      if (event.entity === "rooms" || (event as any).entity === "poker" || event.action?.includes("poker")) {
+        loadServerTablesAndRecon();
+      }
     });
 
     return () => {
       window.removeEventListener("basepoker_tables_updated", handleStorageUpdate);
       window.removeEventListener("basepoker_players_updated", handleStorageUpdate);
       window.removeEventListener("basepoker_commission_updated", handleStorageUpdate);
+      window.removeEventListener("basepoker_player_joined", handlePlayerJoined);
       window.removeEventListener("storage", handleStorageUpdate);
       unsubSync();
     };
-  }, [refreshData, loadTransactions]);
+  }, [refreshData, loadTransactions, loadAdminPlayers, loadServerTablesAndRecon]);
 
   // Derived KPI calculations
   const kpis = useMemo(() => {
@@ -262,6 +518,8 @@ export default function PokerBackofficeApp() {
     return adminPlayers.filter((p) => {
       if (playerStatusFilter === "active" && p.status !== "Active") return false;
       if (playerStatusFilter === "restricted" && p.status !== "Restricted" && p.status !== "Suspended") return false;
+      if (playerPokerFilter === "enabled" && p.poker_enabled === false) return false;
+      if (playerPokerFilter === "disabled" && p.poker_enabled !== false) return false;
       if (playerSearch.trim()) {
         const q = playerSearch.toLowerCase();
         return (
@@ -272,27 +530,78 @@ export default function PokerBackofficeApp() {
       }
       return true;
     });
-  }, [adminPlayers, playerStatusFilter, playerSearch]);
+  }, [adminPlayers, playerStatusFilter, playerPokerFilter, playerSearch]);
 
-  // Table Control Handlers
-  const handleToggleTable = (id: string, name: string) => {
-    const updated = togglePokerTableStatus(id);
-    setTables(updated);
-    const tbl = updated.find((t) => t.id === id);
-    const isNowPlaying = tbl?.status === "playing";
+  // Reset pagination when search or filters change
+  useEffect(() => {
+    setTablePage(1);
+  }, [stakeFilter, statusFilter, tableSearch]);
+
+  useEffect(() => {
+    setPlayerPage(1);
+  }, [playerStatusFilter, playerPokerFilter, playerSearch]);
+
+  useEffect(() => {
+    setTxPage(1);
+  }, [txTypeFilter, txPlayerFilter, txSearch]);
+
+  // Paginated Slices (10 rows per page default)
+  const paginatedTables = useMemo(() => {
+    const start = (tablePage - 1) * tablePageSize;
+    return filteredTables.slice(start, start + tablePageSize);
+  }, [filteredTables, tablePage, tablePageSize]);
+  const totalTablePages = Math.max(1, Math.ceil(filteredTables.length / tablePageSize));
+
+  const paginatedPlayers = useMemo(() => {
+    const start = (playerPage - 1) * playerPageSize;
+    return filteredAdminPlayers.slice(start, start + playerPageSize);
+  }, [filteredAdminPlayers, playerPage, playerPageSize]);
+  const totalPlayerPages = Math.max(1, Math.ceil(filteredAdminPlayers.length / playerPageSize));
+
+  // Table Control Handlers (Synchronized with Server Fleet)
+  const handleToggleTable = async (id: string, name: string) => {
+    const currentTbl = tables.find((t) => t.id === id);
+    const willBePlaying = currentTbl?.status === "paused";
+    const nextLocalStatus = willBePlaying ? "playing" : "paused";
+    const nextServerStatus = willBePlaying ? "open" : "paused";
+
+    // 1. Immediately update UI state in backoffice so toggle responds with zero lag
+    setTables((prev) =>
+      prev.map((t) => (t.id === id ? { ...t, status: nextLocalStatus } : t))
+    );
+
+    // 2. Broadcast live poker command to all active table felts
     sendLivePokerCommand({
       tableId: id,
-      action: isNowPlaying ? "resume" : "pause",
+      action: willBePlaying ? "resume" : "pause",
     });
+
+    // 3. Update localStorage tables registry
+    togglePokerTableStatus(id, nextLocalStatus, currentTbl);
+
+    // 4. Update backend server & trigger syncBus
+    try {
+      await apiClient.admin.poker.updateTable(id, {
+        status: nextServerStatus,
+      });
+    } catch (err) {
+      console.warn("Failed to update table status on server:", err);
+    }
+
+    // 5. Reload server fleet to guarantee perfect reconciliation
+    await loadServerTablesAndRecon();
+
     showToast(
-      `Table "${name}" ${isNowPlaying ? "resumed (Active in Lobby)" : "paused (Suspended from Lobby)"}`,
-      isNowPlaying ? "success" : "warning"
+      `Table "${name}" ${willBePlaying ? "resumed (LIVE in lobby & felts)" : "paused (Suspended from play)"}`,
+      willBePlaying ? "success" : "warning"
     );
   };
 
   const handleDeleteTable = (id: string, name: string) => {
     if (confirm(`Are you sure you want to delete table "${name}"? It will be removed from all lobbies and seated players will be refunded.`)) {
-      apiClient.admin.poker.closeTable(id).catch(() => {});
+      apiClient.admin.poker.closeTable(id).then(() => {
+        loadServerTablesAndRecon();
+      }).catch(() => {});
       const updated = deletePokerTable(id);
       setTables(updated);
       showToast(`Table "${name}" successfully closed and active stacks refunded`, "info");
@@ -331,10 +640,75 @@ export default function PokerBackofficeApp() {
       inviteCode: formInviteCode.trim() || undefined,
     });
 
+    // Deploy to backend server API & broadcast real-time sync
+    apiClient.admin.poker.createTable({
+      name: formName.trim(),
+      sb: Number(formSb),
+      bb: Number(formBb),
+      minBuyIn: Number(formMinBuy),
+      maxBuyIn: Number(formMaxBuy),
+      maxSeats: Number(formMaxSeats),
+      feeType: formFeeType,
+      rakePercent: commissionRules.rakePercent,
+      rakeCap: commissionRules.rakeCapEur,
+      handFeeAmount: commissionRules.handFeeEur,
+      tableFeeAmount: commissionRules.tableFeeEur,
+      tableFeeIntervalMinutes: 30,
+      isPrivate: formIsPrivate,
+      inviteCode: formInviteCode.trim() || undefined,
+    }).then(() => {
+      loadServerTablesAndRecon();
+    }).catch(() => {});
+
     const refreshed = getStoredPokerTables();
     setTables(refreshed);
     setShowCreateModal(false);
     showToast(`Table "${newTable.name}" created and deployed to live cashgame lobby!`, "success");
+  };
+
+  // Section 10.2: Dedicated Poker Online Toggle per player
+  const handleTogglePlayerPoker = async (player: PlayerModel) => {
+    const isCurrentlyEnabled = player.poker_enabled !== false;
+    const nextVal = !isCurrentlyEnabled;
+    try {
+      const res = await apiClient.admin.updatePlayerPokerAccess(player.id, nextVal);
+      if (res?.success) {
+        setAdminPlayers((prev) =>
+          prev.map((item) => (item.id === player.id ? { ...item, poker_enabled: nextVal } : item))
+        );
+        showToast(
+          `Player @${player.username} Poker Online access: ${nextVal ? "ENABLED (Permitted to enter poker tables)" : "DISABLED (Blocked from cash games)"}`,
+          nextVal ? "success" : "warning"
+        );
+      } else {
+        showToast("Failed to update Poker Online status", "warning");
+      }
+    } catch (_) {
+      showToast("Error updating Poker Online status", "warning");
+    }
+  };
+
+  // Section 10.2: Bulk Poker Online Toggle
+  const handleBulkPokerAccess = async (enable: boolean) => {
+    const ids = filteredAdminPlayers.map((p) => p.id);
+    if (ids.length === 0) {
+      showToast("No players selected in current view", "info");
+      return;
+    }
+    try {
+      const res = await apiClient.admin.bulkUpdatePlayerPokerAccess(ids, enable);
+      if (res?.success) {
+        setAdminPlayers((prev) =>
+          prev.map((p) => (ids.includes(p.id) ? { ...p, poker_enabled: enable } : p))
+        );
+        showToast(
+          `Poker access ${enable ? "ENABLED" : "DISABLED"} for ${res.count} player account(s)`,
+          enable ? "success" : "warning"
+        );
+      }
+    } catch (_) {
+      showToast("Failed to execute bulk poker access update", "warning");
+    }
   };
 
   // Player Control Handler
@@ -533,17 +907,17 @@ export default function PokerBackofficeApp() {
               <b>{currentLabel}</b>
             </div>
 
-            <div className="admin-header-actions">
-              <span className="environment">
+            {/* <div className="admin-header-actions"> */}
+              {/* <span className="environment">
                 <i /> Live Engine Active
               </span>
               <Link href="/cashgame" className="admin-primary" style={{ textDecoration: "none" }}>
                 ♠ View Player Lobby
-              </Link>
-              <Link href="/backoffice" className="outline-button" style={{ textDecoration: "none" }}>
+              </Link> */}
+              {/* <Link href="/backoffice" className="outline-button" style={{ textDecoration: "none" }}>
                 ▦ Bingo Admin
-              </Link>
-            </div>
+              </Link> */}
+            {/* </div> */}
           </header>
 
           {/* Content Area */}
@@ -556,15 +930,43 @@ export default function PokerBackofficeApp() {
               </div>
 
               <div className="admin-title-actions">
-                <button className="outline-button" onClick={() => showToast(`${currentLabel} data exported to CSV.`)}>
+                <button
+                  type="button"
+                  onClick={() => showToast(`${currentLabel} data exported to CSV.`)}
+                  style={{
+                    background: "#fff",
+                    border: "1px solid #e1e3e8",
+                    borderRadius: 8,
+                    color: "#313345",
+                    fontSize: 12,
+                    fontWeight: 700,
+                    padding: "8px 14px",
+                    cursor: "pointer",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 4,
+                  }}
+                >
                   ↓ Export
                 </button>
-                {module === "tables" && (
-                  <button className="admin-primary" onClick={() => setShowCreateModal(true)}>
-                    + Create Table
-                  </button>
-                )}
-                <button className="outline-button" onClick={refreshData} title="Sync latest state">
+                <button
+                  type="button"
+                  onClick={refreshData}
+                  title="Sync latest state"
+                  style={{
+                    background: "#fff",
+                    border: "1px solid #e1e3e8",
+                    borderRadius: 8,
+                    color: "#313345",
+                    fontSize: 12,
+                    fontWeight: 700,
+                    padding: "8px 14px",
+                    cursor: "pointer",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 4,
+                  }}
+                >
                   ↻ Sync
                 </button>
               </div>
@@ -768,19 +1170,34 @@ export default function PokerBackofficeApp() {
 
                           <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
                             <button
-                              className="outline-button"
-                              style={{ padding: "4px 8px", fontSize: 10 }}
+                              type="button"
+                              style={{
+                                background: t.status === "playing" ? "#fffbeb" : "#f0fdf4",
+                                border: `1px solid ${t.status === "playing" ? "#fcd34d" : "#86efac"}`,
+                                color: t.status === "playing" ? "#b45309" : "#15803d",
+                                padding: "4px 8px",
+                                borderRadius: 6,
+                                fontSize: 10,
+                                fontWeight: 700,
+                                cursor: "pointer",
+                              }}
                               onClick={() => handleToggleTable(t.id, t.name)}
                             >
                               {t.status === "playing" ? "Pause" : "Resume"}
                             </button>
-                            <Link
-                              href={`/holdem/tables?code=${t.id}`}
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setSelectedTableId(t.id);
+                                setModule("live");
+                                showToast(`Switched to Live Table Control for ${t.name}.`);
+                              }}
                               className="admin-primary"
-                              style={{ padding: "4px 8px", fontSize: 10, textDecoration: "none" }}
+                              style={{ padding: "4px 8px", fontSize: 10, cursor: "pointer", border: "none" }}
+                              title="Switch to Live Table Control"
                             >
-                              Felt &rarr;
-                            </Link>
+                              👁 Live View
+                            </button>
                           </div>
                         </div>
                       ))}
@@ -792,7 +1209,7 @@ export default function PokerBackofficeApp() {
                 <div className="admin-card" style={{ marginTop: 20 }}>
                   <div className="card-title">
                     <div>
-                      <h2>Single-Wallet Reconciliation Invariant Audit</h2>
+                      <h2>Single-Wallet Reconciliation Invariant Audit (Section 9.4)</h2>
                       <p>
                         Real-time verification of invariant: Σ(Buy-ins) + Σ(Top-ups) = Σ(Cash-outs) + Σ(Refunds) + Σ(Active Stacks) + Σ(Current Pots) + Σ(Poker Fees)
                       </p>
@@ -801,22 +1218,22 @@ export default function PokerBackofficeApp() {
                       style={{
                         padding: "6px 14px",
                         borderRadius: "20px",
-                        background: "rgba(34, 197, 94, 0.15)",
-                        border: "1px solid #22c55e",
-                        color: "#16a34a",
+                        background: (serverReconciliation?.balanced ?? true) ? "rgba(34, 197, 94, 0.15)" : "rgba(239, 68, 68, 0.15)",
+                        border: `1px solid ${(serverReconciliation?.balanced ?? true) ? "#22c55e" : "#ef4444"}`,
+                        color: (serverReconciliation?.balanced ?? true) ? "#16a34a" : "#dc2626",
                         fontWeight: 800,
                         fontSize: "12px",
                       }}
                     >
-                      ✓ LEDGER BALANCED (INVARIANT MAINTAINED)
+                      {(serverReconciliation?.balanced ?? true) ? "✓ LEDGER BALANCED (INVARIANT MAINTAINED)" : "⚠ DISCREPANCY DETECTED"}
                     </span>
                   </div>
 
-                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 14, marginTop: 14 }}>
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(170px, 1fr))", gap: 14, marginTop: 14 }}>
                     <div style={{ background: "#f8f9fc", border: "1px solid #e2e8f0", borderRadius: 8, padding: 12 }}>
                       <small style={{ color: "#64748b", fontSize: 10, fontWeight: 700 }}>TOTAL BUY-INS</small>
                       <strong style={{ display: "block", fontSize: 16, color: "#1e293b", marginTop: 4 }}>
-                        €{((kpis.turnover || 0) + 12450).toLocaleString()}
+                        €{(serverReconciliation?.metrics?.totalBuyIns ?? ((kpis.turnover || 0) + 12450)).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                       </strong>
                       <span style={{ fontSize: 10, color: "#059669" }}>+ Debited from user wallets</span>
                     </div>
@@ -824,15 +1241,23 @@ export default function PokerBackofficeApp() {
                     <div style={{ background: "#f8f9fc", border: "1px solid #e2e8f0", borderRadius: 8, padding: 12 }}>
                       <small style={{ color: "#64748b", fontSize: 10, fontWeight: 700 }}>TOTAL CASH-OUTS</small>
                       <strong style={{ display: "block", fontSize: 16, color: "#1e293b", marginTop: 4 }}>
-                        €{((kpis.turnover || 0) + 8200).toLocaleString()}
+                        €{(serverReconciliation?.metrics?.totalCashOuts ?? ((kpis.turnover || 0) + 8200)).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                       </strong>
                       <span style={{ fontSize: 10, color: "#2563eb" }}>+ Credited to user wallets</span>
                     </div>
 
                     <div style={{ background: "#f8f9fc", border: "1px solid #e2e8f0", borderRadius: 8, padding: 12 }}>
+                      <small style={{ color: "#64748b", fontSize: 10, fontWeight: 700 }}>TOTAL REFUNDS</small>
+                      <strong style={{ display: "block", fontSize: 16, color: "#1e293b", marginTop: 4 }}>
+                        €{(serverReconciliation?.metrics?.totalRefunds ?? 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      </strong>
+                      <span style={{ fontSize: 10, color: "#059669" }}>Table close stack refunds</span>
+                    </div>
+
+                    <div style={{ background: "#f8f9fc", border: "1px solid #e2e8f0", borderRadius: 8, padding: 12 }}>
                       <small style={{ color: "#64748b", fontSize: 10, fontWeight: 700 }}>ACTIVE STACKS IN FLEET</small>
                       <strong style={{ display: "block", fontSize: 16, color: "#1e293b", marginTop: 4 }}>
-                        €{(tables.reduce((acc, t) => acc + (t.seatsOccupied * t.bb * 40), 0)).toLocaleString()}
+                        €{(serverReconciliation?.metrics?.totalActiveStacks ?? tables.reduce((acc, t) => acc + (t.seatsOccupied * t.bb * 40), 0)).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                       </strong>
                       <span style={{ fontSize: 10, color: "#d97706" }}>Currently at live tables</span>
                     </div>
@@ -840,17 +1265,47 @@ export default function PokerBackofficeApp() {
                     <div style={{ background: "#f8f9fc", border: "1px solid #e2e8f0", borderRadius: 8, padding: 12 }}>
                       <small style={{ color: "#64748b", fontSize: 10, fontWeight: 700 }}>COMMISSION (FEE TOTAL)</small>
                       <strong style={{ display: "block", fontSize: 16, color: "#1e293b", marginTop: 4 }}>
-                        €{kpis.totalCommission.toFixed(2)}
+                        €{(serverReconciliation?.metrics?.totalPokerFees ?? kpis.totalCommission).toFixed(2)}
                       </strong>
                       <span style={{ fontSize: 10, color: "#7c3aed" }}>Shop / Manager / Agent / Org</span>
                     </div>
 
                     <div style={{ background: "#f8f9fc", border: "1px solid #e2e8f0", borderRadius: 8, padding: 12 }}>
                       <small style={{ color: "#64748b", fontSize: 10, fontWeight: 700 }}>DISCREPANCY DELTA</small>
-                      <strong style={{ display: "block", fontSize: 16, color: "#16a34a", marginTop: 4 }}>
-                        €0.00
+                      <strong style={{ display: "block", fontSize: 16, color: (serverReconciliation?.discrepancy ?? 0) === 0 ? "#16a34a" : "#dc2626", marginTop: 4 }}>
+                        €{(serverReconciliation?.discrepancy ?? 0).toFixed(2)}
                       </strong>
-                      <span style={{ fontSize: 10, color: "#16a34a" }}>Zero drift variance</span>
+                      <span style={{ fontSize: 10, color: (serverReconciliation?.discrepancy ?? 0) === 0 ? "#16a34a" : "#dc2626" }}>
+                        {(serverReconciliation?.discrepancy ?? 0) === 0 ? "Zero drift variance" : "Imbalance detected"}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Section 10.4 Hierarchy Rake Breakdown Strip */}
+                  <div style={{ marginTop: 14, paddingTop: 14, borderTop: "1px solid #edf0f5", display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: 10 }}>
+                    <div style={{ background: "#fff", border: "1px solid #eef2f6", borderRadius: 6, padding: "8px 12px" }}>
+                      <span style={{ fontSize: 10, fontWeight: 700, color: "#64748b" }}>Shop Rake (40%)</span>
+                      <b style={{ display: "block", fontSize: 13, color: "#1e293b", marginTop: 2 }}>
+                        €{(serverReconciliation?.hierarchyBreakdown?.shopRake ?? (kpis.totalCommission * 0.4)).toFixed(2)}
+                      </b>
+                    </div>
+                    <div style={{ background: "#fff", border: "1px solid #eef2f6", borderRadius: 6, padding: "8px 12px" }}>
+                      <span style={{ fontSize: 10, fontWeight: 700, color: "#64748b" }}>Manager Rake (20%)</span>
+                      <b style={{ display: "block", fontSize: 13, color: "#1e293b", marginTop: 2 }}>
+                        €{(serverReconciliation?.hierarchyBreakdown?.managerRake ?? (kpis.totalCommission * 0.2)).toFixed(2)}
+                      </b>
+                    </div>
+                    <div style={{ background: "#fff", border: "1px solid #eef2f6", borderRadius: 6, padding: "8px 12px" }}>
+                      <span style={{ fontSize: 10, fontWeight: 700, color: "#64748b" }}>Agent Rake (15%)</span>
+                      <b style={{ display: "block", fontSize: 13, color: "#1e293b", marginTop: 2 }}>
+                        €{(serverReconciliation?.hierarchyBreakdown?.agentRake ?? (kpis.totalCommission * 0.15)).toFixed(2)}
+                      </b>
+                    </div>
+                    <div style={{ background: "#fff", border: "1px solid #eef2f6", borderRadius: 6, padding: "8px 12px" }}>
+                      <span style={{ fontSize: 10, fontWeight: 700, color: "#64748b" }}>Operator Rake (25%)</span>
+                      <b style={{ display: "block", fontSize: 13, color: "#1e293b", marginTop: 2 }}>
+                        €{(serverReconciliation?.hierarchyBreakdown?.operatorRake ?? (kpis.totalCommission * 0.25)).toFixed(2)}
+                      </b>
                     </div>
                   </div>
                 </div>
@@ -861,236 +1316,685 @@ export default function PokerBackofficeApp() {
             {/* ========================================================================= */}
             {/* MODULE 2: LIVE TABLE CONTROL (MATCHING BINGO LIVECONTROL)                 */}
             {/* ========================================================================= */}
-            {module === "live" && selectedTable && (
-              <div className="control-grid">
-                {/* Left Section: Live Control Cockpit */}
-                <section className="admin-card control-stage">
-                  <div className="live-control-overview">
-                    <div className="card-title">
-                      <div>
-                        <h2>Live Table Control Stage</h2>
-                        <p>{tables.filter((t) => t.status === "playing").length} tables currently live in lobby</p>
-                      </div>
-                    </div>
+            {/* ========================================================================= */}
+            {/* MODULE 2: LIVE TABLE CONTROL (OPERATOR SUPERVISOR & LIVE STADIUM FELT)    */}
+            {/* ========================================================================= */}
+            {module === "live" && selectedTable && (() => {
+              const currentPotVal = liveTelemetry?.pot ?? livePot;
+              const currentStageVal = liveTelemetry?.stage ?? liveStreet;
+              const currentBoard = liveTelemetry?.board ?? [];
+              const realSeats = (selectedTable.seats && selectedTable.seats.length > 0)
+                ? selectedTable.seats
+                : [];
+              const hasRealPlayers = realSeats.length > 0 || selectedTable.seatsOccupied > 0;
+              const isGameStarted = hasRealPlayers || showSimulatorBots;
 
-                    {/* Table Selection Pills (Bingo live-game-list) */}
-                    <div className="live-game-list">
-                      {tables.map((t) => (
-                        <button
-                          type="button"
-                          key={t.id}
-                          className={`live-game-item ${selectedTableId === t.id ? "active" : ""}`}
-                          onClick={() => {
-                            setSelectedTableId(t.id);
-                            showToast(`${t.name} selected in live control.`);
+              const seatedPlayers: TableSeatPlayer[] = isGameStarted
+                ? (liveTelemetry?.players && liveTelemetry.players.length > 0)
+                  ? liveTelemetry.players
+                  : realSeats.length > 0
+                  ? realSeats.map((s, idx) => ({
+                      seatNo: s.seatNo,
+                      name: s.player,
+                      avatarColor: s.player === activeHeroName ? "#B08A3E" : idx === 1 ? "#3B6FB6" : "#8E4DB0",
+                      isHero: s.player === activeHeroName,
+                      stack: s.stack,
+                      bet: s.bet || 0,
+                      folded: s.folded || false,
+                      allIn: false,
+                      cards: [],
+                      lastAction: `SEATED €${s.stack}`,
+                    }))
+                  : Array.from({ length: selectedTable.seatsOccupied }).map((_, idx) => ({
+                      seatNo: idx,
+                      name: idx === 0 ? activeHeroName : idx === 1 ? "Arben Shark" : `Table Seat ${idx + 1}`,
+                      avatarColor: idx === 0 ? "#B08A3E" : idx === 1 ? "#3B6FB6" : "#251e44",
+                      isHero: idx === 0,
+                      stack: selectedTable.bb * (idx === 0 ? 100 : 180),
+                      bet: idx === 0 ? selectedTable.sb : idx === 1 ? selectedTable.bb : 0,
+                      folded: false,
+                      allIn: false,
+                      cards: [],
+                      lastAction: idx === 0 ? `POST SB €${selectedTable.sb}` : idx === 1 ? `POST BB €${selectedTable.bb}` : "",
+                    }))
+                : [];
+
+              const activePlayingCount = seatedPlayers.filter((p) => !p.folded).length;
+              const totalActiveBets = seatedPlayers.reduce((acc, p) => acc + (p.bet || 0), 0);
+              const estRakeVal = Math.min(currentPotVal * 0.05, commissionRules.rakeCapEur);
+              const netWinnerPot = Math.max(0, currentPotVal - estRakeVal);
+
+              const filteredFleet = tables.filter((t) => {
+                if (!liveTableSearch.trim()) return true;
+                const q = liveTableSearch.toLowerCase();
+                return t.name.toLowerCase().includes(q) || t.id.toLowerCase().includes(q) || (t.inviteCode && t.inviteCode.toLowerCase().includes(q));
+              });
+
+              return (
+                <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
+                  {/* TOP: LIVE TABLE FLEET SELECTOR STRIP */}
+                  <div className="admin-card" style={{ padding: "16px 20px" }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12, flexWrap: "wrap", gap: 10 }}>
+                      <div>
+                        <h2 style={{ fontSize: 15, margin: 0, fontWeight: 700, color: "#1e202c" }}>
+                          Live Table Fleet ({tables.filter((t) => t.status === "playing").length} Live in Lobby)
+                        </h2>
+                        <p style={{ margin: "2px 0 0", fontSize: 11, color: "#8a94a6" }}>
+                          Select an active cash table to monitor live felt action and exercise supervisory operator controls
+                        </p>
+                      </div>
+
+                      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                        <input
+                          type="text"
+                          placeholder="Filter tables by name or PIN..."
+                          value={liveTableSearch}
+                          onChange={(e) => setLiveTableSearch(e.target.value)}
+                          style={{
+                            padding: "6px 12px",
+                            borderRadius: 6,
+                            border: "1px solid #dcdfe6",
+                            fontSize: 12,
+                            width: 220,
+                            outline: "none",
                           }}
-                        >
-                          <span className="live-game-item-name">{t.name}</span>
-                          <small>€{t.sb}/€{t.bb} &bull; {t.seatsOccupied}/{t.maxSeats} Seated</small>
-                          <strong>{t.status === "playing" ? "LIVE" : "PAUSED"}</strong>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Stage Head */}
-                  <div className="control-stage-head">
-                    <div>
-                      <span className={`status ${selectedTable.status === "playing" ? "status-live" : "status-starting-soon"}`}>
-                        <i />{selectedTable.status === "playing" ? "live" : "paused"}
-                      </span>
-                      <h2>{selectedTable.name} · {selectedTable.id}</h2>
-                      <p>
-                        Controller: Auto Live Dealer &bull; Stage: {liveStreet.toUpperCase()} &bull; {selectedTable.feeLabel} &bull; {selectedTable.isPrivate ? `Private PIN: ${selectedTable.inviteCode}` : "Public Table"}
-                      </p>
-                    </div>
-
-                    <div>
-                      <select
-                        value={actionSpeed}
-                        onChange={(e) => {
-                          setActionSpeed(e.target.value);
-                          showToast(`Action clock speed changed to ${e.target.value}.`);
-                        }}
-                      >
-                        <option>Fast · 10 sec</option>
-                        <option>Normal · 15 sec</option>
-                        <option>Slow · 25 sec</option>
-                        <option>Blitz · 5 sec</option>
-                      </select>
-                      <button
-                        className="danger-button"
-                        onClick={() => {
-                          handleToggleTable(selectedTable.id, selectedTable.name);
-                        }}
-                      >
-                        {selectedTable.status === "playing" ? "Stop table" : "Start table"}
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Big Live Table Cockpit (operator-caller) */}
-                  <div className="operator-caller">
-                    <div className={selectedTable.status !== "playing" ? "paused" : ""}>
-                      <small>CURRENT POT</small>
-                      <strong>€{livePot}</strong>
-                      <span>{liveStreet.toUpperCase()}</span>
-                    </div>
-
-                    <div className="operator-stats">
-                      <span>
-                        <small>BLINDS</small>
-                        <b>€{selectedTable.sb} / €{selectedTable.bb}</b>
-                      </span>
-                      <span>
-                        <small>SEATED PLAYERS</small>
-                        <b>{selectedTable.seatsOccupied} / {selectedTable.maxSeats}</b>
-                      </span>
-                      <span>
-                        <small>COMMISSION MODEL</small>
-                        <b>{selectedTable.feeType}</b>
-                      </span>
-                      <span>
-                        <small>EST. OPERATOR RAKE</small>
-                        <b>€{(livePot * 0.05).toFixed(2)}</b>
-                      </span>
-                      <span>
-                        <small>AVG POT VOLUME</small>
-                        <b>€{selectedTable.avgPot || selectedTable.bb * 8}</b>
-                      </span>
-                      <span>
-                        <small>HANDS PER HOUR</small>
-                        <b>{selectedTable.handsPerHour || 60} h/hr</b>
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Live Operator Control Actions (operator-controls) */}
-                  <div className="operator-controls">
-                    <button
-                      className={selectedTable.status === "paused" ? "resume" : ""}
-                      onClick={() => handleToggleTable(selectedTable.id, selectedTable.name)}
-                    >
-                      {selectedTable.status === "paused" ? "▶ Resume Table" : "Ⅱ Pause Table"}
-                    </button>
-                    <button onClick={handleDealNextStreet}>
-                      Deal Next Street ({liveStreet === "preflop" ? "Flop" : liveStreet === "flop" ? "Turn" : liveStreet === "turn" ? "River" : "Showdown"}) →
-                    </button>
-                    <button onClick={handleResetHand}>
-                      Re-deal New Hand
-                    </button>
-                    <Link
-                      href={`/holdem/tables?code=${selectedTable.id}`}
-                      className="full-outline"
-                      style={{ display: "inline-flex", width: "auto", textDecoration: "none" }}
-                    >
-                      Live Stadium Felt &rarr;
-                    </Link>
-                  </div>
-
-                  {/* Seated Players Roster */}
-                  <div className="player-list">
-                    <div className="card-title">
-                      <div>
-                        <h2>Seated Table Players ({selectedTable.seatsOccupied} / {selectedTable.maxSeats})</h2>
-                        <p>Live active chip stacks and table positions</p>
+                        />
                       </div>
                     </div>
 
-                    {Array.from({ length: selectedTable.seatsOccupied }).map((_, idx) => (
-                      <div key={idx}>
-                        <span>{idx === 0 ? "P1" : `P${idx + 1}`}</span>
-                        <b>
-                          {idx === 0 ? "Player 1 (Hero)" : idx === 1 ? "Arben Shark" : idx === 2 ? "Dardan HighRoller" : `Table Seat ${idx + 1}`}
-                          <small style={{ color: "#9497a6", fontSize: 10 }}>Seat #{idx + 1} &bull; In Hand</small>
-                        </b>
-                        <strong style={{ color: "#15a982", fontSize: 12 }}>
-                          €{selectedTable.bb * (idx === 0 ? 100 : idx === 1 ? 180 : 75)} Chips
-                        </strong>
-                      </div>
-                    ))}
-                  </div>
-                </section>
-
-                {/* Right Section: Live Community Board & Telemetry */}
-                <aside className="admin-card claim-review">
-                  <div className="card-title">
-                    <div>
-                      <h2>Live Board Community</h2>
-                      <p>Runout and pot distribution</p>
-                    </div>
-                  </div>
-
-                  <div style={{ background: "#0b1220", borderRadius: 8, padding: 14, marginTop: 12, border: "1px solid #1a253a" }}>
-                    <small style={{ color: "#94a3b8", fontSize: 10, fontWeight: 700, letterSpacing: 0.5, display: "block", marginBottom: 8 }}>
-                      BOARD CARDS ({liveStreet.toUpperCase()}):
-                    </small>
-                    <div style={{ display: "flex", gap: 6 }}>
-                      {liveCommunityCards.length > 0 ? (
-                        liveCommunityCards.map((c, i) => (
-                          <div
-                            key={i}
+                    {/* Table Selection Pills */}
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: 10, maxHeight: 155, overflowY: "auto", padding: "2px 0" }}>
+                      {filteredFleet.map((t) => {
+                        const isCurrent = selectedTableId === t.id;
+                        return (
+                          <button
+                            type="button"
+                            key={t.id}
+                            onClick={() => {
+                              setSelectedTableId(t.id);
+                              showToast(`Switched Live Table Control to ${t.name}.`);
+                            }}
                             style={{
-                              background: "#fff",
-                              color: c.includes("♥") || c.includes("♦") ? "#e11d48" : "#0f172a",
-                              fontWeight: 800,
-                              fontSize: 14,
-                              width: 38,
-                              height: 52,
-                              borderRadius: 5,
+                              textAlign: "left",
+                              padding: "10px 14px",
+                              borderRadius: 8,
+                              border: isCurrent ? "2px solid #6e59e8" : "1px solid #e2e8f0",
+                              background: isCurrent ? "#f5f3ff" : "#fff",
+                              boxShadow: isCurrent ? "0 4px 12px rgba(110, 89, 232, 0.15)" : "0 1px 3px rgba(0,0,0,0.02)",
+                              cursor: "pointer",
+                              transition: "all 0.15s ease",
                               display: "flex",
-                              alignItems: "center",
-                              justifyContent: "center",
-                              boxShadow: "0 2px 5px rgba(0,0,0,0.3)",
+                              flexDirection: "column",
+                              gap: 2,
                             }}
                           >
-                            {c}
+                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                              <b style={{ fontSize: 12, color: isCurrent ? "#5b21b6" : "#1e202c" }}>{t.name}</b>
+                              <span style={{
+                                fontSize: 9,
+                                fontWeight: 800,
+                                padding: "2px 6px",
+                                borderRadius: 10,
+                                background: t.status === "playing" ? "#dcfce7" : "#fee2e2",
+                                color: t.status === "playing" ? "#15803d" : "#b91c1c",
+                              }}>
+                                {t.status === "playing" ? "LIVE" : "PAUSED"}
+                              </span>
+                            </div>
+                            <small style={{ color: "#64748b", fontSize: 11 }}>
+                              €{t.sb}/€{t.bb} &bull; {t.seatsOccupied}/{t.maxSeats} Seated
+                            </small>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* HERO STADIUM: FULL-WIDTH LIVE TABLE FELT (OPERATOR VIEW) */}
+                  <div className="admin-card" style={{ padding: 20, overflow: "hidden" }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14, flexWrap: "wrap", gap: 12 }}>
+                      <div>
+                        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                          <span
+                            className={`status ${
+                              selectedTable.status === "paused"
+                                ? "status-starting-soon"
+                                : isGameStarted
+                                ? "status-live"
+                                : "status-starting-soon"
+                            }`}
+                            style={{ fontSize: 10 }}
+                          >
+                            <i />{" "}
+                            {selectedTable.status === "paused"
+                              ? "Paused by Operator"
+                              : isGameStarted
+                              ? "Live Interactive"
+                              : "Game Not Started · Waiting for Players"}
+                          </span>
+                          <h2 style={{ fontSize: 16, margin: 0, fontWeight: 800, color: "#1e202c" }}>
+                            {selectedTable.name} · {selectedTable.id}
+                          </h2>
+                          {selectedTable.isPrivate && (
+                            <span style={{ fontSize: 10, fontWeight: 700, padding: "2px 7px", borderRadius: 4, background: "#f3e8ff", color: "#7e22ce" }}>
+                              Private PIN: {selectedTable.inviteCode}
+                            </span>
+                          )}
+                          {!isGameStarted && (
+                            <span style={{ fontSize: 10, fontWeight: 800, padding: "2px 8px", borderRadius: 12, background: "#fef3c7", color: "#b45309", border: "1px solid #fde68a" }}>
+                              ⏳ Standby
+                            </span>
+                          )}
+                        </div>
+                        <p style={{ margin: "4px 0 0", fontSize: 12, color: "#64748b" }}>
+                          Blinds <b>€{selectedTable.sb}/€{selectedTable.bb}</b> &bull; Buy-in €{selectedTable.minBuyIn}-€{selectedTable.maxBuyIn} &bull; {selectedTable.feeLabel} &bull; Supervisor: Auto Live Engine
+                        </p>
+                      </div>
+
+                      <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+                        {showSimulatorBots && (
+                          <button
+                            type="button"
+                            onClick={() => setShowSimulatorBots(false)}
+                            style={{
+                              background: "#fef3c7",
+                              border: "1px solid #fde68a",
+                              color: "#b45309",
+                              padding: "7px 12px",
+                              borderRadius: 6,
+                              fontSize: 12,
+                              fontWeight: 700,
+                              cursor: "pointer",
+                            }}
+                          >
+                            👥 Real Players Only
+                          </button>
+                        )}
+
+                        <select
+                          value={actionSpeed}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            setActionSpeed(val);
+                            const sec = val.includes("5") ? 5 : val.includes("25") ? 25 : val.includes("10") ? 10 : 15;
+                            sendLivePokerCommand({
+                              tableId: selectedTable.id,
+                              action: "set_speed",
+                              speed: sec,
+                            });
+                            showToast(`Action clock speed set to ${val} (${sec}s live timer on user end).`, "info");
+                          }}
+                          style={{
+                            background: "#fff",
+                            border: "1px solid #dcdfe6",
+                            color: "#1e202c",
+                            padding: "7px 12px",
+                            borderRadius: 6,
+                            fontSize: 12,
+                            fontWeight: 600,
+                            outline: "none",
+                            cursor: "pointer",
+                          }}
+                        >
+                          <option>Fast · 10 sec</option>
+                          <option>Normal · 15 sec</option>
+                          <option>Slow · 25 sec</option>
+                          <option>Blitz · 5 sec</option>
+                        </select>
+
+                        <button
+                          type="button"
+                          onClick={() => handleToggleTable(selectedTable.id, selectedTable.name)}
+                          style={{
+                            background: selectedTable.status === "playing" ? "#fffbeb" : "#f0fdf4",
+                            border: `1px solid ${selectedTable.status === "playing" ? "#fcd34d" : "#86efac"}`,
+                            color: selectedTable.status === "playing" ? "#b45309" : "#15803d",
+                            padding: "7px 14px",
+                            borderRadius: 6,
+                            fontSize: 12,
+                            fontWeight: 700,
+                            cursor: "pointer",
+                            display: "inline-flex",
+                            alignItems: "center",
+                            gap: 4,
+                          }}
+                        >
+                          {selectedTable.status === "playing" ? "⏸ Pause Table" : "▶ Resume Table"}
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Direct Embedded Live Play Table in Full-Width Operator Mode */}
+                    <div
+                      style={{
+                        height: 560,
+                        width: "100%",
+                        position: "relative",
+                        borderRadius: 12,
+                        overflow: "hidden",
+                        border: "1px solid #1f293d",
+                        boxShadow: "0 12px 36px rgba(0,0,0,0.45)",
+                        background: "#0c0920",
+                      }}
+                    >
+                      <Bet888LiveTable
+                        key={`${selectedTable.id}-${showSimulatorBots}`}
+                        table={selectedTable}
+                        onLeaveTable={() => {
+                          showToast("Operator left live table preview", "info");
+                        }}
+                        walletBalance={50000}
+                        userName={activeHeroName}
+                        embedded={true}
+                        operatorMode={true}
+                        onTableStateChange={setLiveTelemetry}
+                      />
+
+                      {!isGameStarted && (
+                        <div
+                          style={{
+                            position: "absolute",
+                            inset: 0,
+                            background: "rgba(10, 15, 30, 0.88)",
+                            backdropFilter: "blur(6px)",
+                            display: "flex",
+                            flexDirection: "column",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            zIndex: 10,
+                            color: "#fff",
+                            padding: 24,
+                            textAlign: "center",
+                          }}
+                        >
+                          <div style={{ fontSize: 44, marginBottom: 12 }}>⏳</div>
+                          <div
+                            style={{
+                              display: "inline-flex",
+                              alignItems: "center",
+                              gap: 6,
+                              background: "rgba(245, 158, 11, 0.2)",
+                              border: "1px solid #f59e0b",
+                              color: "#fbbf24",
+                              padding: "4px 14px",
+                              borderRadius: 20,
+                              fontSize: 11,
+                              fontWeight: 800,
+                              letterSpacing: 0.5,
+                              marginBottom: 10,
+                            }}
+                          >
+                            ● GAME NOT STARTED · TABLE STANDING BY
                           </div>
-                        ))
-                      ) : (
-                        <span style={{ color: "#64748b", fontSize: 11, fontStyle: "italic" }}>
-                          Pre-flop &bull; Awaiting Flop
-                        </span>
+                          <h3 style={{ fontSize: 20, fontWeight: 800, margin: "0 0 8px", color: "#f8fafc" }}>
+                            {selectedTable.name} Waiting for Players
+                          </h3>
+                          <p style={{ maxWidth: 480, margin: "0 0 20px", color: "#94a3b8", fontSize: 13, lineHeight: 1.6 }}>
+                            No players are currently seated at this table. The table is live in the lobby ready for play. When players join or buy in, their seats will appear here in real time.
+                          </p>
+                          <div style={{ display: "flex", gap: 10 }}>
+                            <button
+                              type="button"
+                              onClick={() => setShowSimulatorBots(true)}
+                              style={{
+                                background: "#4f46e5",
+                                color: "#fff",
+                                border: "none",
+                                padding: "9px 18px",
+                                borderRadius: 8,
+                                fontSize: 12,
+                                fontWeight: 700,
+                                cursor: "pointer",
+                                boxShadow: "0 4px 14px rgba(79, 70, 229, 0.4)",
+                              }}
+                            >
+                              🤖 Preview with Simulated Bots
+                            </button>
+                          </div>
+                        </div>
                       )}
                     </div>
-                  </div>
 
-                  <div className="claim-card">
-                    <div>
-                      <span className="claim-player">♠</span>
-                      <div>
-                        <b>POT DYNAMICS</b>
-                        <small>5% Rake cap enforced</small>
+                    {/* Real-time Telemetry 5-Metric Strip */}
+                    <div style={{ marginTop: 16, display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 12 }}>
+                      <div style={{ background: "#f8f9fb", border: "1px solid #edf0f5", borderRadius: 8, padding: "12px 16px" }}>
+                        <span style={{ color: "#8a94a6", fontSize: 10, display: "block", fontWeight: 800, letterSpacing: 0.5 }}>SEATED / JOINED</span>
+                        <b style={{ color: "#1e202c", fontSize: 18, marginTop: 4, display: "block" }}>
+                          {seatedPlayers.length} / {selectedTable.maxSeats}
+                        </b>
+                        <small style={{ color: "#10b981", fontSize: 11, fontWeight: 700 }}>
+                          {Math.round((seatedPlayers.length / selectedTable.maxSeats) * 100)}% Table Capacity
+                        </small>
+                      </div>
+
+                      <div style={{ background: "#f8f9fb", border: "1px solid #edf0f5", borderRadius: 8, padding: "12px 16px" }}>
+                        <span style={{ color: "#8a94a6", fontSize: 10, display: "block", fontWeight: 800, letterSpacing: 0.5 }}>ACTIVE PLAYING</span>
+                        <b style={{ color: "#1e202c", fontSize: 18, marginTop: 4, display: "block" }}>
+                          {activePlayingCount} Players
+                        </b>
+                        <small style={{ color: "#2563eb", fontSize: 11, fontWeight: 700 }}>
+                          {seatedPlayers.length - activePlayingCount} Folded / Sitting Out
+                        </small>
+                      </div>
+
+                      <div style={{ background: "#f8f9fb", border: "1px solid #edf0f5", borderRadius: 8, padding: "12px 16px" }}>
+                        <span style={{ color: "#8a94a6", fontSize: 10, display: "block", fontWeight: 800, letterSpacing: 0.5 }}>CURRENT POT & BETS</span>
+                        <b style={{ color: "#7c3aed", fontSize: 18, marginTop: 4, display: "block" }}>
+                          €{currentPotVal}
+                        </b>
+                        <small style={{ color: "#64748b", fontSize: 11 }}>
+                          €{totalActiveBets} in active round bets
+                        </small>
+                      </div>
+
+                      <div style={{ background: "#f8f9fb", border: "1px solid #edf0f5", borderRadius: 8, padding: "12px 16px" }}>
+                        <span style={{ color: "#8a94a6", fontSize: 10, display: "block", fontWeight: 800, letterSpacing: 0.5 }}>STAGE & BOARD</span>
+                        <b style={{ color: "#b45309", fontSize: 18, marginTop: 4, display: "block" }}>
+                          {currentStageVal.toUpperCase()}
+                        </b>
+                        <small style={{ color: "#64748b", fontSize: 11 }}>
+                          {currentBoard.length} Community Cards Dealt
+                        </small>
+                      </div>
+
+                      <div style={{ background: "#f8f9fb", border: "1px solid #edf0f5", borderRadius: 8, padding: "12px 16px" }}>
+                        <span style={{ color: "#8a94a6", fontSize: 10, display: "block", fontWeight: 800, letterSpacing: 0.5 }}>OPERATOR RAKE</span>
+                        <b style={{ color: "#15a982", fontSize: 18, marginTop: 4, display: "block" }}>
+                          €{estRakeVal.toFixed(2)}
+                        </b>
+                        <small style={{ color: "#059669", fontSize: 11 }}>
+                          Net to Winner: €{netWinnerPot.toFixed(2)}
+                        </small>
                       </div>
                     </div>
-                    <div style={{ marginTop: 10, fontSize: 11, display: "flex", flexDirection: "column", gap: 6 }}>
-                      <div style={{ display: "flex", justifyContent: "space-between" }}>
-                        <span>Current Pot:</span>
-                        <b>€{livePot}</b>
+                  </div>
+
+                  {/* LOWER SECTION: SPLIT 2-COLUMN (CONTROLS COCKPIT & LIVE PLAYER ROSTER) */}
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1.35fr", gap: 18 }}>
+                    {/* LEFT COLUMN: GLOBAL OPERATOR COCKPIT & CONTROLS */}
+                    <div className="admin-card" style={{ padding: 20 }}>
+                      <div className="card-title" style={{ marginBottom: 14 }}>
+                        <div>
+                          <h2 style={{ fontSize: 15, margin: 0, fontWeight: 700, color: "#1e202c" }}>Global Operator Cockpit</h2>
+                          <p style={{ margin: "2px 0 0", fontSize: 11, color: "#8a94a6" }}>
+                            Master game progression, street deal runouts, and table clock
+                          </p>
+                        </div>
                       </div>
-                      <div style={{ display: "flex", justifyContent: "space-between" }}>
-                        <span>Net Rake Deduction:</span>
-                        <b style={{ color: "#15a982" }}>€{Math.min(livePot * 0.05, commissionRules.rakeCapEur).toFixed(2)}</b>
+
+                      {/* Operator Pot Callout */}
+                      <div className="operator-caller" style={{ marginBottom: 16 }}>
+                        <div className={selectedTable.status !== "playing" ? "paused" : ""}>
+                          <small>CURRENT TABLE POT</small>
+                          <strong>€{currentPotVal}</strong>
+                          <span>{currentStageVal.toUpperCase()}</span>
+                        </div>
+
+                        <div className="operator-stats">
+                          <span>
+                            <small>BLINDS</small>
+                            <b>€{selectedTable.sb} / €{selectedTable.bb}</b>
+                          </span>
+                          <span>
+                            <small>SEATED CAPACITY</small>
+                            <b>{seatedPlayers.length} / {selectedTable.maxSeats}</b>
+                          </span>
+                          <span>
+                            <small>COMMISSION</small>
+                            <b>{selectedTable.feeType}</b>
+                          </span>
+                          <span>
+                            <small>HANDS PER HOUR</small>
+                            <b>{selectedTable.handsPerHour || 72} h/hr</b>
+                          </span>
+                          <span>
+                            <small>AVG POT SIZE</small>
+                            <b>€{selectedTable.avgPot || selectedTable.bb * 8}</b>
+                          </span>
+                          <span>
+                            <small>CLOCK SPEED</small>
+                            <b>{actionSpeed.split("·")[0].trim()}</b>
+                          </span>
+                        </div>
                       </div>
-                      <div style={{ display: "flex", justifyContent: "space-between" }}>
-                        <span>Main Pot for Winner:</span>
-                        <b style={{ color: "#6e59e8" }}>€{(livePot - Math.min(livePot * 0.05, commissionRules.rakeCapEur)).toFixed(2)}</b>
+
+                      {/* Global Operator Actions */}
+                      <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                        <button
+                          type="button"
+                          onClick={() => handleToggleTable(selectedTable.id, selectedTable.name)}
+                          style={{
+                            padding: "10px 16px",
+                            borderRadius: 8,
+                            fontSize: 13,
+                            fontWeight: 700,
+                            cursor: "pointer",
+                            background: selectedTable.status === "paused" ? "#16a34a" : "#f59e0b",
+                            color: "#fff",
+                            border: "none",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            gap: 6,
+                          }}
+                        >
+                          {selectedTable.status === "paused" ? "▶ Resume Table Play" : "⏸ Pause Table Play"}
+                        </button>
+
+                        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+                          <button
+                            type="button"
+                            onClick={handleDealNextStreet}
+                            style={{
+                              padding: "10px 14px",
+                              borderRadius: 8,
+                              fontSize: 12,
+                              fontWeight: 700,
+                              cursor: "pointer",
+                              background: "#4f46e5",
+                              color: "#fff",
+                              border: "none",
+                            }}
+                          >
+                            Deal Next Street ({currentStageVal === "preflop" ? "Flop" : currentStageVal === "flop" ? "Turn" : currentStageVal === "turn" ? "River" : "Showdown"}) →
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={handleResetHand}
+                            style={{
+                              padding: "10px 14px",
+                              borderRadius: 8,
+                              fontSize: 12,
+                              fontWeight: 700,
+                              cursor: "pointer",
+                              background: "#f8f9fc",
+                              color: "#374151",
+                              border: "1px solid #d1d5db",
+                            }}
+                          >
+                            ↺ Re-deal Hand
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* RIGHT COLUMN: LIVE SEATED PLAYERS ROSTER & ACTION INSPECTOR */}
+                    <div className="admin-card" style={{ padding: 20 }}>
+                      <div className="card-title" style={{ marginBottom: 14 }}>
+                        <div>
+                          <h2 style={{ fontSize: 15, margin: 0, fontWeight: 700, color: "#1e202c" }}>
+                            Seated Players Roster & Live Bets ({seatedPlayers.length} / {selectedTable.maxSeats})
+                          </h2>
+                          <p style={{ margin: "2px 0 0", fontSize: 11, color: "#8a94a6" }}>
+                            Live monitor of individual chip stacks, street bets placed, hole cards, and operator eject
+                          </p>
+                        </div>
+                      </div>
+
+                      <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                        {seatedPlayers.length === 0 ? (
+                          <div
+                            style={{
+                              padding: "36px 20px",
+                              textAlign: "center",
+                              background: "#f8f9fc",
+                              borderRadius: 10,
+                              border: "1px dashed #cbd5e1",
+                              color: "#64748b",
+                            }}
+                          >
+                            <div style={{ fontSize: 32, marginBottom: 10 }}>👥</div>
+                            <strong style={{ display: "block", color: "#1e202c", fontSize: 14, marginBottom: 4 }}>
+                              No Players Seated Yet
+                            </strong>
+                            <p style={{ fontSize: 12, margin: "0 0 16px", color: "#8a94a6" }}>
+                              Table is waiting for players. When real players join from the cash game lobby or group PIN, their active seat, chip stack, and actions will appear here directly in real time.
+                            </p>
+                            <button
+                              type="button"
+                              onClick={() => setShowSimulatorBots(true)}
+                              style={{
+                                padding: "7px 14px",
+                                background: "#e0e7ff",
+                                border: "1px solid #c7d2fe",
+                                color: "#4338ca",
+                                borderRadius: 6,
+                                fontSize: 11,
+                                fontWeight: 700,
+                                cursor: "pointer",
+                              }}
+                            >
+                              🤖 Fill Demo Bots to Test Controls
+                            </button>
+                          </div>
+                        ) : (
+                          seatedPlayers.map((p, idx) => {
+                            const initials = p.name.slice(0, 2).toUpperCase();
+                            return (
+                              <div
+                                key={p.seatNo}
+                                style={{
+                                  display: "flex",
+                                  alignItems: "center",
+                                  justifyContent: "space-between",
+                                  padding: "10px 14px",
+                                background: p.folded ? "#f9fafb" : "#fff",
+                                border: `1px solid ${p.folded ? "#e5e7eb" : "#e0e7ff"}`,
+                                borderRadius: 8,
+                                opacity: p.folded ? 0.7 : 1,
+                              }}
+                            >
+                              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                                <span
+                                  style={{
+                                    width: 34,
+                                    height: 34,
+                                    borderRadius: "50%",
+                                    background: p.avatarColor || "#251e44",
+                                    color: "#fff",
+                                    display: "inline-flex",
+                                    alignItems: "center",
+                                    justifyContent: "center",
+                                    fontWeight: 800,
+                                    fontSize: 11,
+                                    flexShrink: 0,
+                                  }}
+                                >
+                                  {initials}
+                                </span>
+                                <div>
+                                  <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                                    <b style={{ color: "#1e202c", fontSize: 13 }}>{p.name}</b>
+                                    {p.isHero && (
+                                      <span style={{ fontSize: 9, fontWeight: 800, padding: "2px 6px", borderRadius: 4, background: "#fef3c7", color: "#b45309" }}>
+                                        User / Hero
+                                      </span>
+                                    )}
+                                    <span style={{
+                                      fontSize: 9,
+                                      fontWeight: 800,
+                                      padding: "2px 6px",
+                                      borderRadius: 4,
+                                      background: p.folded ? "#fee2e2" : p.allIn ? "#f3e8ff" : "#ecfdf5",
+                                      color: p.folded ? "#991b1b" : p.allIn ? "#6b21a8" : "#047857",
+                                    }}>
+                                      {p.folded ? "FOLDED" : p.allIn ? "ALL-IN" : "PLAYING"}
+                                    </span>
+                                  </div>
+                                  <small style={{ color: "#64748b", fontSize: 11 }}>
+                                    Seat #{p.seatNo + 1} &bull; Stack: <b>€{p.stack.toLocaleString()}</b> &bull; Action: <span style={{ color: p.bet > 0 ? "#15a982" : "#64748b", fontWeight: 700 }}>{p.lastAction || (p.bet > 0 ? `BET €${p.bet}` : "WAITING")}</span>
+                                  </small>
+                                </div>
+                              </div>
+
+                              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                                {/* Hole Cards Super-Vision Peek */}
+                                {p.cards && p.cards.length >= 2 && (
+                                  <div style={{ display: "flex", gap: 2 }}>
+                                    {p.cards.map((c, cIdx) => {
+                                      const isRed = c.s === 1 || c.s === 2;
+                                      return (
+                                        <span
+                                          key={cIdx}
+                                          style={{
+                                            padding: "2px 5px",
+                                            borderRadius: 3,
+                                            background: "#fff",
+                                            border: "1px solid #cbd5e1",
+                                            fontSize: 11,
+                                            fontWeight: 800,
+                                            color: isRed ? "#dc2626" : "#0f172a",
+                                            boxShadow: "0 1px 2px rgba(0,0,0,0.06)",
+                                          }}
+                                        >
+                                          {rankLabel(c.r)}{suitSymbol(c.s)}
+                                        </span>
+                                      );
+                                    })}
+                                  </div>
+                                )}
+
+                                <strong style={{ color: "#15a982", fontSize: 12 }}>
+                                  €{p.stack}
+                                </strong>
+
+                                <button
+                                  type="button"
+                                  style={{
+                                    padding: "4px 9px",
+                                    fontSize: 11,
+                                    fontWeight: 700,
+                                    color: "#dc2626",
+                                    background: "#fef2f2",
+                                    border: "1px solid #fca5a5",
+                                    borderRadius: 6,
+                                    cursor: "pointer",
+                                  }}
+                                  onClick={() => {
+                                    sendLivePokerCommand({
+                                      tableId: selectedTable.id,
+                                      action: "stand",
+                                      seat: p.seatNo,
+                                      playerName: p.name,
+                                    });
+                                    showToast(`Player "${p.name}" stood up from Seat #${p.seatNo + 1}.`, "info");
+                                  }}
+                                  title="Operator action: Stand player up from seat"
+                                >
+                                  Stand Up
+                                </button>
+                              </div>
+                            </div>
+                          );
+                        })
+                      )}
                       </div>
                     </div>
                   </div>
-
-                  <div style={{ marginTop: 16 }}>
-                    <Link
-                      href={`/holdem/tables?code=${selectedTable.id}`}
-                      className="full-outline"
-                      style={{ display: "block", textAlign: "center", textDecoration: "none" }}
-                    >
-                      Open Live Table on Felt &rarr;
-                    </Link>
-                  </div>
-                </aside>
-              </div>
-            )}
+                </div>
+              );
+            })()}
 
             {/* ========================================================================= */}
             {/* MODULE 3: TABLES & FLEET MANAGEMENT (FIGURE 10.3)                         */}
@@ -1150,7 +2054,7 @@ export default function PokerBackofficeApp() {
                   <div style={{ padding: "16px 20px", borderBottom: "1px solid #edf0f5", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                     <div>
                       <h2 style={{ fontSize: 14, margin: 0, fontWeight: 700, color: "#1e202c" }}>
-                        Figure 10.3 — Active Cash Table Fleet ({filteredTables.length} tables)
+                        Figure 10.3 — Active Cash Table Fleet ({filteredTables.length} tables{totalTablePages > 1 ? ` · Page ${tablePage} of ${totalTablePages}` : ""})
                       </h2>
                       <p style={{ margin: "2px 0 0", fontSize: 11, color: "#9497a6" }}>
                         Tables currently active and synchronized with /cashgame and /holdem/tables
@@ -1168,11 +2072,11 @@ export default function PokerBackofficeApp() {
                         <th style={{ textAlign: "left", padding: "10px 16px", color: "#696c7e", fontWeight: 700 }}>SEATS</th>
                         <th style={{ textAlign: "left", padding: "10px 16px", color: "#696c7e", fontWeight: 700 }}>COMMISSION</th>
                         <th style={{ textAlign: "left", padding: "10px 16px", color: "#696c7e", fontWeight: 700 }}>STATUS</th>
-                        <th style={{ textAlign: "left", padding: "10px 16px", color: "#696c7e", fontWeight: 700 }}>ACTIONS</th>
+                        <th style={{ textAlign: "left", padding: "10px 16px", color: "#696c7e", fontWeight: 700, minWidth: 220 }}>ACTIONS</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {filteredTables.map((t) => (
+                      {paginatedTables.map((t) => (
                         <tr key={t.id} style={{ borderBottom: "1px solid #f0f2f5" }}>
                           <td style={{ padding: "12px 16px" }}>
                             <strong style={{ color: "#1e202c", display: "block" }}>{t.name}</strong>
@@ -1204,28 +2108,98 @@ export default function PokerBackofficeApp() {
                               <i />{t.status === "playing" ? "live" : "paused"}
                             </span>
                           </td>
-                          <td style={{ padding: "12px 16px" }}>
-                            <div style={{ display: "flex", gap: 6 }}>
+                          <td style={{ padding: "12px 16px", whiteSpace: "nowrap" }}>
+                            <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+                              {t.status === "playing" ? (
+                                <button
+                                  type="button"
+                                  onClick={() => handleToggleTable(t.id, t.name)}
+                                  style={{
+                                    background: "#fffbeb",
+                                    border: "1px solid #fcd34d",
+                                    color: "#b45309",
+                                    padding: "6px 11px",
+                                    borderRadius: 6,
+                                    fontSize: 11,
+                                    fontWeight: 700,
+                                    cursor: "pointer",
+                                    display: "inline-flex",
+                                    alignItems: "center",
+                                    gap: 4,
+                                    whiteSpace: "nowrap",
+                                  }}
+                                  title="Pause table"
+                                >
+                                  ⏸ Pause
+                                </button>
+                              ) : (
+                                <button
+                                  type="button"
+                                  onClick={() => handleToggleTable(t.id, t.name)}
+                                  style={{
+                                    background: "#f0fdf4",
+                                    border: "1px solid #86efac",
+                                    color: "#15803d",
+                                    padding: "6px 11px",
+                                    borderRadius: 6,
+                                    fontSize: 11,
+                                    fontWeight: 700,
+                                    cursor: "pointer",
+                                    display: "inline-flex",
+                                    alignItems: "center",
+                                    gap: 4,
+                                    whiteSpace: "nowrap",
+                                  }}
+                                  title="Resume table"
+                                >
+                                  ▶ Resume
+                                </button>
+                              )}
                               <button
-                                className="outline-button"
-                                style={{ padding: "4px 8px", fontSize: 11 }}
-                                onClick={() => handleToggleTable(t.id, t.name)}
+                                type="button"
+                                onClick={() => {
+                                  setSelectedTableId(t.id);
+                                  setModule("live");
+                                  showToast(`Switched to Live Table Control for ${t.name}.`);
+                                }}
+                                style={{
+                                  background: "#f5f3ff",
+                                  border: "1px solid #c4b5fd",
+                                  color: "#6d28d9",
+                                  padding: "6px 11px",
+                                  borderRadius: 6,
+                                  fontSize: 11,
+                                  fontWeight: 700,
+                                  cursor: "pointer",
+                                  display: "inline-flex",
+                                  alignItems: "center",
+                                  gap: 4,
+                                  whiteSpace: "nowrap",
+                                }}
+                                title="Switch to Live Table Control for this table"
                               >
-                                {t.status === "playing" ? "Pause" : "Resume"}
+                                👁 Live View
                               </button>
-                              <Link
-                                href={`/holdem/tables?code=${t.id}`}
-                                className="admin-primary"
-                                style={{ padding: "4px 8px", fontSize: 11, textDecoration: "none" }}
-                              >
-                                Felt &rarr;
-                              </Link>
                               <button
-                                className="danger-button"
-                                style={{ padding: "4px 8px", fontSize: 11 }}
+                                type="button"
                                 onClick={() => handleDeleteTable(t.id, t.name)}
+                                style={{
+                                  background: "#fef2f2",
+                                  border: "1px solid #fca5a5",
+                                  color: "#b91c1c",
+                                  padding: "6px 11px",
+                                  borderRadius: 6,
+                                  fontSize: 11,
+                                  fontWeight: 700,
+                                  cursor: "pointer",
+                                  display: "inline-flex",
+                                  alignItems: "center",
+                                  gap: 4,
+                                  whiteSpace: "nowrap",
+                                }}
+                                title="Delete table and refund active seated stacks"
                               >
-                                Delete
+                                ✕ Delete
                               </button>
                             </div>
                           </td>
@@ -1233,6 +2207,15 @@ export default function PokerBackofficeApp() {
                       ))}
                     </tbody>
                   </table>
+
+                  <PaginationBar
+                    currentPage={tablePage}
+                    totalPages={totalTablePages}
+                    totalItems={filteredTables.length}
+                    pageSize={tablePageSize}
+                    onPageChange={setTablePage}
+                    itemLabel="tables"
+                  />
                 </div>
               </div>
             )}
@@ -1248,10 +2231,10 @@ export default function PokerBackofficeApp() {
                     placeholder="Search player username, name, or ID..."
                     value={playerSearch}
                     onChange={(e) => setPlayerSearch(e.target.value)}
-                    style={{ padding: "8px 12px", borderRadius: 6, border: "1px solid #dcdfe6", fontSize: 12, width: 280, outline: "none" }}
+                    style={{ padding: "8px 12px", borderRadius: 6, border: "1px solid #dcdfe6", fontSize: 12, width: 260, outline: "none" }}
                   />
 
-                  <div style={{ display: "flex", gap: 10 }}>
+                  <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
                     <select
                       value={playerStatusFilter}
                       onChange={(e) => setPlayerStatusFilter(e.target.value)}
@@ -1262,16 +2245,71 @@ export default function PokerBackofficeApp() {
                       <option value="restricted">Restricted / Blocked Only</option>
                     </select>
 
+                    <select
+                      value={playerPokerFilter}
+                      onChange={(e) => setPlayerPokerFilter(e.target.value)}
+                      style={{ padding: "8px 12px", borderRadius: 6, border: "1px solid #dcdfe6", fontSize: 12, outline: "none" }}
+                    >
+                      <option value="all">All Poker Access</option>
+                      <option value="enabled">Poker Online Enabled (Active)</option>
+                      <option value="disabled">Poker Online Disabled</option>
+                    </select>
+
+                    <div style={{ display: "flex", gap: 6 }}>
+                      <button
+                        type="button"
+                        onClick={() => handleBulkPokerAccess(true)}
+                        style={{
+                          background: "#f0fdf4",
+                          border: "1px solid #86efac",
+                          color: "#16a34a",
+                          padding: "7px 11px",
+                          borderRadius: 6,
+                          fontSize: 11,
+                          fontWeight: 700,
+                          cursor: "pointer",
+                        }}
+                        title="Enable Poker Online for all players in this filter"
+                      >
+                        ✔ Enable All
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleBulkPokerAccess(false)}
+                        style={{
+                          background: "#fef2f2",
+                          border: "1px solid #fca5a5",
+                          color: "#dc2626",
+                          padding: "7px 11px",
+                          borderRadius: 6,
+                          fontSize: 11,
+                          fontWeight: 700,
+                          cursor: "pointer",
+                        }}
+                        title="Disable Poker Online for all players in this filter"
+                      >
+                        ✕ Disable All
+                      </button>
+                    </div>
+
                     <button
                       type="button"
-                      className="outline-button"
                       onClick={() => {
                         loadAdminPlayers();
                         showToast("Player list refreshed");
                       }}
-                      style={{ fontSize: 12, padding: "8px 14px" }}
+                      style={{
+                        background: "#fff",
+                        border: "1px solid #e1e3e8",
+                        borderRadius: 7,
+                        color: "#313345",
+                        fontSize: 12,
+                        padding: "8px 14px",
+                        fontWeight: 600,
+                        cursor: "pointer",
+                      }}
                     >
-                      ↻ Refresh Players
+                      ↻ Refresh
                     </button>
                   </div>
                 </div>
@@ -1280,14 +2318,14 @@ export default function PokerBackofficeApp() {
                   <div style={{ padding: "16px 20px", borderBottom: "1px solid #edf0f5", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                     <div>
                       <h2 style={{ fontSize: 14, margin: 0, fontWeight: 700, color: "#1e202c" }}>
-                        Section 10.1 & 10.2 — Live Player Directory & Operational Controls
+                        Section 10.1 & 10.2 — Live Player Directory & Poker Access Permission
                       </h2>
                       <p style={{ margin: "2px 0 0", fontSize: 11, color: "#9497a6" }}>
-                        Manage real balances, credit chips, and block or unblock player gaming privileges
+                        Dedicated Poker Online toggle (Active / Disabled) with instant audit sync and balance controls
                       </p>
                     </div>
                     <span style={{ fontSize: 12, fontWeight: 700, color: "#6b7280" }}>
-                      Total Accounts: {filteredAdminPlayers.length}
+                      Total Accounts: {filteredAdminPlayers.length}{totalPlayerPages > 1 ? ` · Page ${playerPage} of ${totalPlayerPages}` : ""}
                     </span>
                   </div>
 
@@ -1297,6 +2335,7 @@ export default function PokerBackofficeApp() {
                         <tr style={{ background: "#f8f9fb", borderBottom: "1px solid #eef0f3" }}>
                           <th style={{ textAlign: "left", padding: "10px 16px", color: "#696c7e", fontWeight: 700 }}>PLAYER / USER</th>
                           <th style={{ textAlign: "left", padding: "10px 16px", color: "#696c7e", fontWeight: 700 }}>ACCOUNT STATUS</th>
+                          <th style={{ textAlign: "left", padding: "10px 16px", color: "#696c7e", fontWeight: 700 }}>POKER ONLINE</th>
                           <th style={{ textAlign: "left", padding: "10px 16px", color: "#696c7e", fontWeight: 700 }}>WALLET BALANCE</th>
                           <th style={{ textAlign: "left", padding: "10px 16px", color: "#696c7e", fontWeight: 700 }}>TOTAL WINNINGS</th>
                           <th style={{ textAlign: "left", padding: "10px 16px", color: "#696c7e", fontWeight: 700 }}>FUNDS MANAGEMENT</th>
@@ -1306,12 +2345,12 @@ export default function PokerBackofficeApp() {
                       <tbody>
                         {filteredAdminPlayers.length === 0 ? (
                           <tr>
-                            <td colSpan={6} style={{ textAlign: "center", padding: 36, color: "#8a94a6" }}>
+                            <td colSpan={7} style={{ textAlign: "center", padding: 36, color: "#8a94a6" }}>
                               No player accounts matching your search filter.
                             </td>
                           </tr>
                         ) : (
-                          filteredAdminPlayers.map((p) => {
+                          paginatedPlayers.map((p) => {
                             const isBlocked = p.status === "Restricted" || p.status === "Suspended";
                             return (
                               <tr key={p.id} style={{ borderBottom: "1px solid #f0f2f5" }}>
@@ -1356,6 +2395,42 @@ export default function PokerBackofficeApp() {
                                   >
                                     {p.status === "Restricted" ? "BLOCKED / RESTRICTED" : p.status.toUpperCase()}
                                   </span>
+                                </td>
+                                <td style={{ padding: "12px 16px" }}>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleTogglePlayerPoker(p)}
+                                    style={{
+                                      background: p.poker_enabled !== false ? "#ecfdf5" : "#fef2f2",
+                                      border: `1px solid ${p.poker_enabled !== false ? "#10b981" : "#f87171"}`,
+                                      color: p.poker_enabled !== false ? "#047857" : "#b91c1c",
+                                      padding: "4px 10px",
+                                      borderRadius: "14px",
+                                      fontSize: "11px",
+                                      fontWeight: 700,
+                                      cursor: "pointer",
+                                      display: "inline-flex",
+                                      alignItems: "center",
+                                      gap: "6px",
+                                      transition: "all 0.15s ease",
+                                    }}
+                                    title={
+                                      p.poker_enabled !== false
+                                        ? "Poker Online: Active — Click to revoke poker access"
+                                        : "Poker Online: Disabled — Click to permit poker access"
+                                    }
+                                  >
+                                    <span
+                                      style={{
+                                        width: 7,
+                                        height: 7,
+                                        borderRadius: "50%",
+                                        background: p.poker_enabled !== false ? "#10b981" : "#ef4444",
+                                        display: "inline-block",
+                                      }}
+                                    />
+                                    {p.poker_enabled !== false ? "Active / Enabled" : "Disabled / Blocked"}
+                                  </button>
                                 </td>
                                 <td style={{ padding: "12px 16px" }}>
                                   <b style={{ fontSize: 13, color: "#1e202c" }}>
@@ -1451,6 +2526,15 @@ export default function PokerBackofficeApp() {
                       </tbody>
                     </table>
                   </div>
+
+                  <PaginationBar
+                    currentPage={playerPage}
+                    totalPages={totalPlayerPages}
+                    totalItems={filteredAdminPlayers.length}
+                    pageSize={playerPageSize}
+                    onPageChange={setPlayerPage}
+                    itemLabel="player accounts"
+                  />
                 </div>
               </div>
             )}
@@ -1480,6 +2564,9 @@ export default function PokerBackofficeApp() {
                 .filter((t) => t.amount > 0)
                 .reduce((acc, t) => acc + t.amount, 0);
               const netPlatformGgr = totalTurnover - totalPayouts;
+
+              const totalTxPages = Math.max(1, Math.ceil(filteredTx.length / txPageSize));
+              const paginatedTx = filteredTx.slice((txPage - 1) * txPageSize, txPage * txPageSize);
 
               // Distinct player list for filter dropdown
               const allPlayerNames = Array.from(new Set([
@@ -1520,7 +2607,7 @@ export default function PokerBackofficeApp() {
                       <strong style={{ fontSize: 22, fontWeight: 900, color: "#7868ff", display: "block", marginTop: 4 }}>
                         {txList.length}
                       </strong>
-                      <span style={{ fontSize: 11, color: "#6b7280", marginTop: 4, display: "block" }}>Filtered: {filteredTx.length} records</span>
+                      <span style={{ fontSize: 11, color: "#6b7280", marginTop: 4, display: "block" }}>Filtered: {filteredTx.length} records{totalTxPages > 1 ? ` · Page ${txPage} of ${totalTxPages}` : ""}</span>
                     </div>
                   </div>
 
@@ -1551,13 +2638,15 @@ export default function PokerBackofficeApp() {
                           value={txPlayerFilter}
                           onChange={(e) => setTxPlayerFilter(e.target.value)}
                           style={{
-                            background: "#0e1526",
-                            border: "1px solid rgba(255, 255, 255, 0.15)",
-                            color: "#fff",
-                            padding: "6px 12px",
+                            background: "#fff",
+                            border: "1px solid #dcdfe6",
+                            color: "#1e202c",
+                            padding: "7px 12px",
                             borderRadius: 6,
                             fontSize: 12,
-                            fontWeight: 700,
+                            fontWeight: 600,
+                            outline: "none",
+                            cursor: "pointer",
                           }}
                         >
                           <option value="all">All Players ({allPlayerNames.length})</option>
@@ -1571,13 +2660,15 @@ export default function PokerBackofficeApp() {
                           value={txTypeFilter}
                           onChange={(e) => setTxTypeFilter(e.target.value)}
                           style={{
-                            background: "#0e1526",
-                            border: "1px solid rgba(255, 255, 255, 0.15)",
-                            color: "#fff",
-                            padding: "6px 12px",
+                            background: "#fff",
+                            border: "1px solid #dcdfe6",
+                            color: "#1e202c",
+                            padding: "7px 12px",
                             borderRadius: 6,
                             fontSize: 12,
-                            fontWeight: 700,
+                            fontWeight: 600,
+                            outline: "none",
+                            cursor: "pointer",
                           }}
                         >
                           <option value="all">All Transaction Types</option>
@@ -1593,7 +2684,6 @@ export default function PokerBackofficeApp() {
 
                         <button
                           type="button"
-                          className="outline-button"
                           onClick={() => {
                             setTxSearch("");
                             setTxPlayerFilter("all");
@@ -1601,67 +2691,91 @@ export default function PokerBackofficeApp() {
                             loadTransactions();
                             showToast("Transactions ledger refreshed.");
                           }}
-                          style={{ fontSize: 12, padding: "6px 12px" }}
+                          style={{
+                            background: "#fff",
+                            border: "1px solid #e1e3e8",
+                            borderRadius: 7,
+                            color: "#313345",
+                            fontSize: 12,
+                            padding: "8px 12px",
+                            fontWeight: 600,
+                            cursor: "pointer",
+                            display: "inline-flex",
+                            alignItems: "center",
+                            gap: 4,
+                          }}
                         >
-                          Refresh
+                          ↻ Refresh
                         </button>
                       </div>
                     </div>
 
                     <div style={{ overflowX: "auto" }}>
-                      <table className="admin-table">
+                      <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12 }}>
                         <thead>
-                          <tr>
-                            <th>TIME</th>
-                            <th>TXN ID</th>
-                            <th>PLAYER</th>
-                            <th>ROOM / TABLE</th>
-                            <th>TYPE</th>
-                            <th style={{ textAlign: "right" }}>AMOUNT</th>
-                            <th style={{ textAlign: "center" }}>STATUS</th>
+                          <tr style={{ background: "#f8f9fb", borderBottom: "1px solid #eef0f3" }}>
+                            <th style={{ textAlign: "left", padding: "10px 16px", color: "#696c7e", fontWeight: 700 }}>TIME</th>
+                            <th style={{ textAlign: "left", padding: "10px 16px", color: "#696c7e", fontWeight: 700 }}>TXN ID</th>
+                            <th style={{ textAlign: "left", padding: "10px 16px", color: "#696c7e", fontWeight: 700 }}>PLAYER</th>
+                            <th style={{ textAlign: "left", padding: "10px 16px", color: "#696c7e", fontWeight: 700 }}>ROOM / TABLE</th>
+                            <th style={{ textAlign: "left", padding: "10px 16px", color: "#696c7e", fontWeight: 700 }}>TYPE</th>
+                            <th style={{ textAlign: "right", padding: "10px 16px", color: "#696c7e", fontWeight: 700 }}>AMOUNT</th>
+                            <th style={{ textAlign: "center", padding: "10px 16px", color: "#696c7e", fontWeight: 700 }}>STATUS</th>
                           </tr>
                         </thead>
                         <tbody>
-                          {filteredTx.length === 0 ? (
+                          {paginatedTx.length === 0 ? (
                             <tr>
                               <td colSpan={7} style={{ textAlign: "center", padding: 36, color: "#8a94a6" }}>
                                 {txLoading ? "Loading live transactions..." : "No transaction records found matching your filters."}
                               </td>
                             </tr>
                           ) : (
-                            filteredTx.map((tx) => {
+                            paginatedTx.map((tx) => {
                               const isPos = tx.amount > 0;
                               return (
-                                <tr key={tx.id}>
-                                  <td style={{ color: "#8a94a6", whiteSpace: "nowrap", fontSize: 12 }}>
+                                <tr key={tx.id} style={{ borderBottom: "1px solid #f0f2f5" }}>
+                                  <td style={{ padding: "12px 16px", color: "#696c7e", whiteSpace: "nowrap", fontSize: 11 }}>
                                     {tx.time || (typeof tx.timestamp === "string" ? tx.timestamp : "Today")}
                                   </td>
-                                  <td>
-                                    <code style={{ color: "#f6bd49", fontWeight: 800 }}>{tx.id}</code>
+                                  <td style={{ padding: "12px 16px", whiteSpace: "nowrap" }}>
+                                    <code style={{ background: "#f0edff", color: "#6e59e8", fontWeight: 700, padding: "3px 7px", borderRadius: 4, fontSize: 11 }}>
+                                      {tx.id}
+                                    </code>
                                   </td>
-                                  <td>
-                                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                                  <td style={{ padding: "12px 16px" }}>
+                                    <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                                       <span
                                         style={{
-                                          width: 24,
-                                          height: 24,
+                                          width: 30,
+                                          height: 30,
                                           borderRadius: "50%",
-                                          background: "#251e44",
+                                          background: "#e0e7ff",
+                                          color: "#4338ca",
                                           display: "inline-flex",
                                           alignItems: "center",
                                           justifyContent: "center",
-                                          fontSize: 10,
+                                          fontSize: 11,
                                           fontWeight: 800,
-                                          color: "#a496ff",
+                                          flexShrink: 0,
                                         }}
                                       >
                                         {(tx.player || "PL").slice(0, 2).toUpperCase()}
                                       </span>
-                                      <b style={{ color: "#fff" }}>{tx.player || "Guest"}</b>
+                                      <div>
+                                        <strong style={{ color: "#1e202c", fontSize: 13, display: "block" }}>
+                                          {tx.player || "Guest"}
+                                        </strong>
+                                        <small style={{ color: "#9497a6", fontSize: 10 }}>
+                                          @{tx.player || "guest"}
+                                        </small>
+                                      </div>
                                     </div>
                                   </td>
-                                  <td style={{ fontWeight: 600 }}>{tx.room || "Hold'em Cash Table"}</td>
-                                  <td>
+                                  <td style={{ padding: "12px 16px", fontWeight: 600, color: "#1e202c" }}>
+                                    {tx.room || "Hold'em Cash Table"}
+                                  </td>
+                                  <td style={{ padding: "12px 16px" }}>
                                     <span
                                       className={`table-status ${
                                         tx.type.toLowerCase().includes("win") || tx.type.toLowerCase().includes("payout")
@@ -1674,12 +2788,12 @@ export default function PokerBackofficeApp() {
                                       {tx.type}
                                     </span>
                                   </td>
-                                  <td style={{ textAlign: "right", fontWeight: 800 }}>
-                                    <span style={{ color: isPos ? "#27d7ad" : "#f87171" }}>
+                                  <td style={{ padding: "12px 16px", textAlign: "right", fontWeight: 800, fontSize: 13 }}>
+                                    <span style={{ color: isPos ? "#15a982" : "#e46559" }}>
                                       {isPos ? `+€${Math.abs(tx.amount).toFixed(2)}` : `-€${Math.abs(tx.amount).toFixed(2)}`}
                                     </span>
                                   </td>
-                                  <td style={{ textAlign: "center" }}>
+                                  <td style={{ padding: "12px 16px", textAlign: "center" }}>
                                     <span className={`table-status ${tx.status === "Completed" ? "success" : "warning"}`}>
                                       {tx.status}
                                     </span>
@@ -1691,6 +2805,15 @@ export default function PokerBackofficeApp() {
                         </tbody>
                       </table>
                     </div>
+
+                    <PaginationBar
+                      currentPage={txPage}
+                      totalPages={totalTxPages}
+                      totalItems={filteredTx.length}
+                      pageSize={txPageSize}
+                      onPageChange={setTxPage}
+                      itemLabel="transactions"
+                    />
                   </div>
                 </div>
               );
@@ -1802,8 +2925,17 @@ export default function PokerBackofficeApp() {
                     </button>
                     <button
                       type="button"
-                      className="outline-button"
                       onClick={() => setRulesForm(DEFAULT_COMMISSION_SETTINGS)}
+                      style={{
+                        background: "#f8f9fa",
+                        border: "1px solid #d1d5db",
+                        borderRadius: 8,
+                        color: "#374151",
+                        fontSize: 12,
+                        fontWeight: 700,
+                        padding: "10px 16px",
+                        cursor: "pointer",
+                      }}
                     >
                       Reset to BET888 Standards
                     </button>
@@ -1981,7 +3113,20 @@ export default function PokerBackofficeApp() {
               )}
 
               <div style={{ display: "flex", justifyContent: "flex-end", gap: 10, marginTop: 10 }}>
-                <button type="button" className="outline-button" onClick={() => setShowCreateModal(false)}>
+                <button
+                  type="button"
+                  onClick={() => setShowCreateModal(false)}
+                  style={{
+                    background: "#f8f9fa",
+                    border: "1px solid #d1d5db",
+                    borderRadius: 8,
+                    color: "#374151",
+                    fontSize: 12,
+                    fontWeight: 700,
+                    padding: "9px 16px",
+                    cursor: "pointer",
+                  }}
+                >
                   Cancel
                 </button>
                 <button type="submit" className="admin-primary">
@@ -2095,7 +3240,20 @@ export default function PokerBackofficeApp() {
                 <button type="submit" className="admin-primary" style={{ flex: 1 }}>
                   Confirm & Credit Funds
                 </button>
-                <button type="button" className="outline-button" onClick={() => setAddFundsModalPlayer(null)}>
+                <button
+                  type="button"
+                  onClick={() => setAddFundsModalPlayer(null)}
+                  style={{
+                    background: "#f8f9fa",
+                    border: "1px solid #d1d5db",
+                    borderRadius: 8,
+                    color: "#374151",
+                    fontSize: 12,
+                    fontWeight: 700,
+                    padding: "10px 16px",
+                    cursor: "pointer",
+                  }}
+                >
                   Cancel
                 </button>
               </div>

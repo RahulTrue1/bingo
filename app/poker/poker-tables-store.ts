@@ -8,6 +8,7 @@ export interface BasepokerTableItem extends Bet888TableSummary {
   handsPerHour?: number;
   waitlist?: number;
   currency?: string;
+  seats?: { seatNo: number; player: string; stack: number; bet?: number; folded?: boolean }[];
 }
 
 export const INITIAL_BASEPOKER_TABLES: BasepokerTableItem[] = [
@@ -318,17 +319,67 @@ export function createAndStorePokerTable(data: {
   return newTable;
 }
 
-export function togglePokerTableStatus(id: string): BasepokerTableItem[] {
+export function togglePokerTableStatus(
+  id: string,
+  explicitStatus?: "playing" | "paused" | "waiting",
+  fallbackTableData?: Partial<BasepokerTableItem>
+): BasepokerTableItem[] {
   const tables = getStoredPokerTables();
+  const targetId = id.trim().toLowerCase();
+  let found = false;
+
   const updated = tables.map((t) => {
-    if (t.id === id) {
-      const nextStatus = t.status === "playing" ? "paused" : "playing";
+    const match =
+      t.id.toLowerCase() === targetId ||
+      (fallbackTableData?.name && t.name.toLowerCase() === fallbackTableData.name.toLowerCase());
+    if (match) {
+      found = true;
+      const nextStatus = explicitStatus
+        ? explicitStatus
+        : t.status === "playing"
+        ? "paused"
+        : "playing";
       return { ...t, status: nextStatus as "playing" | "waiting" | "paused" };
     }
     return t;
   });
+
+  if (!found) {
+    const nextStatus = explicitStatus || "paused";
+    const newEntry: BasepokerTableItem = {
+      id,
+      name: fallbackTableData?.name || id,
+      feeType: fallbackTableData?.feeType || "RAKE",
+      feeLabel: fallbackTableData?.feeLabel || "RAKE 5%",
+      sb: fallbackTableData?.sb || 1,
+      bb: fallbackTableData?.bb || 2,
+      minBuyIn: fallbackTableData?.minBuyIn || 40,
+      maxBuyIn: fallbackTableData?.maxBuyIn || 400,
+      maxSeats: fallbackTableData?.maxSeats || 6,
+      seatsOccupied: fallbackTableData?.seatsOccupied || 0,
+      status: nextStatus,
+      isPrivate: fallbackTableData?.isPrivate || false,
+      inviteCode: fallbackTableData?.inviteCode || "",
+      theme: fallbackTableData?.theme || "green",
+      tier: fallbackTableData?.tier || "low",
+      avgPot: fallbackTableData?.avgPot || 20,
+      handsPerHour: 60,
+      waitlist: 0,
+      currency: "EUR",
+    };
+    updated.unshift(newEntry);
+  }
+
   saveStoredPokerTables(updated);
   return updated;
+}
+
+export function setPokerTableStatus(
+  id: string,
+  status: "playing" | "paused" | "waiting",
+  fallbackTableData?: Partial<BasepokerTableItem>
+): BasepokerTableItem[] {
+  return togglePokerTableStatus(id, status, fallbackTableData);
 }
 
 export function deletePokerTable(id: string): BasepokerTableItem[] {
@@ -349,8 +400,11 @@ export function resetPokerTables(): BasepokerTableItem[] {
 
 export interface LivePokerCommand {
   tableId: string;
-  action: "pause" | "resume" | "next_street" | "reset_hand" | "set_pot";
+  action: "pause" | "resume" | "next_street" | "reset_hand" | "set_pot" | "stand" | "set_speed";
+  speed?: number; // action countdown in seconds (e.g. 5, 15, 25)
   pot?: number;
+  seat?: number;
+  playerName?: string;
   timestamp?: number;
 }
 
@@ -383,6 +437,15 @@ export function subscribeLivePokerCommand(callback: (cmd: LivePokerCommand) => v
     window.removeEventListener("basepoker_live_command", handleCustom);
     window.removeEventListener("storage", handleStorage);
   };
+}
+
+export function broadcastPlayerJoin(tableId: string, player: string, seatNo?: number, stack?: number) {
+  if (typeof window === "undefined") return;
+  const payload = { tableId, player, seatNo: seatNo || 1, stack: stack || 200, timestamp: Date.now() };
+  try {
+    localStorage.setItem("basepoker_last_joined", JSON.stringify(payload));
+  } catch (_) {}
+  window.dispatchEvent(new CustomEvent("basepoker_player_joined", { detail: payload }));
 }
 
 /* ========================================================================= */

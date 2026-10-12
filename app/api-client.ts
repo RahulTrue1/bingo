@@ -958,12 +958,15 @@ export const apiClient = {
   },
 
   poker: {
+    async getTables() {
+      return request<{ success: boolean; count: number; tables: PokerTableApiModel[] }>("/poker/tables");
+    },
     async tables() {
       const res = await request<{ success: boolean; count: number; tables: PokerTableApiModel[] }>("/poker/tables");
       return res?.tables ?? [];
     },
     async createPrivateTable(data: { name?: string; sb: number; bb: number; seats?: number; feeType?: string; minBuyIn?: number; maxBuyIn?: number }) {
-      return request<{ success: boolean; table: PokerTableApiModel; inviteCode: string; message: string }>("/poker/private-tables", {
+      return request<{ success: boolean; table?: PokerTableApiModel; inviteCode?: string; message?: string; error?: string }>("/poker/private-tables", {
         method: "POST",
         body: JSON.stringify(data),
       });
@@ -988,6 +991,12 @@ export const apiClient = {
     async cashOut(tableId: string) {
       return request<{ success: boolean; amountCashedOut: number; balance: number; error?: string; message: string }>(`/poker/tables/${encodeURIComponent(tableId)}/cashout`, {
         method: "POST",
+      });
+    },
+    async enableAccess(username?: string) {
+      return request<{ success: boolean; message: string; poker_enabled: boolean; username?: string }>("/poker/enable-access", {
+        method: "POST",
+        body: JSON.stringify({ username }),
       });
     },
   },

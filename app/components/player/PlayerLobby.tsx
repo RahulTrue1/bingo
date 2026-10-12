@@ -152,7 +152,7 @@ export function PlayerLobby({
               key={item[1]}
               onClick={() => {
                 if (item[1] === "Poker Live") {
-                  window.location.href = "/casino";
+                  window.location.href = "/cashgame";
                   return;
                 }
                 setFilter(

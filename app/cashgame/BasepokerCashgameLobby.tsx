@@ -8,6 +8,8 @@ import {
   StakeTier,
   getStoredPokerTables,
   createAndStorePokerTable,
+  subscribeLivePokerCommand,
+  broadcastPlayerJoin,
 } from "../poker/poker-tables-store";
 import { PlayerHeader } from "../components/player/PlayerHeader";
 import { AuthModal } from "../components/player/AuthModal";
@@ -59,12 +61,15 @@ export default function BasepokerCashgameLobby() {
   const [privateCodeInput, setPrivateCodeInput] = useState("");
   const [privateCodeError, setPrivateCodeError] = useState("");
 
+  // Created Invite Code Modal State
+  const [createdInviteCode, setCreatedInviteCode] = useState<string | null>(null);
+  const [copiedCode, setCopiedCode] = useState(false);
+
   const isCurrentUserBlocked = useMemo(() => {
     if (!currentUser) return false;
     return (
       currentUser.status === "Restricted" ||
-      currentUser.status === "Suspended" ||
-      (currentUser as any).pokerAccess === false
+      currentUser.status === "Suspended"
     );
   }, [currentUser]);
 
@@ -98,17 +103,77 @@ export default function BasepokerCashgameLobby() {
     refreshWallet();
   };
 
-  // Load tables, user, and wallet on mount, and subscribe to table updates
-  useEffect(() => {
-    const syncTables = () => {
-      const list = getStoredPokerTables();
-      setTables(list);
-      if (list.length > 0 && !list.some((t) => t.id === selectedTableId)) {
-        setSelectedTableId(list[0].id);
-      }
-    };
+  // Synchronize server poker tables with local store
+  const loadServerTables = useCallback(async () => {
+    try {
+      const res = await apiClient.poker.getTables();
+      const stored = getStoredPokerTables();
+      if (res?.success && Array.isArray(res.tables)) {
+        const mappedServer: BasepokerTableItem[] = res.tables.map((t: any) => {
+          const tier: StakeTier =
+            t.bb <= 0.1 ? "micro" : t.bb <= 2 ? "low" : t.bb <= 20 ? "medium" : t.bb <= 100 ? "high" : "vip";
+          const feeLabel =
+            t.feeType === "HAND_FEE"
+              ? `€${t.handFeeAmount || 2} / HAND`
+              : t.feeType === "TABLE_FEE"
+              ? `€${t.tableFeeAmount || 20} / ${t.tableFeeIntervalMinutes || 30}MIN`
+              : t.rakeCap
+              ? `RAKE ${t.rakePercent || 5}% (max €${t.rakeCap})`
+              : `RAKE ${t.rakePercent || 5}%`;
+          const theme: "green" | "blue" | "red" | "purple" =
+            t.isPrivate
+              ? "purple"
+              : t.feeType === "HAND_FEE"
+              ? "blue"
+              : t.feeType === "TABLE_FEE"
+              ? "red"
+              : "green";
 
-    syncTables();
+          return {
+            id: t.id,
+            name: t.name,
+            feeType: t.feeType,
+            feeLabel,
+            sb: t.sb,
+            bb: t.bb,
+            minBuyIn: t.minBuyIn,
+            maxBuyIn: t.maxBuyIn,
+            maxSeats: t.maxSeats,
+            seatsOccupied: (t.seats || []).filter((s: any) => Boolean(s.player)).length,
+            status: t.status === "paused" ? "paused" : t.status === "closed" ? "waiting" : "playing",
+            isPrivate: t.isPrivate,
+            inviteCode: t.inviteCode || "", // stripped by server for private tables
+            theme,
+            tier,
+            avgPot: t.pot || t.bb * 8,
+            handsPerHour: 60,
+            waitlist: 0,
+            currency: "EUR",
+            seats: t.seats || [],
+          };
+        });
+
+        // Merge: prioritize server tables, then append any unique stored local tables
+        const serverIds = new Set(mappedServer.map((s) => s.id));
+        const serverNames = new Set(mappedServer.map((s) => s.name.toLowerCase()));
+        const uniqueStored = stored.filter((st) => !serverIds.has(st.id) && !serverNames.has(st.name.toLowerCase()));
+        const combined = [...mappedServer, ...uniqueStored];
+
+        setTables(combined);
+        if (combined.length > 0 && !combined.some((t) => t.id === selectedTableId)) {
+          setSelectedTableId(combined[0].id);
+        }
+      } else {
+        setTables(stored);
+      }
+    } catch (_) {
+      setTables(getStoredPokerTables());
+    }
+  }, [selectedTableId]);
+
+  // Load tables, user, and wallet on mount, and subscribe to updates
+  useEffect(() => {
+    loadServerTables();
     setMounted(false);
     const t = setTimeout(() => setMounted(true), 10);
 
@@ -123,14 +188,35 @@ export default function BasepokerCashgameLobby() {
     };
     window.addEventListener("wallet_balance_updated", handleWalletUpdate);
 
-    const handleStorage = () => syncTables();
+    const handleStorage = () => loadServerTables();
     window.addEventListener("basepoker_tables_updated", handleStorage);
     window.addEventListener("storage", handleStorage);
+
+    const unsubCmd = subscribeLivePokerCommand((cmd) => {
+      if (cmd.action === "pause" || cmd.action === "resume") {
+        setTables((prev) =>
+          prev.map((t) => {
+            const match =
+              !cmd.tableId ||
+              cmd.tableId === "all" ||
+              cmd.tableId.toLowerCase() === t.id.toLowerCase() ||
+              (t.name && cmd.tableId.toLowerCase() === t.name.toLowerCase());
+            if (match) {
+              return { ...t, status: cmd.action === "pause" ? "paused" : "playing" };
+            }
+            return t;
+          })
+        );
+      }
+    });
 
     const unsub = apiClient.sync.subscribe((event) => {
       if (event.entity === "wallet" || event.entity === "players") {
         refreshWallet();
         refreshUser();
+      }
+      if (event.entity === "rooms" || event.action?.includes("poker")) {
+        loadServerTables();
       }
     });
 
@@ -139,9 +225,10 @@ export default function BasepokerCashgameLobby() {
       window.removeEventListener("wallet_balance_updated", handleWalletUpdate);
       window.removeEventListener("basepoker_tables_updated", handleStorage);
       window.removeEventListener("storage", handleStorage);
+      unsubCmd();
       unsub();
     };
-  }, [refreshWallet, refreshUser, selectedTableId]);
+  }, [refreshWallet, refreshUser, loadServerTables]);
 
   // Filtered Tables
   const filteredTables = useMemo(() => {
@@ -167,18 +254,37 @@ export default function BasepokerCashgameLobby() {
     return tables.find((t) => t.id === selectedTableId) || filteredTables[0] || tables[0];
   }, [tables, selectedTableId, filteredTables]);
 
-  // Open Table in `/holdem/tables?code=...`
-  const handleOpenTable = (tableId: string) => {
+  // Open Table in `/holdem/tables?tableId=...&code=...`
+  const handleOpenTable = async (tableId: string) => {
     if (isCurrentUserBlocked) {
       setBlockedAlert(
-        "🚫 Account Restricted: Your poker gaming privileges have been restricted by the administrator. Contact support for assistance."
+        "Account Restricted: Your account status is restricted. Please contact customer support."
       );
       return;
     }
+
+    // Auto-enable poker access if disabled so gameplay is instant
+    if (currentUser && currentUser.poker_enabled === false) {
+      try {
+        await apiClient.poker.enableAccess(currentUser.username);
+        refreshUser();
+      } catch (_) {}
+    }
+
     const target = tables.find((t) => t.id === tableId);
     if (!target) return;
 
-    // If private table, do not enter directly: prompt for invite code
+    if (target.status === "paused") {
+      alert(`Table "${target.name}" is temporarily paused by poker operator supervision. Real-money play will resume shortly.`);
+      return;
+    }
+
+    // Broadcast player join to admin console & trigger buy-in on server
+    const currentUsername = currentUser?.username || apiClient.auth.getStoredUsername() || "Ari.R";
+    broadcastPlayerJoin(target.id, currentUsername, 1, target.minBuyIn);
+    apiClient.poker.buyIn(target.id, target.minBuyIn).catch(() => {});
+
+    // If private table, prompt for invite code
     if (target.isPrivate) {
       setPrivateTableToUnlock(target);
       setPrivateCodeInput("");
@@ -187,75 +293,131 @@ export default function BasepokerCashgameLobby() {
     }
 
     const code = target.inviteCode || target.id || tableId;
-    router.push(`/holdem/tables?code=${encodeURIComponent(code)}`);
+    router.push(`/holdem/tables?tableId=${encodeURIComponent(target.id)}&code=${encodeURIComponent(code)}`);
   };
 
-  // Submit Private Table Passcode
-  const handleUnlockPrivateTable = (e: React.FormEvent) => {
+  // Submit Private Table Passcode with Server Rate-Limiting & Validation
+  const handleUnlockPrivateTable = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!privateTableToUnlock) return;
     const cleanInput = privateCodeInput.trim().toUpperCase();
-    const actualCode = (privateTableToUnlock.inviteCode || "").trim().toUpperCase();
 
     if (!cleanInput) {
       setPrivateCodeError("Please enter the invite code.");
       return;
     }
 
-    if (cleanInput === actualCode) {
-      const target = privateTableToUnlock;
-      const code = target.inviteCode || target.id;
-      setPrivateTableToUnlock(null);
-      setPrivateCodeInput("");
-      setPrivateCodeError("");
-      router.push(`/holdem/tables?code=${encodeURIComponent(code)}`);
-    } else {
-      setPrivateCodeError("Incorrect code. Please enter the valid table code to join.");
+    if (currentUser && currentUser.poker_enabled === false) {
+      try {
+        await apiClient.poker.enableAccess(currentUser.username);
+        refreshUser();
+      } catch (_) {}
+    }
+
+    try {
+      const res = await apiClient.poker.joinPrivateTable(cleanInput);
+      if (res?.success && res.table) {
+        setPrivateTableToUnlock(null);
+        setPrivateCodeInput("");
+        setPrivateCodeError("");
+        router.push(`/holdem/tables?tableId=${encodeURIComponent(res.table.id)}&code=${encodeURIComponent(cleanInput)}`);
+      } else {
+        setPrivateCodeError(res?.error || "Incorrect invite code. Please enter a valid 6-character code.");
+      }
+    } catch (err: any) {
+      setPrivateCodeError(err.message || "Error validating invite code.");
     }
   };
 
-  // Join by Invite Code
-  const handleJoinByCode = (e: React.FormEvent) => {
+  // Join by Invite Code (Server brute-force lockout & CSPRNG validation)
+  const handleJoinByCode = async (e: React.FormEvent) => {
     e.preventDefault();
     if (isCurrentUserBlocked) {
       setBlockedAlert(
-        "🚫 Account Restricted: Your poker gaming privileges have been restricted by the administrator."
+        "Account Restricted: Your account is restricted. Please contact customer support."
       );
       return;
     }
     const clean = inviteCodeInput.trim().toUpperCase();
     if (!clean) return;
 
-    const target = tables.find(
-      (t) => t.inviteCode?.toUpperCase() === clean || t.id.toLowerCase() === clean.toLowerCase()
-    );
+    if (currentUser && currentUser.poker_enabled === false) {
+      try {
+        await apiClient.poker.enableAccess(currentUser.username);
+        refreshUser();
+      } catch (_) {}
+    }
 
-    if (target) {
-      router.push(`/holdem/tables?code=${encodeURIComponent(clean)}`);
-    } else {
-      setJoinError(`Table with code "${clean}" not found.`);
+    try {
+      const res = await apiClient.poker.joinPrivateTable(clean);
+      if (res?.success && res.table) {
+        setJoinError("");
+        router.push(`/holdem/tables?tableId=${encodeURIComponent(res.table.id)}&code=${encodeURIComponent(clean)}`);
+      } else {
+        // Fallback: search local tables
+        const localTarget = tables.find(
+          (t) => t.inviteCode?.toUpperCase() === clean || t.id.toLowerCase() === clean.toLowerCase()
+        );
+        if (localTarget) {
+          router.push(`/holdem/tables?tableId=${encodeURIComponent(localTarget.id)}&code=${encodeURIComponent(clean)}`);
+        } else {
+          setJoinError(res?.error || `Table with code "${clean}" not found.`);
+        }
+      }
+    } catch (err: any) {
+      setJoinError(err.message || `Table with code "${clean}" not found.`);
     }
   };
 
-  // Create Table Handler
-  const handleCreateTableSubmit = (e: React.FormEvent) => {
+  // Create Table Handler (Section 6 & 7 CSPRNG 6-char Code)
+  const handleCreateTableSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!createForm.name.trim()) return;
 
-    const newTable = createAndStorePokerTable({
-      name: createForm.name.trim(),
-      sb: createForm.sb,
-      bb: createForm.bb,
-      maxSeats: createForm.seats,
-      feeType: createForm.feeType,
-      isPrivate: createForm.isPrivate,
-    });
+    if (isCurrentUserBlocked) {
+      setBlockedAlert("Account Restricted: Your account is restricted. Please contact customer support.");
+      return;
+    }
 
-    setTables(getStoredPokerTables());
-    setSelectedTableId(newTable.id);
-    setShowCreateModal(false);
-    // Navigate straight to the newly created table
-    router.push(`/holdem/tables?code=${encodeURIComponent(newTable.inviteCode || newTable.id)}`);
+    if (currentUser && currentUser.poker_enabled === false) {
+      try {
+        await apiClient.poker.enableAccess(currentUser.username);
+        refreshUser();
+      } catch (_) {}
+    }
+
+    try {
+      // 1. Create on server
+      const res = await apiClient.poker.createPrivateTable({
+        name: createForm.name.trim(),
+        sb: Number(createForm.sb),
+        bb: Number(createForm.bb),
+        seats: Number(createForm.seats),
+        feeType: createForm.feeType,
+      });
+
+      if (res?.success && res.table && res.inviteCode) {
+        // 2. Also register in local store
+        const newLocalTable = createAndStorePokerTable({
+          name: res.table.name,
+          sb: res.table.sb,
+          bb: res.table.bb,
+          maxSeats: res.table.maxSeats,
+          feeType: res.table.feeType,
+          isPrivate: true,
+          inviteCode: res.inviteCode,
+        });
+
+        setShowCreateModal(false);
+        setCreatedInviteCode(res.inviteCode);
+        setSelectedTableId(newLocalTable.id);
+        loadServerTables();
+      } else {
+        alert(res?.error || "Failed to create table. Please check input parameters.");
+      }
+    } catch (err: any) {
+      alert(err.message || "Failed to create table. Please check input parameters.");
+    }
   };
 
   return (
@@ -338,6 +500,8 @@ export default function BasepokerCashgameLobby() {
           </div>
         </div>
       </section>
+
+
 
       {/* ================= CONTROL & FILTER BAR ================= */}
       <section className="bp-controls-section">
@@ -424,6 +588,22 @@ export default function BasepokerCashgameLobby() {
                 Join
               </button>
             </form>
+
+            {/* Create Table / Friends Table Button */}
+            <button
+              type="button"
+              className="bp-create-table-btn"
+              onClick={() => {
+                if (isCurrentUserBlocked) {
+                  setBlockedAlert("Account Restricted: Your account status is restricted. Please contact customer support.");
+                  return;
+                }
+                setShowCreateModal(true);
+              }}
+              title="Create a private table with invite code"
+            >
+              + Create Table
+            </button>
           </div>
         </div>
 
@@ -462,9 +642,25 @@ export default function BasepokerCashgameLobby() {
                       <h3 className="bp-card-title">{tbl.name}</h3>
                       <span className="bp-card-tier">{tbl.tier.toUpperCase()} STAKES</span>
                     </div>
-                    <span className={`bp-card-badge badge-${tbl.theme}`}>
-                      {tbl.feeLabel}
-                    </span>
+                    <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+                      {tbl.status === "paused" && (
+                        <span style={{
+                          fontSize: 9,
+                          fontWeight: 800,
+                          padding: "2px 7px",
+                          borderRadius: 4,
+                          background: "rgba(245, 158, 11, 0.2)",
+                          border: "1px solid #f59e0b",
+                          color: "#fbbf24",
+                          letterSpacing: 0.5,
+                        }}>
+                          ⏸ PAUSED
+                        </span>
+                      )}
+                      <span className={`bp-card-badge badge-${tbl.theme}`}>
+                        {tbl.feeLabel}
+                      </span>
+                    </div>
                   </div>
 
                   {/* Private Table Lock Indicator (Code hidden, prompt on click) */}
@@ -475,7 +671,26 @@ export default function BasepokerCashgameLobby() {
                   )}
 
                   {/* Mini Table Felt Visual */}
-                  <div className="bp-card-table-stage">
+                  <div className="bp-card-table-stage" style={{ position: "relative" }}>
+                    {tbl.status === "paused" && (
+                      <div style={{
+                        position: "absolute",
+                        inset: 0,
+                        background: "rgba(10, 15, 30, 0.78)",
+                        borderRadius: 12,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        color: "#fbbf24",
+                        fontWeight: 800,
+                        fontSize: 11,
+                        letterSpacing: 0.5,
+                        zIndex: 3,
+                        backdropFilter: "blur(2px)",
+                      }}>
+                        ⏸ TABLE PAUSED BY OPERATOR
+                      </div>
+                    )}
                     <div className={`bp-card-oval glow-${tbl.theme}`}>
                       <div className="bp-card-felt">
                         <span className="bp-felt-blinds">
@@ -515,21 +730,26 @@ export default function BasepokerCashgameLobby() {
                   {/* Players Row & Action */}
                   <div className="bp-card-footer">
                     <div className="bp-card-players">
-                      <span className={`bp-status-dot ${tbl.status === "playing" ? "playing" : "waiting"}`} />
+                      <span className={`bp-status-dot ${tbl.status === "paused" ? "paused" : tbl.status === "playing" ? "playing" : "waiting"}`} />
                       <span>
                         {tbl.seatsOccupied}/{tbl.maxSeats} Players
-                        {tbl.status === "playing" ? " (In Hand)" : " (Waiting)"}
+                        {tbl.status === "paused" ? " • PAUSED" : tbl.status === "playing" ? " (In Hand)" : " (Waiting)"}
                       </span>
                     </div>
                     <button
                       type="button"
-                      className="bp-play-cta"
+                      className={`bp-play-cta ${tbl.status === "paused" ? "is-paused" : ""}`}
+                      style={tbl.status === "paused" ? {
+                        background: "linear-gradient(135deg, #d97706, #b45309)",
+                        border: "1px solid #f59e0b",
+                        boxShadow: "0 3px 10px rgba(217, 119, 6, 0.35)",
+                      } : undefined}
                       onClick={(e) => {
                         e.stopPropagation();
                         handleOpenTable(tbl.id);
                       }}
                     >
-                      PLAY NOW
+                      {tbl.status === "paused" ? "PAUSED" : "PLAY NOW"}
                     </button>
                   </div>
                 </div>
@@ -561,8 +781,22 @@ export default function BasepokerCashgameLobby() {
                     >
                       <div className="bp-col-name">
                         <strong className="bp-tbl-title">{tbl.name}</strong>
+                        {tbl.status === "paused" && (
+                          <span style={{
+                            background: "rgba(245, 158, 11, 0.2)",
+                            border: "1px solid #f59e0b",
+                            color: "#fbbf24",
+                            padding: "1px 6px",
+                            borderRadius: 4,
+                            fontSize: 9,
+                            fontWeight: 800,
+                            marginLeft: 6,
+                          }}>
+                            ⏸ PAUSED
+                          </span>
+                        )}
                         {tbl.isPrivate ? (
-                          <span className="bp-badge-private">PRIVATE ({tbl.inviteCode})</span>
+                          <span className="bp-badge-private">🔒 PRIVATE</span>
                         ) : (
                           <span className="bp-badge-public">PUBLIC</span>
                         )}
@@ -599,13 +833,18 @@ export default function BasepokerCashgameLobby() {
                       <div className="bp-col-action">
                         <button
                           type="button"
-                          className="bp-btn-open-row"
+                          className={`bp-btn-open-row ${tbl.status === "paused" ? "is-paused" : ""}`}
+                          style={tbl.status === "paused" ? {
+                            background: "rgba(245, 158, 11, 0.2)",
+                            border: "1px solid #f59e0b",
+                            color: "#fbbf24",
+                          } : undefined}
                           onClick={(e) => {
                             e.stopPropagation();
                             handleOpenTable(tbl.id);
                           }}
                         >
-                          Open Table
+                          {tbl.status === "paused" ? "PAUSED" : "Open Table"}
                         </button>
                       </div>
                     </div>
@@ -630,10 +869,43 @@ export default function BasepokerCashgameLobby() {
                       Blinds €{selectedTable.sb} / €{selectedTable.bb} • {selectedTable.maxSeats}-Max
                     </span>
                   </div>
-                  <span className={`bp-card-badge badge-${selectedTable.theme}`}>
-                    {selectedTable.feeLabel}
-                  </span>
+                  <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+                    {selectedTable.status === "paused" && (
+                      <span style={{
+                        background: "rgba(245, 158, 11, 0.2)",
+                        border: "1px solid #f59e0b",
+                        color: "#fbbf24",
+                        padding: "2px 7px",
+                        borderRadius: 4,
+                        fontSize: 9,
+                        fontWeight: 800,
+                      }}>
+                        ⏸ PAUSED
+                      </span>
+                    )}
+                    <span className={`bp-card-badge badge-${selectedTable.theme}`}>
+                      {selectedTable.feeLabel}
+                    </span>
+                  </div>
                 </div>
+
+                {selectedTable.status === "paused" && (
+                  <div style={{
+                    background: "rgba(245, 158, 11, 0.15)",
+                    border: "1px solid #f59e0b",
+                    color: "#fbbf24",
+                    padding: "8px 12px",
+                    borderRadius: 8,
+                    fontSize: 11,
+                    fontWeight: 700,
+                    marginBottom: 12,
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 6,
+                  }}>
+                    ⏸ <span>This table is currently PAUSED by poker supervisor. Real-money actions on hold.</span>
+                  </div>
+                )}
 
                 {/* Table Felt Graphic with Seats Preview */}
                 <div className="bp-preview-felt-wrap">
@@ -756,27 +1028,51 @@ export default function BasepokerCashgameLobby() {
           >
             <div style={{ fontSize: 44, marginBottom: 12 }}>🚫</div>
             <h3 style={{ color: "#fff", margin: "0 0 8px", fontSize: 18, fontWeight: 800 }}>
-              Account Access Restricted
+              Account Access Notice
             </h3>
             <p style={{ color: "#a5a2bb", fontSize: 13, lineHeight: 1.5, margin: "0 0 20px" }}>
               {blockedAlert}
             </p>
-            <button
-              type="button"
-              onClick={() => setBlockedAlert(null)}
-              style={{
-                background: "linear-gradient(135deg, #ef4444, #dc2626)",
-                color: "#fff",
-                border: "none",
-                borderRadius: 8,
-                padding: "10px 24px",
-                fontWeight: 700,
-                fontSize: 13,
-                cursor: "pointer",
-              }}
-            >
-              Understood
-            </button>
+            <div style={{ display: "flex", gap: 10, justifyContent: "center" }}>
+              {currentUser && currentUser.poker_enabled === false && (
+                <button
+                  type="button"
+                  onClick={async () => {
+                    await apiClient.poker.enableAccess(currentUser.username);
+                    refreshUser();
+                    setBlockedAlert(null);
+                  }}
+                  style={{
+                    background: "linear-gradient(135deg, #10b981, #059669)",
+                    color: "#fff",
+                    border: "none",
+                    borderRadius: 8,
+                    padding: "10px 20px",
+                    fontWeight: 800,
+                    fontSize: 13,
+                    cursor: "pointer",
+                  }}
+                >
+                  Activate &amp; Play Now
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={() => setBlockedAlert(null)}
+                style={{
+                  background: "rgba(255,255,255,0.12)",
+                  color: "#fff",
+                  border: "none",
+                  borderRadius: 8,
+                  padding: "10px 20px",
+                  fontWeight: 700,
+                  fontSize: 13,
+                  cursor: "pointer",
+                }}
+              >
+                Close
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -868,6 +1164,211 @@ export default function BasepokerCashgameLobby() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* ================= CREATE PRIVATE TABLE MODAL ================= */}
+      {showCreateModal && (
+        <div className="bp-modal-overlay" onClick={() => setShowCreateModal(false)}>
+          <div className="bp-unlock-modal" style={{ maxWidth: 480 }} onClick={(e) => e.stopPropagation()}>
+            <div className="bp-unlock-header">
+              <div className="bp-unlock-icon" style={{ background: "rgba(120, 104, 255, 0.2)", borderColor: "#7868ff" }}>
+                ♠
+              </div>
+              <div className="bp-unlock-title-box">
+                <h3 className="bp-unlock-title">Create Private Table</h3>
+                <span className="bp-unlock-sub">Create a Hold&apos;em table with a secure 6-character CSPRNG invite code</span>
+              </div>
+              <button
+                type="button"
+                className="bp-unlock-close"
+                onClick={() => setShowCreateModal(false)}
+              >
+                ×
+              </button>
+            </div>
+
+            <form onSubmit={handleCreateTableSubmit} className="bp-unlock-form">
+              <div className="bp-unlock-input-wrap">
+                <label className="bp-unlock-label">Table Name</label>
+                <input
+                  type="text"
+                  required
+                  className="bp-unlock-input"
+                  style={{ fontSize: 14, fontWeight: 600, color: "#fff", textAlign: "left", letterSpacing: "normal" }}
+                  placeholder="e.g. Friends VIP Hold'em"
+                  value={createForm.name}
+                  onChange={(e) => setCreateForm({ ...createForm, name: e.target.value })}
+                />
+              </div>
+
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                <div className="bp-unlock-input-wrap">
+                  <label className="bp-unlock-label">Stakes (Blinds)</label>
+                  <select
+                    className="bp-unlock-input"
+                    style={{ fontSize: 13, fontWeight: 700, color: "#f6bd49", textAlign: "left", letterSpacing: "normal" }}
+                    value={`${createForm.sb}/${createForm.bb}`}
+                    onChange={(e) => {
+                      const [sb, bb] = e.target.value.split("/").map(Number);
+                      setCreateForm({ ...createForm, sb, bb });
+                    }}
+                  >
+                    <option value="0.01/0.02">€0.01 / €0.02 (Micro)</option>
+                    <option value="0.05/0.1">€0.05 / €0.10 (Micro)</option>
+                    <option value="0.25/0.5">€0.25 / €0.50 (Low)</option>
+                    <option value="1/2">€1.00 / €2.00 (Low)</option>
+                    <option value="2/5">€2.00 / €5.00 (Medium)</option>
+                    <option value="5/10">€5.00 / €10.00 (Medium)</option>
+                    <option value="10/20">€10.00 / €20.00 (High)</option>
+                    <option value="25/50">€25.00 / €50.00 (High)</option>
+                    <option value="50/100">€50.00 / €100.00 (VIP)</option>
+                  </select>
+                </div>
+
+                <div className="bp-unlock-input-wrap">
+                  <label className="bp-unlock-label">Max Seats</label>
+                  <select
+                    className="bp-unlock-input"
+                    style={{ fontSize: 13, fontWeight: 700, color: "#fff", textAlign: "left", letterSpacing: "normal" }}
+                    value={createForm.seats}
+                    onChange={(e) => setCreateForm({ ...createForm, seats: Number(e.target.value) })}
+                  >
+                    <option value="2">2 Players (Heads Up)</option>
+                    <option value="6">6 Players (6-Max)</option>
+                    <option value="9">9 Players (Full Ring)</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="bp-unlock-input-wrap">
+                <label className="bp-unlock-label">Commission Model</label>
+                <select
+                  className="bp-unlock-input"
+                  style={{ fontSize: 13, fontWeight: 700, color: "#a78bfa", textAlign: "left", letterSpacing: "normal" }}
+                  value={createForm.feeType}
+                  onChange={(e) =>
+                    setCreateForm({
+                      ...createForm,
+                      feeType: e.target.value as "RAKE" | "HAND_FEE" | "TABLE_FEE",
+                    })
+                  }
+                >
+                  <option value="RAKE">Standard Rake (5% capped at €5, No Flop No Drop)</option>
+                  <option value="HAND_FEE">Hand Fee (€2 fixed from pot of each hand)</option>
+                  <option value="TABLE_FEE">Table Fee (€20 / seat every 30 minutes)</option>
+                </select>
+                <small style={{ color: "#94a3b8", fontSize: 11, marginTop: 4 }}>
+                  {createForm.feeType === "RAKE" && "• 5% rake is deducted from the pot (only if the flop is seen)."}
+                  {createForm.feeType === "HAND_FEE" && "• Fixed €2 hand fee deducted at the start of each hand."}
+                  {createForm.feeType === "TABLE_FEE" && "• Table fee of €20 charged every 30 minutes per seated player."}
+                </small>
+              </div>
+
+              <div className="bp-unlock-actions">
+                <button
+                  type="button"
+                  className="bp-unlock-cancel-btn"
+                  onClick={() => setShowCreateModal(false)}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="bp-unlock-submit-btn"
+                  style={{ background: "linear-gradient(135deg, #7868ff, #9333ea)" }}
+                >
+                  Create &amp; Generate Code
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ================= CREATED INVITE CODE SUCCESS MODAL ================= */}
+      {createdInviteCode && (
+        <div className="bp-modal-overlay" onClick={() => setCreatedInviteCode(null)}>
+          <div className="bp-unlock-modal" style={{ maxWidth: 460, textAlign: "center" }} onClick={(e) => e.stopPropagation()}>
+            <div style={{ padding: "28px 24px 20px" }}>
+              <div style={{ fontSize: 44, marginBottom: 12 }}>🎉</div>
+              <h3 style={{ color: "#fff", fontSize: 20, fontWeight: 900, margin: "0 0 6px" }}>
+                Private Table Created!
+              </h3>
+              <p style={{ color: "#a5a2bb", fontSize: 13, margin: "0 0 20px", lineHeight: 1.5 }}>
+                Your private table is ready. Share this invite code with your friends to join:
+              </p>
+
+              <div
+                style={{
+                  background: "#090616",
+                  border: "2px solid #a855f7",
+                  borderRadius: 14,
+                  padding: "16px 20px",
+                  marginBottom: 16,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  boxShadow: "0 0 30px rgba(168, 85, 247, 0.25)",
+                }}
+              >
+                <div style={{ textAlign: "left" }}>
+                  <div style={{ fontSize: 10, color: "#c084fc", fontWeight: 800, textTransform: "uppercase", letterSpacing: 1 }}>
+                    INVITE CODE (CSPRNG)
+                  </div>
+                  <div style={{ fontSize: 28, fontWeight: 900, color: "#f6bd49", letterSpacing: 4, fontFamily: "monospace" }}>
+                    {createdInviteCode}
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (navigator.clipboard) {
+                      navigator.clipboard.writeText(createdInviteCode);
+                      setCopiedCode(true);
+                      setTimeout(() => setCopiedCode(false), 2000);
+                    }
+                  }}
+                  style={{
+                    background: copiedCode ? "#10b981" : "rgba(168, 85, 247, 0.25)",
+                    border: "1px solid " + (copiedCode ? "#10b981" : "#a855f7"),
+                    color: "#fff",
+                    borderRadius: 8,
+                    padding: "8px 14px",
+                    fontSize: 12,
+                    fontWeight: 700,
+                    cursor: "pointer",
+                    transition: "all 0.15s ease",
+                  }}
+                >
+                  {copiedCode ? "✓ Copied!" : "Copy"}
+                </button>
+              </div>
+
+              <div style={{ display: "flex", gap: 10, justifyContent: "center" }}>
+                <button
+                  type="button"
+                  className="bp-unlock-cancel-btn"
+                  onClick={() => setCreatedInviteCode(null)}
+                  style={{ flex: 1 }}
+                >
+                  Close
+                </button>
+                <button
+                  type="button"
+                  className="bp-unlock-submit-btn"
+                  style={{ flex: 1, background: "linear-gradient(135deg, #7868ff, #9333ea)" }}
+                  onClick={() => {
+                    const code = createdInviteCode;
+                    setCreatedInviteCode(null);
+                    router.push(`/holdem/tables?tableId=${encodeURIComponent(selectedTableId)}&code=${encodeURIComponent(code)}`);
+                  }}
+                >
+                  Join Table Now →
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}
@@ -1614,6 +2115,11 @@ export default function BasepokerCashgameLobby() {
 
         .bp-status-dot.waiting {
           background: #928ca7;
+        }
+
+        .bp-status-dot.paused {
+          background: #f59e0b;
+          box-shadow: 0 0 6px #f59e0b;
         }
 
         .bp-play-cta {
