@@ -6,7 +6,12 @@ import { Bet888TableSummary, CardModel } from "./poker-types";
 import { bestHand, buildDeck, cardStr, parseCard, shuffle, VARIANTS, evalName } from "./poker-engine";
 import { Gear, SpeakerHigh, SpeakerSimpleSlash, ChatCircleDots, List } from "@phosphor-icons/react";
 import { apiClient, type WalletTransaction } from "../api-client";
-import { subscribeLivePokerCommand, sendLivePokerCommand } from "./poker-tables-store";
+import {
+  subscribeLivePokerCommand,
+  sendLivePokerCommand,
+  broadcastPlayerLeave,
+  subscribePlayerPresence,
+} from "./poker-tables-store";
 
 export interface TableSeatPlayer {
   seatNo: number;
@@ -52,6 +57,7 @@ export interface Bet888LiveTableProps {
   isUserBlocked?: boolean;
   onWalletChange?: (newBalance: number) => void;
   onTableStateChange?: (state: LiveTableTelemetry) => void;
+  allowBots?: boolean;
 }
 
 // Web Audio sound synthesizer for instant zero-dependency sound effects
@@ -203,7 +209,13 @@ function getResolvedPlayerName(userName?: string): string {
   return "Ari.R";
 }
 
-function initializeTableState(table: Bet888TableSummary, walletBalance: number, userName: string) {
+function initializeTableState(
+  table: Bet888TableSummary,
+  walletBalance: number,
+  userName: string,
+  allowBots: boolean = false,
+  operatorMode: boolean = false
+) {
   // Deterministic seed based on table ID to give each table unique cards and state
   const str = `${table.id || "table"}-${table.name || "cash"}`;
   let seed = 0;
@@ -231,60 +243,98 @@ function initializeTableState(table: Bet888TableSummary, walletBalance: number, 
     deck.pop() || { r: 7, s: 1 },
   ];
 
-  const board: CardModel[] = staged.slice(0, 3);
-
   const bb = table.bb || 2;
   const sb = table.sb || 1;
-  const pot = Math.round((sb + bb) * (2 + (absSeed % 3)));
-  const currentBet = bb;
-
   const minBuyIn = table.minBuyIn || bb * 20;
+  const resolvedHeroName = getResolvedPlayerName(userName);
   const heroInitialStack =
     walletBalance > 0
       ? Math.min(walletBalance, Math.max(minBuyIn, bb * 100))
       : Math.max(minBuyIn, bb * 100);
 
-  const heroCards: CardModel[] = [
-    deck.pop() || { r: 14, s: 0 },
-    deck.pop() || { r: 11, s: 1 },
-  ];
-
-  const resolvedHeroName = getResolvedPlayerName(userName);
+  const rawSeats = (table.seats || []).filter((s) => Boolean(s.player));
   const players: TableSeatPlayer[] = [];
-  players.push({
-    seatNo: 0,
-    name: resolvedHeroName,
-    avatarColor: "#B08A3E",
-    isHero: true,
-    stack: heroInitialStack,
-    bet: 0,
-    folded: false,
-    allIn: false,
-    cards: heroCards,
-    lastAction: "",
-  });
 
-  const maxSeats = table.maxSeats || 6;
-  const botCount = Math.min(maxSeats - 1, 5);
-  const botOffset = absSeed % BOT_POOL.length;
-
-  for (let i = 0; i < botCount; i++) {
-    const bot = BOT_POOL[(botOffset + i) % BOT_POOL.length];
-    const c1 = deck.pop() || { r: 10 + (i % 4), s: (i % 4) as any };
-    const c2 = deck.pop() || { r: 8 + (i % 4), s: ((i + 1) % 4) as any };
+  if (rawSeats.length > 0) {
+    // Populate strictly from real seats
+    for (const seat of rawSeats) {
+      const isHero = seat.player?.toLowerCase() === resolvedHeroName.toLowerCase();
+      const c1 = deck.pop() || { r: 14, s: 0 };
+      const c2 = deck.pop() || { r: 11, s: 1 };
+      players.push({
+        seatNo: seat.seatNo != null ? seat.seatNo : players.length,
+        name: seat.player!,
+        avatarColor: isHero ? "#B08A3E" : "#3B6FB6",
+        isHero,
+        stack: seat.stack || heroInitialStack,
+        bet: seat.bet || 0,
+        folded: seat.folded || false,
+        allIn: false,
+        cards: [c1, c2],
+        lastAction: seat.bet ? `BET €${seat.bet}` : "",
+      });
+    }
+  } else if (allowBots) {
+    // Explicit demo bot testing mode
+    const heroCards: CardModel[] = [
+      deck.pop() || { r: 14, s: 0 },
+      deck.pop() || { r: 11, s: 1 },
+    ];
     players.push({
-      seatNo: i + 1,
-      name: bot.name,
-      avatarColor: bot.color,
-      isHero: false,
-      stack: Math.floor(minBuyIn * (2 + (i + 1) * 0.7)),
-      bet: i === 0 ? currentBet : 0,
-      folded: i === 3,
+      seatNo: 0,
+      name: resolvedHeroName,
+      avatarColor: "#B08A3E",
+      isHero: true,
+      stack: heroInitialStack,
+      bet: 0,
+      folded: false,
       allIn: false,
-      cards: [c1, c2],
-      lastAction: i === 0 ? `BET ${currentBet}` : i === 3 ? "FOLD" : "CALL",
+      cards: heroCards,
+      lastAction: "",
+    });
+
+    const maxSeats = table.maxSeats || 6;
+    const botCount = Math.min(maxSeats - 1, 5);
+    const botOffset = absSeed % BOT_POOL.length;
+
+    for (let i = 0; i < botCount; i++) {
+      const bot = BOT_POOL[(botOffset + i) % BOT_POOL.length];
+      const c1 = deck.pop() || { r: 10 + (i % 4), s: (i % 4) as any };
+      const c2 = deck.pop() || { r: 8 + (i % 4), s: ((i + 1) % 4) as any };
+      players.push({
+        seatNo: i + 1,
+        name: bot.name,
+        avatarColor: bot.color,
+        isHero: false,
+        stack: Math.floor(minBuyIn * (2 + (i + 1) * 0.7)),
+        bet: i === 0 ? bb : 0,
+        folded: i === 3,
+        allIn: false,
+        cards: [c1, c2],
+        lastAction: i === 0 ? `BET ${bb}` : i === 3 ? "FOLD" : "CALL",
+      });
+    }
+  } else if (!operatorMode) {
+    // Player view when table has no other players: Hero is seated at seat 0
+    players.push({
+      seatNo: 0,
+      name: resolvedHeroName,
+      avatarColor: "#B08A3E",
+      isHero: true,
+      stack: heroInitialStack,
+      bet: 0,
+      folded: false,
+      allIn: false,
+      cards: [deck.pop() || { r: 14, s: 0 }, deck.pop() || { r: 11, s: 1 }],
+      lastAction: "",
     });
   }
+
+  const isLiveHand = players.length >= 2;
+  const board: CardModel[] = isLiveHand ? staged.slice(0, 3) : [];
+  const pot = isLiveHand ? Math.round((sb + bb) * (2 + (absSeed % 3))) : 0;
+  const currentBet = isLiveHand ? bb : 0;
+  const initialStage = isLiveHand ? "flop" : "waiting";
 
   return {
     handNo,
@@ -293,6 +343,7 @@ function initializeTableState(table: Bet888TableSummary, walletBalance: number, 
     pot,
     currentBet,
     players,
+    initialStage,
   };
 }
 
@@ -308,6 +359,7 @@ export function Bet888LiveTable({
   isUserBlocked = false,
   onWalletChange,
   onTableStateChange,
+  allowBots = false,
 }: Bet888LiveTableProps) {
   // Live reactive wallet state
   const [currentWallet, setCurrentWallet] = useState<number>(walletBalance);
@@ -328,20 +380,30 @@ export function Bet888LiveTable({
     }
   }, [onWalletChange, userName]);
 
+  // Toast and Modal notices for real-time operator alerts
+  const [toastNotification, setToastNotification] = useState<{ text: string; type: "info" | "warning" | "success" } | null>(null);
+  const [standUpModalMessage, setStandUpModalMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!toastNotification) return;
+    const t = setTimeout(() => setToastNotification(null), 3000);
+    return () => clearTimeout(t);
+  }, [toastNotification]);
+
   // Initialize unique game session for this table
   const initialDataRef = useRef<ReturnType<typeof initializeTableState> | null>(null);
   if (!initialDataRef.current) {
-    initialDataRef.current = initializeTableState(table, walletBalance, userName);
+    initialDataRef.current = initializeTableState(table, walletBalance, userName, allowBots, operatorMode);
   }
   const init = initialDataRef.current;
 
   // Game session & state
   const [handNo, setHandNo] = useState(init.handNo);
-  const [stage, setStage] = useState<"preflop" | "flop" | "turn" | "river" | "showdown">("flop");
+  const [stage, setStage] = useState<"waiting" | "preflop" | "flop" | "turn" | "river" | "showdown">(init.initialStage as any);
   const [board, setBoard] = useState<CardModel[]>(init.board);
   const [pot, setPot] = useState(init.pot);
   const [currentBet, setCurrentBet] = useState(init.currentBet);
-  const [activeSeat, setActiveSeat] = useState<number>(0); // 0 is Hero
+  const [activeSeat, setActiveSeat] = useState<number>(0);
   const [actionTimeLeft, setActionTimeLeft] = useState(15);
   const [actionTimeLimit, setActionTimeLimit] = useState(15);
   const [heroHandName, setHeroHandName] = useState("One pair");
@@ -672,6 +734,7 @@ export function Bet888LiveTable({
   );
 
   const advanceStreet = useCallback(() => {
+    if (stage === "waiting" || players.length < 2) return;
     audio.playDeal();
     if (stage === "preflop") {
       setStage("flop");
@@ -690,46 +753,11 @@ export function Bet888LiveTable({
     }
     setCurrentBet(0);
     setActiveSeat(0);
-    setActionTimeLeft(20);
-  }, [stage, players, pot, evaluateShowdown]);
-
-  // Listen for Live Commands from Admin Backoffice
-  useEffect(() => {
-    const unsub = subscribeLivePokerCommand((cmd) => {
-      const match =
-        !cmd.tableId ||
-        cmd.tableId === "all" ||
-        cmd.tableId.toLowerCase() === table.id.toLowerCase() ||
-        (table.inviteCode && cmd.tableId.toLowerCase() === table.inviteCode.toLowerCase()) ||
-        (table.name && cmd.tableId.toLowerCase() === table.name.toLowerCase());
-      if (!match) return;
-
-      if (cmd.action === "pause") {
-        setIsTablePaused(true);
-      } else if (cmd.action === "resume") {
-        setIsTablePaused(false);
-      } else if (cmd.action === "set_speed" && typeof cmd.speed === "number") {
-        setActionTimeLimit(cmd.speed);
-        setActionTimeLeft(cmd.speed);
-      } else if (cmd.action === "next_street") {
-        advanceStreet();
-      } else if (cmd.action === "reset_hand") {
-        handleDealNextHand();
-      } else if (cmd.action === "set_pot" && typeof cmd.pot === "number") {
-        setPot(cmd.pot);
-      } else if (cmd.action === "stand") {
-        if (typeof cmd.seat === "number") {
-          setPlayers((prev) => prev.filter((p) => p.seatNo !== cmd.seat));
-        } else {
-          setPlayers((prev) => prev.map((p) => p.isHero ? { ...p, folded: true } : p));
-        }
-      }
-    });
-    return unsub;
-  }, [table.id, table.inviteCode, table.name, advanceStreet, handleDealNextHand]);
+    setActionTimeLeft(actionTimeLimit);
+  }, [stage, players, pot, evaluateShowdown, actionTimeLimit]);
 
   const advanceTurn = useCallback(() => {
-    if (stage === "showdown") return;
+    if (stage === "showdown" || stage === "waiting" || players.length < 2) return;
     const alivePlayers = players.filter((p) => !p.folded);
     if (alivePlayers.length <= 1) {
       if (alivePlayers.length === 1) {
@@ -747,9 +775,164 @@ export function Bet888LiveTable({
       advanceStreet();
     } else {
       setActiveSeat(nextSeat);
-      setActionTimeLeft(20);
+      setActionTimeLeft(actionTimeLimit);
     }
-  }, [activeSeat, players, pot, stage, advanceStreet, triggerWinByFold]);
+  }, [activeSeat, players, pot, stage, advanceStreet, triggerWinByFold, actionTimeLimit]);
+
+  // Listen for Live Commands from Admin Backoffice
+  useEffect(() => {
+    const unsub = subscribeLivePokerCommand((cmd) => {
+      const match =
+        !cmd.tableId ||
+        cmd.tableId === "all" ||
+        cmd.tableId.toLowerCase() === table.id.toLowerCase() ||
+        (table.inviteCode && cmd.tableId.toLowerCase() === table.inviteCode.toLowerCase()) ||
+        (table.name && cmd.tableId.toLowerCase() === table.name.toLowerCase());
+      if (!match) return;
+
+      if (cmd.action === "pause") {
+        setIsTablePaused(true);
+        setToastNotification({ type: "warning", text: "Table paused by supervisor." });
+      } else if (cmd.action === "resume") {
+        setIsTablePaused(false);
+        setToastNotification({ type: "success", text: "Table resumed by supervisor." });
+      } else if (cmd.action === "set_speed" && typeof cmd.speed === "number") {
+        setActionTimeLimit(cmd.speed);
+        setActionTimeLeft(cmd.speed);
+        setToastNotification({ type: "info", text: `Action clock set to ${cmd.speed}s by supervisor.` });
+      } else if (cmd.action === "next_street") {
+        advanceStreet();
+        setToastNotification({ type: "info", text: "Dealer dealt next street by operator override." });
+      } else if (cmd.action === "skip_turn") {
+        advanceTurn();
+        setToastNotification({ type: "info", text: "Turn skipped / advanced by operator supervisor." });
+      } else if (cmd.action === "reset_hand") {
+        handleDealNextHand();
+        setToastNotification({ type: "info", text: "Hand re-dealt by operator supervisor." });
+      } else if (cmd.action === "set_pot" && typeof cmd.pot === "number") {
+        setPot(cmd.pot);
+      } else if (cmd.action === "stand") {
+        const heroPlayer = players.find((p) => p.isHero);
+        const heroSeatNo = heroPlayer?.seatNo;
+        const isTargetHero =
+          (cmd.playerName && cmd.playerName.toLowerCase() === effectiveUsername.toLowerCase()) ||
+          (typeof cmd.seat === "number" && heroSeatNo === cmd.seat);
+
+        if (isTargetHero) {
+          const refundStack = heroPlayer?.stack || 0;
+          if (refundStack > 0) {
+            const newBal = Math.round((currentWallet + refundStack) * 100) / 100;
+            notifyWalletChange(newBal, refundStack, "Poker Cashout");
+          }
+          setPlayers((prev) => prev.filter((p) => !p.isHero));
+          setStandUpModalMessage(
+            "You have been stood up from the table by operator supervisor. Your chips have been refunded to your wallet."
+          );
+          setTimeout(() => {
+            onLeaveTable?.(refundStack);
+          }, 2400);
+        } else {
+          if (cmd.playerName) {
+            setPlayers((prev) => prev.filter((p) => p.name.toLowerCase() !== cmd.playerName!.toLowerCase()));
+            setToastNotification({ type: "info", text: `Player ${cmd.playerName} stood up from seat.` });
+          } else if (typeof cmd.seat === "number") {
+            setPlayers((prev) => prev.filter((p) => p.seatNo !== cmd.seat));
+          }
+        }
+      }
+    });
+    return unsub;
+  }, [table.id, table.inviteCode, table.name, advanceStreet, advanceTurn, handleDealNextHand, players, effectiveUsername, currentWallet, notifyWalletChange, onLeaveTable]);
+
+  // Synchronize seated players with server table.seats in operatorMode
+  useEffect(() => {
+    if (operatorMode && !allowBots) {
+      const rawSeats = (table.seats || []).filter((s) => Boolean(s.player));
+      setPlayers((prev) => {
+        if (rawSeats.length === 0) {
+          if (prev.length > 0) {
+            setStage("waiting");
+            setBoard([]);
+            setPot(0);
+            setCurrentBet(0);
+          }
+          return [];
+        }
+        return rawSeats.map((s, idx) => {
+          const existing = prev.find((p) => p.name.toLowerCase() === s.player!.toLowerCase() || p.seatNo === s.seatNo);
+          return {
+            seatNo: s.seatNo != null ? s.seatNo : idx,
+            name: s.player!,
+            avatarColor: existing?.avatarColor || (s.player === effectiveUsername ? "#B08A3E" : idx === 1 ? "#3B6FB6" : "#8E4DB0"),
+            isHero: s.player === effectiveUsername,
+            stack: s.stack,
+            bet: s.bet || existing?.bet || 0,
+            folded: s.folded || existing?.folded || false,
+            allIn: existing?.allIn || false,
+            cards: existing?.cards?.length ? existing.cards : [],
+            lastAction: existing?.lastAction || "",
+          };
+        });
+      });
+    }
+  }, [table.seats, operatorMode, allowBots, effectiveUsername]);
+
+  // Listen for real-time player join and leave across browser sessions
+  useEffect(() => {
+    const unsubPresence = subscribePlayerPresence({
+      onJoin: (d) => {
+        const match =
+          !d.tableId ||
+          d.tableId.toLowerCase() === table.id.toLowerCase() ||
+          (table.name && d.tableId.toLowerCase() === table.name.toLowerCase());
+        if (!match) return;
+
+        setPlayers((prev) => {
+          if (prev.some((p) => p.name.toLowerCase() === d.player.toLowerCase())) {
+            return prev;
+          }
+          const isHero = d.player.toLowerCase() === effectiveUsername.toLowerCase();
+          const seatNo = d.seatNo != null ? d.seatNo : (prev.length > 0 ? Math.max(...prev.map((p) => p.seatNo)) + 1 : 0);
+          const newPlayer: TableSeatPlayer = {
+            seatNo,
+            name: d.player,
+            avatarColor: isHero ? "#B08A3E" : "#3B6FB6",
+            isHero,
+            stack: d.stack || table.minBuyIn || 100,
+            bet: 0,
+            folded: false,
+            allIn: false,
+            cards: [],
+            lastAction: "JOINED",
+          };
+          const next = [...prev, newPlayer];
+          if (next.length >= 2 && stage === "waiting") {
+            setTimeout(() => handleDealNextHand(), 300);
+          }
+          return next;
+        });
+      },
+      onLeave: (d) => {
+        const match =
+          !d.tableId ||
+          d.tableId.toLowerCase() === table.id.toLowerCase() ||
+          (table.name && d.tableId.toLowerCase() === table.name.toLowerCase());
+        if (!match) return;
+
+        setPlayers((prev) => {
+          const next = prev.filter((p) => p.name.toLowerCase() !== d.player.toLowerCase() && (d.seatNo == null || p.seatNo !== d.seatNo));
+          if (next.length < 2) {
+            setStage("waiting");
+            setBoard([]);
+            setPot(0);
+            setCurrentBet(0);
+          }
+          return next;
+        });
+      },
+    });
+    return unsubPresence;
+  }, [table.id, table.name, table.minBuyIn, effectiveUsername, stage, handleDealNextHand]);
 
   // Bot automation turns
   useEffect(() => {

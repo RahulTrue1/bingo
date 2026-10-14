@@ -945,6 +945,15 @@ export const apiClient = {
           { method: "POST" }
         );
       },
+      async standPlayer(tableId: string, playerName?: string, seatNo?: number) {
+        return request<{ success: boolean; player?: string; seatNo?: number; refunded?: number; message?: string; error?: string }>(
+          `/admin/poker/tables/${encodeURIComponent(tableId)}/stand`,
+          {
+            method: "POST",
+            body: JSON.stringify({ playerName, seatNo }),
+          }
+        );
+      },
       async stats() {
         return request<{ success: boolean; activeTables: number; seatedPlayers: number; buyInsTotal: number; commissionTotal: number; reconciliation: PokerReconciliationApiModel; hierarchyRake: any }>("/admin/poker/stats");
       },

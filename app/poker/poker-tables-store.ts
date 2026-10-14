@@ -23,7 +23,8 @@ export const INITIAL_BASEPOKER_TABLES: BasepokerTableItem[] = [
     minBuyIn: 0.8,
     maxBuyIn: 4.0,
     maxSeats: 6,
-    seatsOccupied: 4,
+    seatsOccupied: 0,
+    seats: [],
     status: "playing",
     isPrivate: false,
     theme: "green",
@@ -43,14 +44,15 @@ export const INITIAL_BASEPOKER_TABLES: BasepokerTableItem[] = [
     minBuyIn: 40,
     maxBuyIn: 400,
     maxSeats: 6,
-    seatsOccupied: 4,
+    seatsOccupied: 0,
+    seats: [],
     status: "playing",
     isPrivate: false,
     theme: "green",
     tier: "micro",
     avgPot: 28,
     handsPerHour: 74,
-    waitlist: 1,
+    waitlist: 0,
     currency: "EUR",
   },
   // Low Stakes
@@ -64,14 +66,15 @@ export const INITIAL_BASEPOKER_TABLES: BasepokerTableItem[] = [
     minBuyIn: 100,
     maxBuyIn: 1000,
     maxSeats: 6,
-    seatsOccupied: 6,
+    seatsOccupied: 0,
+    seats: [],
     status: "playing",
     isPrivate: false,
     theme: "green",
     tier: "low",
     avgPot: 65,
     handsPerHour: 68,
-    waitlist: 2,
+    waitlist: 0,
     currency: "EUR",
   },
   {
@@ -84,7 +87,8 @@ export const INITIAL_BASEPOKER_TABLES: BasepokerTableItem[] = [
     minBuyIn: 40,
     maxBuyIn: 200,
     maxSeats: 2,
-    seatsOccupied: 2,
+    seatsOccupied: 0,
+    seats: [],
     status: "playing",
     isPrivate: false,
     theme: "blue",
@@ -105,14 +109,15 @@ export const INITIAL_BASEPOKER_TABLES: BasepokerTableItem[] = [
     minBuyIn: 200,
     maxBuyIn: 2000,
     maxSeats: 6,
-    seatsOccupied: 5,
+    seatsOccupied: 0,
+    seats: [],
     status: "playing",
     isPrivate: false,
     theme: "green",
     tier: "medium",
     avgPot: 145,
     handsPerHour: 65,
-    waitlist: 1,
+    waitlist: 0,
     currency: "EUR",
   },
   {
@@ -125,7 +130,8 @@ export const INITIAL_BASEPOKER_TABLES: BasepokerTableItem[] = [
     minBuyIn: 400,
     maxBuyIn: 4000,
     maxSeats: 9,
-    seatsOccupied: 7,
+    seatsOccupied: 0,
+    seats: [],
     status: "playing",
     isPrivate: false,
     theme: "blue",
@@ -146,7 +152,8 @@ export const INITIAL_BASEPOKER_TABLES: BasepokerTableItem[] = [
     minBuyIn: 1000,
     maxBuyIn: 10000,
     maxSeats: 6,
-    seatsOccupied: 4,
+    seatsOccupied: 0,
+    seats: [],
     status: "playing",
     isPrivate: false,
     theme: "red",
@@ -166,7 +173,8 @@ export const INITIAL_BASEPOKER_TABLES: BasepokerTableItem[] = [
     minBuyIn: 2000,
     maxBuyIn: 20000,
     maxSeats: 9,
-    seatsOccupied: 6,
+    seatsOccupied: 0,
+    seats: [],
     status: "playing",
     isPrivate: false,
     theme: "green",
@@ -187,7 +195,8 @@ export const INITIAL_BASEPOKER_TABLES: BasepokerTableItem[] = [
     minBuyIn: 5000,
     maxBuyIn: 50000,
     maxSeats: 6,
-    seatsOccupied: 3,
+    seatsOccupied: 0,
+    seats: [],
     status: "playing",
     isPrivate: false,
     theme: "purple",
@@ -208,7 +217,8 @@ export const INITIAL_BASEPOKER_TABLES: BasepokerTableItem[] = [
     minBuyIn: 200,
     maxBuyIn: 2000,
     maxSeats: 6,
-    seatsOccupied: 2,
+    seatsOccupied: 0,
+    seats: [],
     status: "waiting",
     isPrivate: true,
     inviteCode: "7KJ8P9",
@@ -233,7 +243,18 @@ export function getStoredPokerTables(): BasepokerTableItem[] {
       return INITIAL_BASEPOKER_TABLES;
     }
     const parsed = JSON.parse(raw);
-    if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+    if (Array.isArray(parsed) && parsed.length > 0) {
+      // Sanitize: ensure seatsOccupied accurately reflects real seated players
+      return parsed.map((t: BasepokerTableItem) => {
+        const seats = Array.isArray(t.seats) ? t.seats : [];
+        const realOccupied = seats.filter((s) => Boolean(s.player)).length;
+        return {
+          ...t,
+          seats,
+          seatsOccupied: realOccupied,
+        };
+      });
+    }
     return INITIAL_BASEPOKER_TABLES;
   } catch (e) {
     console.warn("Failed to read poker tables from localStorage", e);
@@ -400,7 +421,7 @@ export function resetPokerTables(): BasepokerTableItem[] {
 
 export interface LivePokerCommand {
   tableId: string;
-  action: "pause" | "resume" | "next_street" | "reset_hand" | "set_pot" | "stand" | "set_speed";
+  action: "pause" | "resume" | "next_street" | "reset_hand" | "set_pot" | "stand" | "set_speed" | "skip_turn";
   speed?: number; // action countdown in seconds (e.g. 5, 15, 25)
   pot?: number;
   seat?: number;
@@ -446,6 +467,46 @@ export function broadcastPlayerJoin(tableId: string, player: string, seatNo?: nu
     localStorage.setItem("basepoker_last_joined", JSON.stringify(payload));
   } catch (_) {}
   window.dispatchEvent(new CustomEvent("basepoker_player_joined", { detail: payload }));
+}
+
+export function broadcastPlayerLeave(tableId: string, player: string, seatNo?: number) {
+  if (typeof window === "undefined") return;
+  const payload = { tableId, player, seatNo, timestamp: Date.now() };
+  try {
+    localStorage.setItem("basepoker_last_left", JSON.stringify(payload));
+  } catch (_) {}
+  window.dispatchEvent(new CustomEvent("basepoker_player_left", { detail: payload }));
+}
+
+export function subscribePlayerPresence(callbacks: {
+  onJoin?: (data: { tableId: string; player: string; seatNo: number; stack: number }) => void;
+  onLeave?: (data: { tableId: string; player: string; seatNo?: number }) => void;
+}): () => void {
+  if (typeof window === "undefined") return () => {};
+  const handleJoin = (e: Event) => {
+    const custom = e as CustomEvent<{ tableId: string; player: string; seatNo: number; stack: number }>;
+    if (custom.detail && callbacks.onJoin) callbacks.onJoin(custom.detail);
+  };
+  const handleLeave = (e: Event) => {
+    const custom = e as CustomEvent<{ tableId: string; player: string; seatNo?: number }>;
+    if (custom.detail && callbacks.onLeave) callbacks.onLeave(custom.detail);
+  };
+  const handleStorage = (e: StorageEvent) => {
+    if (e.key === "basepoker_last_joined" && e.newValue && callbacks.onJoin) {
+      try { callbacks.onJoin(JSON.parse(e.newValue)); } catch (_) {}
+    }
+    if (e.key === "basepoker_last_left" && e.newValue && callbacks.onLeave) {
+      try { callbacks.onLeave(JSON.parse(e.newValue)); } catch (_) {}
+    }
+  };
+  window.addEventListener("basepoker_player_joined", handleJoin);
+  window.addEventListener("basepoker_player_left", handleLeave);
+  window.addEventListener("storage", handleStorage);
+  return () => {
+    window.removeEventListener("basepoker_player_joined", handleJoin);
+    window.removeEventListener("basepoker_player_left", handleLeave);
+    window.removeEventListener("storage", handleStorage);
+  };
 }
 
 /* ========================================================================= */

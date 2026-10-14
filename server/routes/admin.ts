@@ -432,6 +432,89 @@ adminRouter.post("/poker/tables/:id/close", (req: Request, res: Response) => {
   });
 });
 
+// POST /api/admin/poker/tables/:id/stand - Operator force stand-up player & refund stack (Section 4 & 10)
+adminRouter.post("/poker/tables/:id/stand", (req: Request, res: Response) => {
+  const targetId = String(req.params.id);
+  const { playerName, seatNo } = req.body || {};
+  const table = store.pokerTables.find(
+    (t) => t.id === targetId || t.name.toLowerCase() === targetId.toLowerCase()
+  );
+
+  if (!table) {
+    res.status(404).json({ success: false, error: "Table not found" });
+    return;
+  }
+
+  // Find target seat
+  const seatIndex = (table.seats || []).findIndex((s) => {
+    if (playerName && s.player && s.player.toLowerCase() === String(playerName).toLowerCase()) return true;
+    if (typeof seatNo === "number" && s.seatNo === seatNo) return true;
+    return false;
+  });
+
+  if (seatIndex === -1) {
+    res.json({
+      success: true,
+      message: "Player is not currently seated at this table.",
+      refunded: 0,
+    });
+    return;
+  }
+
+  const seat = table.seats[seatIndex];
+  const seatPlayerName = seat.player || "";
+  const player = store.players.find(
+    (p) => p.username.toLowerCase() === seatPlayerName.toLowerCase()
+  );
+  const refundAmount = seat.stack || 0;
+
+  if (player && refundAmount > 0) {
+    player.balance = Math.round((player.balance + refundAmount) * 100) / 100;
+    if (player.username.toLowerCase() === (store.activeUsername || "Ari.R").toLowerCase()) {
+      store.wallet = player.balance;
+    }
+
+    store.addTransaction({
+      player: player.username,
+      room: table.name,
+      type: "POKER_CASHOUT",
+      amount: refundAmount,
+      status: "Completed",
+    });
+
+    store.addAudit(
+      "admin",
+      "POKER_STAND_PLAYER",
+      `Operator stood up ${player.username} from ${table.name} (seat #${seat.seatNo}) and refunded $${refundAmount}`
+    );
+  }
+
+  table.seats.splice(seatIndex, 1);
+  store.save();
+
+  syncBus.emitChange("wallet", "poker-cashout", {
+    player: seatPlayerName,
+    amount: refundAmount,
+    balance: player?.balance,
+    tableId: table.id,
+  });
+
+  syncBus.emitChange("rooms", "poker-player-left", {
+    player: seatPlayerName,
+    seatNo: seat.seatNo,
+    tableId: table.id,
+    table,
+  });
+
+  res.json({
+    success: true,
+    player: seatPlayerName,
+    seatNo: seat.seatNo,
+    refunded: refundAmount,
+    message: `Player ${seatPlayerName} stood up and refunded $${refundAmount}.`,
+  });
+});
+
 // GET /api/admin/poker/stats - Operator poker KPIs
 adminRouter.get("/poker/stats", (_req: Request, res: Response) => {
   const activeTables = store.pokerTables.filter((t) => t.status === "open" || t.status === "active").length;
