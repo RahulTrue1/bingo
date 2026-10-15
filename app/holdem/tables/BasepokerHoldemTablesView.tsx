@@ -498,6 +498,7 @@ export default function BasepokerHoldemTablesView() {
         openAuthModal={() => setAuthModalOpen(true)}
         handleLogout={handleLogout}
         activePokerTab="holdem"
+        showPokerModesBar={false}
         onPokerTabChange={(tab) => {
           if (typeof window !== "undefined") {
             window.location.href = `/cashgame?mode=${tab}`;
@@ -724,6 +725,7 @@ export default function BasepokerHoldemTablesView() {
                   embedded={true}
                   isUserBlocked={isCurrentUserBlocked}
                   onWalletChange={(newBal) => setWallet(newBal)}
+                  allowBots={true}
                 />
               )}
             </div>

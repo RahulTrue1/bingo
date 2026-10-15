@@ -483,7 +483,7 @@ adminRouter.post("/poker/tables/:id/stand", (req: Request, res: Response) => {
     });
 
     store.addAudit(
-      "admin",
+      "alert",
       "POKER_STAND_PLAYER",
       `Operator stood up ${player.username} from ${table.name} (seat #${seat.seatNo}) and refunded $${refundAmount}`
     );

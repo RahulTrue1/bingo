@@ -41,6 +41,7 @@ export function PlayerHeader({
   walletDisplay,
   activePokerTab = "holdem",
   onPokerTabChange,
+  showPokerModesBar,
   handleLogout,
   onLogout,
 }: {
@@ -60,14 +61,50 @@ export function PlayerHeader({
   walletDisplay?: string;
   activePokerTab?: "holdem" | "plo" | "spin" | "aof" | "tournaments";
   onPokerTabChange?: (tab: "holdem" | "plo" | "spin" | "aof" | "tournaments") => void;
+  showPokerModesBar?: boolean;
   handleLogout?: () => void;
   onLogout?: () => void;
 }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [historyModalOpen, setHistoryModalOpen] = useState(false);
   const [liveWallet, setLiveWallet] = useState<number | null>(null);
+  const [internalPokerTab, setInternalPokerTab] = useState<"holdem" | "plo" | "spin" | "aof" | "tournaments">(
+    activePokerTab || "holdem"
+  );
   const menuRef = useRef<HTMLDivElement>(null);
   const handleOpenAuth = onOpenAuth || openAuthModal;
+
+  useEffect(() => {
+    if (activePokerTab) {
+      setInternalPokerTab(activePokerTab);
+    }
+  }, [activePokerTab]);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const tabParam = new URLSearchParams(window.location.search).get("tab") as any;
+      if (tabParam && ["holdem", "plo", "spin", "aof", "tournaments"].includes(tabParam)) {
+        setInternalPokerTab(tabParam);
+      }
+    }
+  }, []);
+
+  const currentPokerTab = activePokerTab || internalPokerTab;
+
+  const handlePokerTabClick = (tab: "holdem" | "plo" | "spin" | "aof" | "tournaments") => {
+    setInternalPokerTab(tab);
+    if (onPokerTabChange) {
+      onPokerTabChange(tab);
+      if (typeof window !== "undefined") {
+        const url = new URL(window.location.href);
+        url.searchParams.set("tab", tab);
+        window.history.replaceState({}, "", url.toString());
+      }
+    } else if (typeof window !== "undefined") {
+      window.location.href = `/cashgame?tab=${tab}`;
+    }
+    setMenuOpen(false);
+  };
 
   useEffect(() => {
     setLiveWallet(null);
@@ -112,7 +149,8 @@ export function PlayerHeader({
   const isPokerActive = currentApp === "poker";
 
   return (
-    <header className="player-header">
+    <>
+      <header className="player-header">
       <button
         className="brand-button"
         onClick={() => {
@@ -250,116 +288,57 @@ export function PlayerHeader({
               <div className="tooltip-divider" />
 
               {/* DYNAMIC SECTIONS BASED ON currentApp */}
-              {currentApp === "poker" ? (
-                <>
-                  <div className="tooltip-nav-section">
-                    <div className="tooltip-section-title">POKER GAME MODES</div>
-                    <button
-                      className={`tooltip-item ${activePokerTab === "holdem" ? "active" : ""}`}
-                      onClick={() => {
-                        if (onPokerTabChange) {
-                          onPokerTabChange("holdem");
-                        } else if (typeof window !== "undefined") {
-                          window.location.href = "/cashgame";
-                        }
-                        setMenuOpen(false);
-                      }}
-                      role="menuitem"
-                    >
-                      <Cards size={18} weight="fill" className="tooltip-icon" />
-                      <span className="tooltip-item-label">Hold&apos;em</span>
-                      <span className="tooltip-badge" style={{ background: "#ef4444", color: "#fff" }}>Live</span>
-                    </button>
-                    <button
-                      className={`tooltip-item ${activePokerTab === "plo" ? "active" : ""}`}
-                      onClick={() => {
-                        if (onPokerTabChange) {
-                          onPokerTabChange("plo");
-                        } else if (typeof window !== "undefined") {
-                          window.location.href = "/cashgame";
-                        }
-                        setMenuOpen(false);
-                      }}
-                      role="menuitem"
-                    >
-                      <DiamondsFour size={18} weight="fill" className="tooltip-icon" />
-                      <span className="tooltip-item-label">PLO (Omaha)</span>
-                    </button>
-                    <button
-                      className={`tooltip-item ${activePokerTab === "spin" ? "active" : ""}`}
-                      onClick={() => {
-                        if (onPokerTabChange) {
-                          onPokerTabChange("spin");
-                        } else if (typeof window !== "undefined") {
-                          window.location.href = "/cashgame";
-                        }
-                        setMenuOpen(false);
-                      }}
-                      role="menuitem"
-                    >
-                      <Lightning size={18} weight="fill" className="tooltip-icon" />
-                      <span className="tooltip-item-label">Spin &amp; Cash</span>
-                    </button>
-                    <button
-                      className={`tooltip-item ${activePokerTab === "aof" ? "active" : ""}`}
-                      onClick={() => {
-                        if (onPokerTabChange) {
-                          onPokerTabChange("aof");
-                        } else if (typeof window !== "undefined") {
-                          window.location.href = "/cashgame";
-                        }
-                        setMenuOpen(false);
-                      }}
-                      role="menuitem"
-                    >
-                      <Fire size={18} weight="fill" className="tooltip-icon" />
-                      <span className="tooltip-item-label">All In or Fold</span>
-                    </button>
-                    <button
-                      className={`tooltip-item ${activePokerTab === "tournaments" ? "active" : ""}`}
-                      onClick={() => {
-                        if (onPokerTabChange) {
-                          onPokerTabChange("tournaments");
-                        } else if (typeof window !== "undefined") {
-                          window.location.href = "/cashgame";
-                        }
-                        setMenuOpen(false);
-                      }}
-                      role="menuitem"
-                    >
-                      <Trophy size={18} weight="fill" className="tooltip-icon" />
-                      <span className="tooltip-item-label">Tournaments</span>
-                    </button>
-                  </div>
+              {/* POKER GAME MODES (Available on both Home and Cashgame) */}
+              <div className="tooltip-nav-section">
+                <div className="tooltip-section-title">POKER GAME MODES</div>
+                <button
+                  className={`tooltip-item ${currentPokerTab === "holdem" ? "active" : ""}`}
+                  onClick={() => handlePokerTabClick("holdem")}
+                  role="menuitem"
+                >
+                  <Cards size={18} weight="fill" className="tooltip-icon" />
+                  <span className="tooltip-item-label">Hold&apos;em</span>
+                  <span className="tooltip-badge" style={{ background: "#ef4444", color: "#fff" }}>Live</span>
+                </button>
+                <button
+                  className={`tooltip-item ${currentPokerTab === "plo" ? "active" : ""}`}
+                  onClick={() => handlePokerTabClick("plo")}
+                  role="menuitem"
+                >
+                  <DiamondsFour size={18} weight="fill" className="tooltip-icon" />
+                  <span className="tooltip-item-label">PLO (Omaha)</span>
+                </button>
+                <button
+                  className={`tooltip-item ${currentPokerTab === "spin" ? "active" : ""}`}
+                  onClick={() => handlePokerTabClick("spin")}
+                  role="menuitem"
+                >
+                  <Lightning size={18} weight="fill" className="tooltip-icon" />
+                  <span className="tooltip-item-label">Spin &amp; Cash</span>
+                </button>
+                <button
+                  className={`tooltip-item ${currentPokerTab === "aof" ? "active" : ""}`}
+                  onClick={() => handlePokerTabClick("aof")}
+                  role="menuitem"
+                >
+                  <Fire size={18} weight="fill" className="tooltip-icon" />
+                  <span className="tooltip-item-label">All In or Fold</span>
+                </button>
+                <button
+                  className={`tooltip-item ${currentPokerTab === "tournaments" ? "active" : ""}`}
+                  onClick={() => handlePokerTabClick("tournaments")}
+                  role="menuitem"
+                >
+                  <Trophy size={18} weight="fill" className="tooltip-icon" />
+                  <span className="tooltip-item-label">Tournaments</span>
+                </button>
+              </div>
 
-                  <div className="tooltip-divider" />
+              <div className="tooltip-divider" />
 
-                  {/* Switch Game */}
-                  <div className="tooltip-nav-section">
-                    <div className="tooltip-section-title">SWITCH GAME</div>
-                    <Link
-                      href="/"
-                      className="tooltip-item"
-                      onClick={() => setMenuOpen(false)}
-                      role="menuitem"
-                    >
-                      <DiamondsFour size={18} weight="fill" className="tooltip-icon" />
-                      <span className="tooltip-item-label">Play Bingo</span>
-                    </Link>
-                    <a
-                      href="http://14.96.241.250:8005"
-                      className="tooltip-item"
-                      onClick={() => setMenuOpen(false)}
-                      role="menuitem"
-                    >
-                      <Cards size={18} weight="fill" className="tooltip-icon" />
-                      <span className="tooltip-item-label">Games Portal</span>
-                    </a>
-                  </div>
-                </>
-              ) : (
+              {/* Bingo Sections if currentApp is bingo */}
+              {currentApp === "bingo" ? (
                 <>
-                  {/* Bingo Sections */}
                   <div className="tooltip-nav-section">
                     <div className="tooltip-section-title">BINGO SECTIONS</div>
                     <button
@@ -422,36 +401,9 @@ export function PlayerHeader({
 
                   <div className="tooltip-divider" />
 
-                  {/* Operator Backoffice */}
-                  <div className="tooltip-nav-section">
-                    <div className="tooltip-section-title">OPERATOR BACKOFFICE</div>
-                    <Link
-                      href="/backoffice"
-                      className="tooltip-item"
-                      onClick={() => setMenuOpen(false)}
-                      role="menuitem"
-                    >
-                      <ShieldCheck size={18} weight="bold" className="tooltip-icon" />
-                      <span className="tooltip-item-label">Bingo Backoffice</span>
-                      <span className="tooltip-badge">Admin</span>
-                    </Link>
-                    <Link
-                      href="/poker-backoffice"
-                      className="tooltip-item"
-                      onClick={() => setMenuOpen(false)}
-                      role="menuitem"
-                    >
-                      <ShieldCheck size={18} weight="fill" className="tooltip-icon" />
-                      <span className="tooltip-item-label">Poker Backoffice</span>
-                      <span className="tooltip-badge">Admin</span>
-                    </Link>
-                  </div>
-
-                  <div className="tooltip-divider" />
-
                   {/* Switch Game */}
                   <div className="tooltip-nav-section">
-                    <div className="tooltip-section-title">SWITCH GAME</div>
+                    <div className="tooltip-section-title">QUICK PLAY</div>
                     <Link
                       href="/cashgame"
                       className="tooltip-item"
@@ -459,8 +411,33 @@ export function PlayerHeader({
                       role="menuitem"
                     >
                       <Cards size={18} weight="fill" className="tooltip-icon" />
-                      <span className="tooltip-item-label">Play Poker</span>
+                      <span className="tooltip-item-label">Play Poker Cash Games</span>
                     </Link>
+                  </div>
+                </>
+              ) : (
+                <>
+                  {/* Switch Game */}
+                  <div className="tooltip-nav-section">
+                    <div className="tooltip-section-title">SWITCH GAME</div>
+                    <Link
+                      href="/"
+                      className="tooltip-item"
+                      onClick={() => setMenuOpen(false)}
+                      role="menuitem"
+                    >
+                      <DiamondsFour size={18} weight="fill" className="tooltip-icon" />
+                      <span className="tooltip-item-label">Play Bingo</span>
+                    </Link>
+                    <a
+                      href="http://14.96.241.250:8005"
+                      className="tooltip-item"
+                      onClick={() => setMenuOpen(false)}
+                      role="menuitem"
+                    >
+                      <Cards size={18} weight="fill" className="tooltip-icon" />
+                      <span className="tooltip-item-label">Games Portal</span>
+                    </a>
                   </div>
                 </>
               )}
@@ -757,7 +734,173 @@ export function PlayerHeader({
           color: #ffffff !important;
           box-shadow: 0 2px 8px rgba(120, 104, 255, 0.4) !important;
         }
+
+        /* ================= POKER GAME MODES TOP BAR ================= */
+        .poker-game-modes-bar {
+          position: sticky;
+          top: 70px;
+          z-index: 45;
+          background: rgba(13, 9, 36, 0.95);
+          backdrop-filter: blur(16px);
+          -webkit-backdrop-filter: blur(16px);
+          border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+          box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
+          width: 100%;
+        }
+        .poker-modes-container {
+          max-width: 1400px;
+          margin: 0 auto;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          padding: 8px 24px;
+          overflow-x: auto;
+          scrollbar-width: none;
+        }
+        .poker-modes-container::-webkit-scrollbar {
+          display: none;
+        }
+        .poker-mode-tab {
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          padding: 8px 16px;
+          border-radius: 999px;
+          background: rgba(255, 255, 255, 0.03);
+          border: 1px solid rgba(255, 255, 255, 0.08);
+          color: #94a3b8;
+          font-size: 13px;
+          font-weight: 700;
+          cursor: pointer;
+          white-space: nowrap;
+          transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+          text-decoration: none;
+        }
+        .poker-mode-tab:hover {
+          background: rgba(255, 255, 255, 0.08);
+          color: #ffffff;
+          border-color: rgba(255, 255, 255, 0.16);
+          transform: translateY(-1px);
+        }
+        .poker-mode-tab.active {
+          background: linear-gradient(135deg, rgba(124, 58, 237, 0.32), rgba(99, 102, 241, 0.24));
+          border-color: rgba(167, 139, 250, 0.7);
+          color: #ffffff;
+          box-shadow: 0 0 16px rgba(124, 58, 237, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+        }
+        .poker-tab-icon {
+          color: #a78bfa;
+          transition: transform 0.2s ease;
+        }
+        .poker-mode-tab.active .poker-tab-icon {
+          color: #c4b5fd;
+          transform: scale(1.1);
+        }
+        .poker-tab-name {
+          letter-spacing: -0.2px;
+        }
+        .poker-tab-badge {
+          font-size: 9px;
+          font-weight: 900;
+          letter-spacing: 0.5px;
+          padding: 2px 7px;
+          border-radius: 999px;
+          text-transform: uppercase;
+        }
+        .poker-tab-badge.live-pulse {
+          background: linear-gradient(135deg, #ef4444, #ec4899);
+          color: #ffffff;
+          box-shadow: 0 0 10px rgba(239, 68, 68, 0.6);
+          animation: bpLivePulse 2s infinite ease-in-out;
+        }
+        @keyframes bpLivePulse {
+          0%, 100% {
+            opacity: 1;
+            transform: scale(1);
+          }
+          50% {
+            opacity: 0.85;
+            transform: scale(0.96);
+          }
+        }
+        .poker-tab-badge.plo-badge {
+          background: rgba(59, 130, 246, 0.2);
+          color: #60a5fa;
+          border: 1px solid rgba(59, 130, 246, 0.4);
+        }
+        .poker-tab-badge.jackpot-badge {
+          background: linear-gradient(135deg, #f59e0b, #eab308);
+          color: #1a1003;
+          font-weight: 900;
+          box-shadow: 0 0 8px rgba(245, 158, 11, 0.4);
+        }
+        .poker-tab-badge.action-badge {
+          background: rgba(239, 68, 68, 0.2);
+          color: #f87171;
+          border: 1px solid rgba(239, 68, 68, 0.4);
+        }
+        .poker-tab-badge.mtt-badge {
+          background: rgba(168, 85, 247, 0.2);
+          color: #c084fc;
+          border: 1px solid rgba(168, 85, 247, 0.4);
+        }
       `}</style>
     </header>
+    {(showPokerModesBar ?? true) && (
+      <nav className="poker-game-modes-bar" aria-label="Poker Game Modes Navigation">
+        <div className="poker-modes-container">
+          <button
+            type="button"
+            className={`poker-mode-tab ${currentPokerTab === "holdem" ? "active" : ""}`}
+            onClick={() => handlePokerTabClick("holdem")}
+          >
+            <Cards size={16} weight="fill" className="poker-tab-icon" />
+            <span className="poker-tab-name">Hold&apos;em</span>
+            <span className="poker-tab-badge live-pulse">LIVE</span>
+          </button>
+
+          <button
+            type="button"
+            className={`poker-mode-tab ${currentPokerTab === "plo" ? "active" : ""}`}
+            onClick={() => handlePokerTabClick("plo")}
+          >
+            <DiamondsFour size={16} weight="fill" className="poker-tab-icon" />
+            <span className="poker-tab-name">PLO (Omaha)</span>
+            <span className="poker-tab-badge plo-badge">4-Card</span>
+          </button>
+
+          <button
+            type="button"
+            className={`poker-mode-tab ${currentPokerTab === "spin" ? "active" : ""}`}
+            onClick={() => handlePokerTabClick("spin")}
+          >
+            <Lightning size={16} weight="fill" className="poker-tab-icon" />
+            <span className="poker-tab-name">Spin &amp; Cash</span>
+            <span className="poker-tab-badge jackpot-badge">Jackpot</span>
+          </button>
+
+          <button
+            type="button"
+            className={`poker-mode-tab ${currentPokerTab === "aof" ? "active" : ""}`}
+            onClick={() => handlePokerTabClick("aof")}
+          >
+            <Fire size={16} weight="fill" className="poker-tab-icon" />
+            <span className="poker-tab-name">All In or Fold</span>
+            <span className="poker-tab-badge action-badge">Action</span>
+          </button>
+
+          <button
+            type="button"
+            className={`poker-mode-tab ${currentPokerTab === "tournaments" ? "active" : ""}`}
+            onClick={() => handlePokerTabClick("tournaments")}
+          >
+            <Trophy size={16} weight="fill" className="poker-tab-icon" />
+            <span className="poker-tab-name">Tournaments</span>
+            <span className="poker-tab-badge mtt-badge">MTT</span>
+          </button>
+        </div>
+      </nav>
+    )}
+  </>
   );
 }

@@ -1587,6 +1587,7 @@ export default function PokerBackofficeApp() {
                         userName={activeHeroName}
                         embedded={true}
                         operatorMode={true}
+                        allowBots={showSimulatorBots}
                         onTableStateChange={setLiveTelemetry}
                       />
 

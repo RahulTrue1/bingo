@@ -141,18 +141,18 @@ export function PlayerLobby({
         </div>
         <div className="lobby-section-chips">
           {[
-            ["♠", "Poker Live", "Casino & Ring Games"],
-            ["●", "Live now", `${rooms.filter((r) => r.status === "Live").length} rooms`],
-            ["◷", "Starting soon", `${rooms.filter((r) => r.status === "Open" || r.status === "Scheduled").length} rooms`],
-            ["✦", "Jackpot Bingo", `${money(topJackpotAmount)} live`],
-            ["⚡", "Speed Bingo", "Next in 00:17"],
-            ["♛", "VIP Bingo", "Tonight 21:00"],
+            ["♠", "Hold'em Live", "NLH Cash Games", "holdem"],
+            ["🃘", "PLO (Omaha)", "4-Card Action", "plo"],
+            ["⚡", "Spin & Cash", "Up to 12,000x", "spin"],
+            ["🔥", "All In or Fold", "High-Action Blitz", "aof"],
+            ["🏆", "Tournaments", "Sunday Millions", "tournaments"],
+            ["✦", "Jackpot Bingo", `${money(topJackpotAmount)} live`, "bingo_jackpot"],
           ].map((item) => (
             <button
               key={item[1]}
               onClick={() => {
-                if (item[1] === "Poker Live") {
-                  window.location.href = "/cashgame";
+                if (["holdem", "plo", "spin", "aof", "tournaments"].includes(item[3])) {
+                  window.location.href = `/cashgame?tab=${item[3]}`;
                   return;
                 }
                 setFilter(
@@ -174,6 +174,241 @@ export function PlayerLobby({
             </button>
           ))}
         </div>
+
+        {/* ================= BASEPOKER GAME MODES SHOWCASE ON HOME ================= */}
+        <div className="home-poker-modes-bar-wrapper">
+          <div className="home-poker-modes-header">
+            <div className="home-poker-modes-title">
+              <span className="live-radar-dot" />
+              <span className="kicker">BASEPOKER REAL-TIME NETWORK</span>
+              <span className="badge">POKER MODES</span>
+            </div>
+            <a href="/cashgame" className="poker-view-all-link">
+              Explore All Tables <span>→</span>
+            </a>
+          </div>
+
+          <div className="home-poker-modes-grid">
+            <a href="/cashgame?tab=holdem" className="home-poker-card">
+              <div className="home-poker-card-top">
+                <span className="poker-suit">♠</span>
+                <span className="poker-mode-pill live">LIVE</span>
+              </div>
+              <div className="home-poker-card-content">
+                <strong>Texas Hold&apos;em</strong>
+                <span>No-Limit Cash Tables</span>
+              </div>
+              <div className="home-poker-card-cta">Play Now →</div>
+            </a>
+
+            <a href="/cashgame?tab=plo" className="home-poker-card">
+              <div className="home-poker-card-top">
+                <span className="poker-suit plo">🃘</span>
+                <span className="poker-mode-pill plo">4-CARD</span>
+              </div>
+              <div className="home-poker-card-content">
+                <strong>PLO (Omaha)</strong>
+                <span>Pot-Limit Action</span>
+              </div>
+              <div className="home-poker-card-cta">Play Now →</div>
+            </a>
+
+            <a href="/cashgame?tab=spin" className="home-poker-card">
+              <div className="home-poker-card-top">
+                <span className="poker-suit spin">⚡</span>
+                <span className="poker-mode-pill jackpot">12,000X</span>
+              </div>
+              <div className="home-poker-card-content">
+                <strong>Spin &amp; Cash</strong>
+                <span>3-Max Hyper Turbo</span>
+              </div>
+              <div className="home-poker-card-cta">Play Now →</div>
+            </a>
+
+            <a href="/cashgame?tab=aof" className="home-poker-card">
+              <div className="home-poker-card-top">
+                <span className="poker-suit aof">🔥</span>
+                <span className="poker-mode-pill action">ACTION</span>
+              </div>
+              <div className="home-poker-card-content">
+                <strong>All In or Fold</strong>
+                <span>Fast Action Blitz</span>
+              </div>
+              <div className="home-poker-card-cta">Play Now →</div>
+            </a>
+
+            <a href="/cashgame?tab=tournaments" className="home-poker-card">
+              <div className="home-poker-card-top">
+                <span className="poker-suit mtt">🏆</span>
+                <span className="poker-mode-pill mtt">MTT</span>
+              </div>
+              <div className="home-poker-card-content">
+                <strong>Tournaments</strong>
+                <span>€1,000,000 GTD Series</span>
+              </div>
+              <div className="home-poker-card-cta">View MTTs →</div>
+            </a>
+          </div>
+        </div>
+
+        <style>{`
+          .home-poker-modes-bar-wrapper {
+            background: linear-gradient(145deg, rgba(20, 14, 45, 0.85), rgba(12, 8, 30, 0.95));
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 16px;
+            padding: 18px 20px;
+            margin-bottom: 26px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+          }
+          .home-poker-modes-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 14px;
+            flex-wrap: wrap;
+            gap: 10px;
+          }
+          .home-poker-modes-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+          }
+          .home-poker-modes-title .live-radar-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: #10b981;
+            box-shadow: 0 0 8px #10b981;
+          }
+          .home-poker-modes-title .kicker {
+            font-size: 11px;
+            font-weight: 800;
+            color: #a78bfa;
+            letter-spacing: 1px;
+          }
+          .home-poker-modes-title .badge {
+            font-size: 10px;
+            font-weight: 800;
+            background: rgba(168, 85, 247, 0.2);
+            color: #c084fc;
+            border: 1px solid rgba(168, 85, 247, 0.4);
+            padding: 2px 8px;
+            border-radius: 20px;
+          }
+          .poker-view-all-link {
+            font-size: 12px;
+            font-weight: 700;
+            color: #c4b5fd;
+            text-decoration: none;
+            transition: color 0.15s ease;
+          }
+          .poker-view-all-link:hover {
+            color: #ffffff;
+          }
+          .home-poker-modes-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 12px;
+          }
+          .home-poker-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            padding: 14px;
+            text-decoration: none;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            min-height: 110px;
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+          }
+          .home-poker-card:hover {
+            background: rgba(255, 255, 255, 0.06);
+            border-color: rgba(168, 85, 247, 0.45);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+          }
+          .home-poker-card-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+          }
+          .poker-suit {
+            font-size: 16px;
+            color: #a78bfa;
+          }
+          .poker-suit.plo { color: #60a5fa; }
+          .poker-suit.spin { color: #f59e0b; }
+          .poker-suit.aof { color: #f87171; }
+          .poker-suit.mtt { color: #c084fc; }
+          .poker-mode-pill {
+            font-size: 9px;
+            font-weight: 900;
+            padding: 2px 6px;
+            border-radius: 20px;
+            letter-spacing: 0.5px;
+          }
+          .poker-mode-pill.live {
+            background: linear-gradient(135deg, #ef4444, #ec4899);
+            color: #ffffff;
+            box-shadow: 0 0 8px rgba(239, 68, 68, 0.5);
+          }
+          .poker-mode-pill.plo {
+            background: rgba(59, 130, 246, 0.2);
+            color: #60a5fa;
+            border: 1px solid rgba(59, 130, 246, 0.4);
+          }
+          .poker-mode-pill.jackpot {
+            background: linear-gradient(135deg, #f59e0b, #eab308);
+            color: #1a1003;
+            font-weight: 900;
+          }
+          .poker-mode-pill.action {
+            background: rgba(239, 68, 68, 0.2);
+            color: #f87171;
+            border: 1px solid rgba(239, 68, 68, 0.4);
+          }
+          .poker-mode-pill.mtt {
+            background: rgba(168, 85, 247, 0.2);
+            color: #c084fc;
+            border: 1px solid rgba(168, 85, 247, 0.4);
+          }
+          .home-poker-card-content {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            margin-bottom: 8px;
+          }
+          .home-poker-card-content strong {
+            font-size: 13px;
+            font-weight: 800;
+            color: #ffffff;
+          }
+          .home-poker-card-content span {
+            font-size: 11px;
+            color: #94a3b8;
+          }
+          .home-poker-card-cta {
+            font-size: 11px;
+            font-weight: 700;
+            color: #a78bfa;
+            transition: color 0.15s ease;
+          }
+          .home-poker-card:hover .home-poker-card-cta {
+            color: #ffffff;
+          }
+          @media (max-width: 900px) {
+            .home-poker-modes-grid {
+              grid-template-columns: repeat(2, 1fr);
+            }
+          }
+          @media (max-width: 600px) {
+            .home-poker-modes-grid {
+              grid-template-columns: 1fr;
+            }
+          }
+        `}</style>
         <div className="room-grid">
           {filtered.map((room) => (
             <RoomCard

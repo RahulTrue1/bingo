@@ -263,5 +263,6 @@ export interface Bet888TableSummary {
   isPrivate: boolean;
   inviteCode?: string;
   owner?: string;
-  theme: "green" | "blue" | "red" | "purple";
+  theme?: "green" | "blue" | "red" | "purple" | "emerald" | "cyber" | "crimson" | "sapphire" | "obsidian";
+  seats?: any[];
 }

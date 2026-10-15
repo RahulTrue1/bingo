@@ -4280,3 +4280,639 @@
   background: rgba(246, 189, 73, 0.15);
   color: #f6bd49;
 }
+
+/* ==========================================================================
+   NEXT-GEN POKER UI OVERHAUL: 3D FELT ARENAS, 4-COLOR DECK & CYBER DOCK
+   ========================================================================== */
+
+/* 1. STADIUM ARENA AMBIENCE & 5 FELT THEMES */
+.bet888-table-root {
+  background: radial-gradient(circle at 50% 30%, #15102f 0%, #080516 70%, #030209 100%) !important;
+  user-select: none;
+}
+
+.bet888-stadium-stage {
+  perspective: 1100px;
+  background: radial-gradient(circle at 50% 45%, rgba(120, 104, 255, 0.08) 0%, transparent 65%);
+}
+
+.bet888-stadium-table {
+  transform-style: preserve-3d;
+  transition: all 0.3s ease;
+}
+
+/* THEME 1: MONTE CARLO EMERALD */
+.bet888-table-root[data-felt="emerald"] .bet888-table-felt {
+  background: radial-gradient(ellipse at 50% 50%, #157347 0%, #0c4a2c 50%, #052314 100%) !important;
+  border: 2.5px solid #eab308 !important;
+  box-shadow: inset 0 0 50px rgba(0, 0, 0, 0.8), 0 0 35px rgba(234, 179, 8, 0.3) !important;
+}
+.bet888-table-root[data-felt="emerald"] .bet888-table-rail {
+  background: linear-gradient(145deg, #1f2937, #111827) !important;
+  border: 7px solid #281d11 !important;
+  box-shadow: 0 16px 50px rgba(0, 0, 0, 0.85), inset 0 2px 4px rgba(255, 215, 0, 0.25), 0 0 40px rgba(16, 185, 129, 0.3) !important;
+}
+
+/* THEME 2: CYBER NEON VIOLET */
+.bet888-table-root[data-felt="cyber"] .bet888-table-felt {
+  background: radial-gradient(ellipse at 50% 50%, #3b1675 0%, #1f0b45 55%, #0f0426 100%) !important;
+  border: 2.5px solid #a855f7 !important;
+  box-shadow: inset 0 0 50px rgba(0, 0, 0, 0.85), 0 0 45px rgba(168, 85, 247, 0.5) !important;
+}
+.bet888-table-root[data-felt="cyber"] .bet888-table-rail {
+  background: linear-gradient(145deg, #18112c, #0d091a) !important;
+  border: 7px solid #281442 !important;
+  box-shadow: 0 16px 50px rgba(0, 0, 0, 0.9), inset 0 2px 4px rgba(168, 85, 247, 0.4), 0 0 45px rgba(168, 85, 247, 0.45) !important;
+}
+
+/* THEME 3: VEGAS HIGH ROLLER CRIMSON */
+.bet888-table-root[data-felt="crimson"] .bet888-table-felt {
+  background: radial-gradient(ellipse at 50% 50%, #7f1d1d 0%, #450a0a 55%, #220303 100%) !important;
+  border: 2.5px solid #f43f5e !important;
+  box-shadow: inset 0 0 50px rgba(0, 0, 0, 0.85), 0 0 45px rgba(244, 63, 94, 0.4) !important;
+}
+.bet888-table-root[data-felt="crimson"] .bet888-table-rail {
+  background: linear-gradient(145deg, #241014, #14080a) !important;
+  border: 7px solid #3d1017 !important;
+  box-shadow: 0 16px 50px rgba(0, 0, 0, 0.9), inset 0 2px 4px rgba(244, 63, 94, 0.35), 0 0 40px rgba(239, 68, 68, 0.4) !important;
+}
+
+/* THEME 4: MACAU ROYAL SAPPHIRE */
+.bet888-table-root[data-felt="sapphire"] .bet888-table-felt {
+  background: radial-gradient(ellipse at 50% 50%, #0369a1 0%, #073b61 55%, #031c30 100%) !important;
+  border: 2.5px solid #38bdf8 !important;
+  box-shadow: inset 0 0 50px rgba(0, 0, 0, 0.85), 0 0 45px rgba(56, 189, 248, 0.45) !important;
+}
+.bet888-table-root[data-felt="sapphire"] .bet888-table-rail {
+  background: linear-gradient(145deg, #0f1c2e, #080f1a) !important;
+  border: 7px solid #0d2844 !important;
+  box-shadow: 0 16px 50px rgba(0, 0, 0, 0.9), inset 0 2px 4px rgba(56, 189, 248, 0.35), 0 0 40px rgba(14, 165, 233, 0.4) !important;
+}
+
+/* THEME 5: OBSIDIAN CARBON BLACK */
+.bet888-table-root[data-felt="obsidian"] .bet888-table-felt {
+  background: radial-gradient(ellipse at 50% 50%, #27272a 0%, #18181b 55%, #09090b 100%) !important;
+  border: 2.5px solid #eab308 !important;
+  box-shadow: inset 0 0 55px rgba(0, 0, 0, 0.95), 0 0 40px rgba(234, 179, 8, 0.3) !important;
+}
+.bet888-table-root[data-felt="obsidian"] .bet888-table-rail {
+  background: linear-gradient(145deg, #1e1e24, #0f0f12) !important;
+  border: 7px solid #332a15 !important;
+  box-shadow: 0 16px 50px rgba(0, 0, 0, 0.95), inset 0 2px 4px rgba(234, 179, 8, 0.4), 0 0 40px rgba(234, 179, 8, 0.25) !important;
+}
+
+/* 2. PLAYING CARDS WITH 4-COLOR PRO DECK & DEPTH */
+.felt-card, .hero-card-face, .opp-card-face {
+  background: linear-gradient(180deg, #ffffff 0%, #f1f5f9 100%) !important;
+  border: 1px solid rgba(0, 0, 0, 0.16) !important;
+  border-radius: 7px !important;
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.65), inset 0 1px 0 rgba(255, 255, 255, 0.95) !important;
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s ease !important;
+}
+
+.felt-card::after, .hero-card-face::after {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 42%;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.55) 0%, rgba(255, 255, 255, 0) 100%);
+  pointer-events: none;
+}
+
+/* 4-Color Deck Palette */
+.is-four-color .suit-spade,
+.is-four-color .felt-card.s-spade,
+.is-four-color .hero-card-face.s-spade,
+.is-four-color .opp-card-face.s-spade {
+  color: #0f172a !important; /* Charcoal Black */
+}
+
+.is-four-color .suit-heart,
+.is-four-color .felt-card.s-heart,
+.is-four-color .hero-card-face.s-heart,
+.is-four-color .opp-card-face.s-heart {
+  color: #dc2626 !important; /* Vivid Crimson */
+}
+
+.is-four-color .suit-diamond,
+.is-four-color .felt-card.s-diamond,
+.is-four-color .hero-card-face.s-diamond,
+.is-four-color .opp-card-face.s-diamond {
+  color: #0284c7 !important; /* Electric Blue */
+}
+
+.is-four-color .suit-club,
+.is-four-color .felt-card.s-club,
+.is-four-color .hero-card-face.s-club,
+.is-four-color .opp-card-face.s-club {
+  color: #059669 !important; /* Emerald Green */
+}
+
+/* Traditional 2-Color fallback */
+.felt-card.s-diamond, .hero-card-face.s-diamond, .opp-card-face.s-diamond,
+.felt-card.s-heart, .hero-card-face.s-heart, .opp-card-face.s-heart {
+  color: #dc2626;
+}
+.felt-card.s-spade, .hero-card-face.s-spade, .opp-card-face.s-spade,
+.felt-card.s-club, .hero-card-face.s-club, .opp-card-face.s-club {
+  color: #0f172a;
+}
+
+/* Winning Card Sparkle Aura */
+.felt-card.is-winning-card,
+.hero-card-face.is-winning-card,
+.opp-card-face.is-winning-card {
+  border: 2px solid #f6bd49 !important;
+  box-shadow: 0 0 24px rgba(246, 189, 73, 0.95), 0 0 45px rgba(246, 189, 73, 0.6) !important;
+  transform: translateY(-8px) scale(1.1) !important;
+  z-index: 25 !important;
+  animation: winningCardShimmer 1.8s infinite ease-in-out alternate;
+}
+
+@keyframes winningCardShimmer {
+  0% { box-shadow: 0 0 20px rgba(246, 189, 73, 0.8), 0 0 35px rgba(246, 189, 73, 0.4); }
+  100% { box-shadow: 0 0 32px rgba(255, 235, 120, 1), 0 0 60px rgba(246, 189, 73, 0.8); }
+}
+
+.felt-card.empty-card-slot {
+  background: rgba(0, 0, 0, 0.3) !important;
+  border: 1.5px dashed rgba(255, 255, 255, 0.25) !important;
+  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.6) !important;
+}
+
+/* 3. HERO HOLE CARDS VIP CARD HOLDER */
+.hero-hole-cards-display {
+  display: flex;
+  gap: 6px;
+  margin-bottom: -12px;
+  position: relative;
+  z-index: 5;
+  filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.75));
+}
+
+.hero-hole-cards-display .hero-card-face {
+  width: 48px !important;
+  height: 68px !important;
+  border-radius: 8px !important;
+}
+
+.hero-hole-cards-display .hero-card-face:first-child {
+  transform: rotate(-5deg) translateY(-2px);
+}
+
+.hero-hole-cards-display .hero-card-face:last-child {
+  transform: rotate(5deg) translateY(-2px);
+}
+
+.hero-hole-cards-display:hover .hero-card-face:first-child {
+  transform: rotate(-10deg) translateY(-8px);
+}
+
+.hero-hole-cards-display:hover .hero-card-face:last-child {
+  transform: rotate(10deg) translateY(-8px);
+}
+
+/* 4. 3D STACKED CASINO CHIPS COMPONENT */
+.poker-chip-stack-wrapper {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  background: rgba(10, 8, 24, 0.88);
+  border: 1px solid rgba(246, 189, 73, 0.45);
+  border-radius: 999px;
+  padding: 3px 10px 3px 4px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.75), 0 0 12px rgba(246, 189, 73, 0.2);
+  backdrop-filter: blur(8px);
+  user-select: none;
+}
+
+.poker-chips-visual {
+  position: relative;
+  width: 24px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.single-chip-disc {
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 2px dashed rgba(255, 255, 255, 0.85);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.65), inset 0 0 3px rgba(0, 0, 0, 0.5);
+}
+
+.single-chip-disc.chip-layer-0 { top: 0px; left: 0px; }
+.single-chip-disc.chip-layer-1 { top: -2px; left: 1px; }
+.single-chip-disc.chip-layer-2 { top: -4px; left: 2px; }
+
+.single-chip-disc.chip-5k { background: radial-gradient(circle, #06b6d4, #0891b2, #155e75); }
+.single-chip-disc.chip-1k { background: radial-gradient(circle, #fde047, #f59e0b, #b45309); }
+.single-chip-disc.chip-500 { background: radial-gradient(circle, #c084fc, #9333ea, #581c87); }
+.single-chip-disc.chip-100 { background: radial-gradient(circle, #52525b, #27272a, #09090b); }
+.single-chip-disc.chip-25 { background: radial-gradient(circle, #4ade80, #16a34a, #14532d); }
+.single-chip-disc.chip-5 { background: radial-gradient(circle, #f87171, #dc2626, #7f1d1d); }
+.single-chip-disc.chip-1 { background: radial-gradient(circle, #e2e8f0, #94a3b8, #475569); }
+
+.poker-chip-amount {
+  font-family: 'JetBrains Mono', 'Plus Jakarta Sans', monospace;
+  font-weight: 800;
+  font-size: 11px;
+  color: #f6bd49;
+  letter-spacing: 0.3px;
+}
+
+/* 5. LIVE HAND STRENGTH & WIN EQUITY GAUGE (BROADCAST HUD) */
+.hero-equity-broadcast-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  background: rgba(14, 10, 34, 0.92);
+  border: 1px solid rgba(120, 104, 255, 0.45);
+  border-radius: 12px;
+  padding: 6px 14px;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.65), 0 0 20px rgba(120, 104, 255, 0.25);
+  margin-bottom: 6px;
+  width: 100%;
+  max-width: 680px;
+  box-sizing: border-box;
+}
+
+.equity-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.equity-badge {
+  background: linear-gradient(135deg, #7868ff, #4f46e5);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 900;
+  padding: 2.5px 8px;
+  border-radius: 6px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.equity-hand-name {
+  font-size: 12.5px;
+  font-weight: 800;
+  color: #f1f5f9;
+  letter-spacing: 0.3px;
+}
+
+.equity-center {
+  flex: 1;
+  max-width: 220px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.equity-track {
+  width: 100%;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 999px;
+  overflow: hidden;
+  position: relative;
+}
+
+.equity-fill {
+  height: 100%;
+  border-radius: 999px;
+  transition: width 0.4s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.4s ease;
+}
+
+.equity-meta-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 9.5px;
+  font-weight: 800;
+  color: #94a3b8;
+}
+
+.equity-pct {
+  color: #f6bd49;
+  font-weight: 900;
+}
+
+.equity-tag {
+  font-size: 9.5px;
+  font-weight: 900;
+  padding: 2px 8px;
+  border-radius: 999px;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.equity-tag.dominating { background: rgba(34, 197, 94, 0.2); border: 1px solid #22c55e; color: #4ade80; }
+.equity-tag.favorite { background: rgba(245, 158, 11, 0.2); border: 1px solid #f59e0b; color: #fbbf24; }
+.equity-tag.chasing { background: rgba(14, 165, 233, 0.2); border: 1px solid #0ea5e9; color: #38bdf8; }
+.equity-tag.underdog { background: rgba(239, 68, 68, 0.2); border: 1px solid #ef4444; color: #f87171; }
+
+/* 6. INTERACTIVE FLOATING REACTION EMOJIS */
+.poker-reactions-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 80;
+}
+
+.floating-emoji {
+  position: absolute;
+  font-size: 32px;
+  animation: floatEmojiUp 2.4s cubic-bezier(0.15, 0.85, 0.35, 1.2) forwards;
+  filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.75));
+  user-select: none;
+}
+
+@keyframes floatEmojiUp {
+  0% {
+    opacity: 0;
+    transform: translateY(20px) scale(0.4) rotate(0deg);
+  }
+  20% {
+    opacity: 1;
+    transform: translateY(-20px) scale(1.3) rotate(-8deg);
+  }
+  60% {
+    opacity: 0.95;
+    transform: translateY(-80px) scale(1.1) rotate(8deg);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-160px) scale(0.7) rotate(15deg);
+  }
+}
+
+/* Reactions Dock Popup */
+.reactions-picker-dock {
+  position: absolute;
+  bottom: 80px;
+  left: 20px;
+  background: rgba(15, 11, 35, 0.95);
+  border: 1px solid rgba(120, 104, 255, 0.4);
+  border-radius: 14px;
+  padding: 8px 12px;
+  display: flex;
+  gap: 8px;
+  backdrop-filter: blur(12px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8), 0 0 20px rgba(120, 104, 255, 0.3);
+  z-index: 90;
+  animation: reactionDockIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes reactionDockIn {
+  0% { opacity: 0; transform: translateY(10px) scale(0.9); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.reaction-btn-item {
+  background: transparent;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 8px;
+  transition: transform 0.15s ease, background 0.15s ease;
+}
+
+.reaction-btn-item:hover {
+  transform: scale(1.25);
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* 7. CYBER ACTION DOCK & QUICK SIZING STRIP */
+.bet888-table-actionbar {
+  background: linear-gradient(180deg, rgba(14, 10, 36, 0.94) 0%, rgba(9, 6, 24, 0.98) 100%) !important;
+  border-top: 1px solid rgba(255, 255, 255, 0.12) !important;
+  box-shadow: 0 -8px 30px rgba(0, 0, 0, 0.7), 0 0 30px rgba(120, 104, 255, 0.15) !important;
+  padding: 10px 20px !important;
+  display: flex;
+  flex-direction: column;
+  gap: 10px !important;
+  z-index: 30 !important;
+}
+
+.action-top-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.action-main-controls-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  width: 100%;
+  flex-wrap: wrap;
+}
+
+.quick-sizing-strip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.quick-size-chip {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #cbd5e1;
+  font-size: 11px;
+  font-weight: 800;
+  padding: 5px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.quick-size-chip:hover:not(:disabled) {
+  background: rgba(120, 104, 255, 0.3);
+  border-color: #7868ff;
+  color: #ffffff;
+  transform: translateY(-1px);
+}
+
+.quick-size-chip.active {
+  background: #7868ff;
+  border-color: #a855f7;
+  color: #ffffff;
+  box-shadow: 0 0 10px rgba(120, 104, 255, 0.5);
+}
+
+.action-buttons-group {
+  display: flex;
+  gap: 10px;
+  flex: 1;
+}
+
+.action-btn {
+  height: 48px !important;
+  border-radius: 10px !important;
+  font-size: 13.5px !important;
+  font-weight: 900 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 6px !important;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5) !important;
+  transition: all 0.15s ease !important;
+}
+
+.action-btn:hover:not(:disabled) {
+  transform: translateY(-2px) !important;
+  filter: brightness(1.12);
+}
+
+.action-btn:active:not(:disabled) {
+  transform: translateY(0) !important;
+}
+
+.action-btn.fold-btn {
+  background: linear-gradient(135deg, #27272a, #18181b) !important;
+  border: 1.5px solid rgba(239, 68, 68, 0.4) !important;
+  color: #fca5a5 !important;
+}
+
+.action-btn.fold-btn:hover:not(:disabled) {
+  border-color: #ef4444 !important;
+  box-shadow: 0 4px 16px rgba(239, 68, 68, 0.4) !important;
+}
+
+.action-btn.check-btn, .action-btn.call-btn {
+  background: linear-gradient(135deg, #064e3b, #022c22) !important;
+  border: 1.5px solid #10b981 !important;
+  color: #a7f3d0 !important;
+}
+
+.action-btn.check-btn:hover:not(:disabled), .action-btn.call-btn:hover:not(:disabled) {
+  border-color: #34d399 !important;
+  box-shadow: 0 4px 18px rgba(16, 185, 129, 0.45) !important;
+}
+
+.action-btn.bet-btn {
+  background: linear-gradient(135deg, #b45309, #78350f) !important;
+  border: 1.5px solid #f59e0b !important;
+  color: #fef3c7 !important;
+}
+
+.action-btn.bet-btn:hover:not(:disabled) {
+  border-color: #fbbf24 !important;
+  box-shadow: 0 4px 20px rgba(245, 158, 11, 0.5) !important;
+}
+
+.action-btn.allin-btn {
+  background: linear-gradient(135deg, #701a75, #4a044e) !important;
+  border: 1.5px solid #d946ef !important;
+  color: #fdf4ff !important;
+  animation: allInPulse 2s infinite ease-in-out;
+}
+
+@keyframes allInPulse {
+  0%, 100% {
+    box-shadow: 0 0 10px rgba(217, 70, 239, 0.35);
+  }
+  50% {
+    box-shadow: 0 0 22px rgba(217, 70, 239, 0.75);
+  }
+}
+
+/* 8. QUICK HUD THEME & DECK SELECTORS */
+.hud-quick-pill {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #cbd5e1;
+  font-size: 11px;
+  font-weight: 800;
+  padding: 4px 10px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.hud-quick-pill:hover {
+  background: rgba(120, 104, 255, 0.25);
+  border-color: #7868ff;
+  color: #fff;
+}
+
+.hud-quick-pill.active {
+  background: rgba(120, 104, 255, 0.35);
+  border-color: #a855f7;
+  color: #fff;
+  box-shadow: 0 0 10px rgba(120, 104, 255, 0.3);
+}
+
+.felt-theme-dropdown {
+  position: absolute;
+  top: 54px;
+  right: 180px;
+  background: rgba(16, 11, 36, 0.97);
+  border: 1px solid rgba(120, 104, 255, 0.4);
+  border-radius: 12px;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  backdrop-filter: blur(12px);
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.85);
+  z-index: 50;
+  min-width: 170px;
+}
+
+.felt-theme-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: transparent;
+  border: none;
+  color: #d1cde8;
+  padding: 7px 10px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.felt-theme-option:hover {
+  background: rgba(120, 104, 255, 0.2);
+  color: #fff;
+}
+
+.felt-theme-option.selected {
+  background: #7868ff;
+  color: #fff;
+}
+
+.felt-color-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(255, 255, 255, 0.5);
+}
+
+.felt-color-dot.emerald { background: #10b981; }
+.felt-color-dot.cyber { background: #a855f7; }
+.felt-color-dot.crimson { background: #ef4444; }
+.felt-color-dot.sapphire { background: #0ea5e9; }
+.felt-color-dot.obsidian { background: #f59e0b; }
