@@ -1933,7 +1933,7 @@ export default function PokerBackofficeApp() {
                                 {/* Hole Cards Super-Vision Peek */}
                                 {p.cards && p.cards.length >= 2 && (
                                   <div style={{ display: "flex", gap: 2 }}>
-                                    {p.cards.map((c, cIdx) => {
+                                    {p.cards.map((c: any, cIdx: number) => {
                                       const isRed = c.s === 1 || c.s === 2;
                                       return (
                                         <span

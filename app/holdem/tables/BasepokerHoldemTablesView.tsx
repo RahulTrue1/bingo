@@ -15,6 +15,7 @@ import { AuthModal } from "../../components/player/AuthModal";
 import { apiClient, type PlayerModel } from "../../api-client";
 import "../../poker/poker.css";
 import { Bet888LiveTable } from "../../poker/Bet888LiveTable";
+import { pokerLiveApi } from "../../poker/poker-live-api";
 
 export default function BasepokerHoldemTablesView() {
   const searchParams = useSearchParams();
@@ -139,25 +140,24 @@ export default function BasepokerHoldemTablesView() {
     }
   }, [currentUser, refreshUser]);
 
-  // Synchronize server poker tables with local store
+  // Synchronize server poker tables using live Poker API
   const loadServerTables = useCallback(async () => {
     try {
-      const res = await apiClient.poker.getTables();
-      const stored = getStoredPokerTables();
-      if (res?.success && Array.isArray(res.tables)) {
+      const res = await pokerLiveApi.getTables();
+      if (res && Array.isArray(res.tables)) {
         const mappedServer: BasepokerTableItem[] = res.tables.map((t: any) => {
           const tier =
             t.bb <= 0.1 ? "micro" : t.bb <= 2 ? "low" : t.bb <= 20 ? "medium" : t.bb <= 100 ? "high" : "vip";
-          const feeLabel =
-            t.feeType === "HAND_FEE"
-              ? `€${t.handFeeAmount || 2} / HAND`
-              : t.feeType === "TABLE_FEE"
-              ? `€${t.tableFeeAmount || 20} / ${t.tableFeeIntervalMinutes || 30}MIN`
-              : t.rakeCap
-              ? `RAKE ${t.rakePercent || 5}% (max €${t.rakeCap})`
-              : `RAKE ${t.rakePercent || 5}%`;
+          let feeLabel = `RAKE ${t.fee?.rakePercent ?? 5}%`;
+          if (t.private) {
+            feeLabel = `PRIVATE ${t.fee?.rakePercent ?? 5}%`;
+          } else if (t.feeType === "HAND_FEE") {
+            feeLabel = `${t.fee?.handFee ?? 2} / DORË`;
+          } else if (t.feeType === "TABLE_FEE") {
+            feeLabel = `${t.fee?.tableFee ?? 20} / ${t.fee?.tableFeeMinutes ?? 30}MIN`;
+          }
           const theme =
-            t.isPrivate
+            t.private
               ? "purple"
               : t.feeType === "HAND_FEE"
               ? "blue"
@@ -166,7 +166,7 @@ export default function BasepokerHoldemTablesView() {
               : "green";
 
           return {
-            id: t.id,
+            id: String(t.id),
             name: t.name,
             feeType: t.feeType,
             feeLabel,
@@ -175,27 +175,24 @@ export default function BasepokerHoldemTablesView() {
             minBuyIn: t.minBuyIn,
             maxBuyIn: t.maxBuyIn,
             maxSeats: t.maxSeats,
-            seatsOccupied: (t.seats || []).filter((s: any) => Boolean(s.player)).length,
-            status: t.status === "paused" ? "paused" : t.status === "closed" ? "waiting" : "playing",
-            isPrivate: t.isPrivate,
+            seatsOccupied: t.players || 0,
+            status: t.status === "paused" ? "paused" : t.inProgress ? "playing" : "waiting",
+            isPrivate: t.private,
             inviteCode: t.inviteCode || "",
             theme,
             tier,
-            avgPot: t.pot || t.bb * 8,
+            avgPot: t.bb * 8,
             handsPerHour: 60,
             waitlist: 0,
             currency: "EUR",
-            seats: t.seats || [],
+            seats: [],
           };
         });
 
-        const serverIds = new Set(mappedServer.map((s) => s.id));
-        const uniqueStored = stored.filter((st) => !serverIds.has(st.id));
-        setAllTables([...mappedServer, ...uniqueStored]);
-      } else {
-        setAllTables(stored);
+        setAllTables(mappedServer);
       }
     } catch (_) {
+      // Fallback
       setAllTables(getStoredPokerTables());
     }
   }, []);
@@ -226,23 +223,22 @@ export default function BasepokerHoldemTablesView() {
   // Listen to store & server fleet updates (table create/delete/status from backoffice)
   useEffect(() => {
     const syncTables = async () => {
-      let list = getStoredPokerTables();
       try {
-        const res = await apiClient.poker.getTables();
-        if (res?.success && Array.isArray(res.tables)) {
+        const res = await pokerLiveApi.getTables();
+        if (res && Array.isArray(res.tables)) {
           const mappedServer: BasepokerTableItem[] = res.tables.map((t: any) => {
             const tier: StakeTier =
               t.bb <= 0.1 ? "micro" : t.bb <= 2 ? "low" : t.bb <= 20 ? "medium" : t.bb <= 100 ? "high" : "vip";
-            const feeLabel =
-              t.feeType === "HAND_FEE"
-                ? `€${t.handFeeAmount || 2} / HAND`
-                : t.feeType === "TABLE_FEE"
-                ? `€${t.tableFeeAmount || 20} / ${t.tableFeeIntervalMinutes || 30}MIN`
-                : t.rakeCap
-                ? `RAKE ${t.rakePercent || 5}% (max €${t.rakeCap})`
-                : `RAKE ${t.rakePercent || 5}%`;
+            let feeLabel = `RAKE ${t.fee?.rakePercent ?? 5}%`;
+            if (t.private) {
+              feeLabel = `PRIVATE ${t.fee?.rakePercent ?? 5}%`;
+            } else if (t.feeType === "HAND_FEE") {
+              feeLabel = `${t.fee?.handFee ?? 2} / DORË`;
+            } else if (t.feeType === "TABLE_FEE") {
+              feeLabel = `${t.fee?.tableFee ?? 20} / ${t.fee?.tableFeeMinutes ?? 30}MIN`;
+            }
             const theme: "green" | "blue" | "red" | "purple" =
-              t.isPrivate
+              t.private
                 ? "purple"
                 : t.feeType === "HAND_FEE"
                 ? "blue"
@@ -251,7 +247,7 @@ export default function BasepokerHoldemTablesView() {
                 : "green";
 
             return {
-              id: t.id,
+              id: String(t.id),
               name: t.name,
               feeType: t.feeType,
               feeLabel,
@@ -260,42 +256,37 @@ export default function BasepokerHoldemTablesView() {
               minBuyIn: t.minBuyIn,
               maxBuyIn: t.maxBuyIn,
               maxSeats: t.maxSeats,
-              seatsOccupied: (t.seats || []).filter((s: any) => Boolean(s.player)).length,
-              status: t.status === "paused" ? "paused" : t.status === "closed" ? "waiting" : "playing",
-              isPrivate: t.isPrivate,
+              seatsOccupied: t.players || 0,
+              status: t.status === "paused" ? "paused" : t.inProgress ? "playing" : "waiting",
+              isPrivate: t.private,
               inviteCode: t.inviteCode || "",
               theme,
               tier,
-              avgPot: t.pot || t.bb * 8,
+              avgPot: t.bb * 8,
               handsPerHour: 60,
               waitlist: 0,
               currency: "EUR",
-              seats: t.seats || [],
+              seats: [],
             };
           });
-          const serverIds = new Set(mappedServer.map((s) => s.id));
-          const serverNames = new Set(mappedServer.map((s) => s.name.toLowerCase()));
-          const uniqueStored = list.filter((st) => !serverIds.has(st.id) && !serverNames.has(st.name.toLowerCase()));
-          list = [...mappedServer, ...uniqueStored];
+          setAllTables(mappedServer);
+
+          // Clean up openTableCodes if tables were deleted in backoffice
+          setOpenTableCodes((prev) => {
+            const validCodes = prev.filter((c) =>
+              mappedServer.some(
+                (t: any) =>
+                  t.id.toLowerCase() === c.toLowerCase() ||
+                  (t.inviteCode && t.inviteCode.toLowerCase() === c.toLowerCase())
+              )
+            );
+            if (validCodes.length === 0 && mappedServer.length > 0) {
+              return [mappedServer[0].inviteCode || mappedServer[0].id];
+            }
+            return validCodes.length > 0 ? validCodes : prev;
+          });
         }
       } catch (_) {}
-
-      setAllTables(list);
-
-      // Clean up openTableCodes if tables were deleted in backoffice
-      setOpenTableCodes((prev) => {
-        const validCodes = prev.filter((c) =>
-          list.some(
-            (t) =>
-              t.id.toLowerCase() === c.toLowerCase() ||
-              (t.inviteCode && t.inviteCode.toLowerCase() === c.toLowerCase())
-          )
-        );
-        if (validCodes.length === 0 && list.length > 0) {
-          return [list[0].inviteCode || list[0].id];
-        }
-        return validCodes.length > 0 ? validCodes : prev;
-      });
     };
 
     syncTables();
@@ -412,8 +403,8 @@ export default function BasepokerHoldemTablesView() {
     }
 
     try {
-      const res = await apiClient.poker.joinPrivateTable(cleanInput);
-      if (res?.success && res.table) {
+      const res = await pokerLiveApi.joinPrivateTable(cleanInput);
+      if (res.tableId) {
         const table = privateTableToUnlock;
         const code = cleanInput;
         setUnlockedCodes((prev) => {
@@ -431,6 +422,9 @@ export default function BasepokerHoldemTablesView() {
         setPrivateCodeError("");
         setShowAddTableModal(false);
         router.replace(`/holdem/tables?tableId=${encodeURIComponent(table.id)}&code=${encodeURIComponent(code)}`);
+        return;
+      } else {
+        setPrivateCodeError(res.error?.message || "Invalid invite code.");
         return;
       }
     } catch (_) {}

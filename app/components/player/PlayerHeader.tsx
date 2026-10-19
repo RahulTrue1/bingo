@@ -194,13 +194,29 @@ export function PlayerHeader({
         >
           Bingo
         </button>
-        <Link
-          href="/cashgame"
-          className={`main-nav-link ${currentApp === "poker" ? "active" : ""}`}
-          title="Basepoker Cash Game Live"
-        >
-        Poker
-        </Link>
+        {((currentUser?.isPokerEnabled ?? currentUser?.poker_enabled) !== false) && (
+          <Link
+            href="/cashgame"
+            className={`main-nav-link ${currentApp === "poker" ? "active" : ""}`}
+            title="Poker Live"
+            style={{ display: "inline-flex", alignItems: "center", gap: 5 }}
+          >
+            <span>♠ Poker Live</span>
+            <span
+              style={{
+                background: "#ef4444",
+                color: "#fff",
+                fontSize: 9,
+                fontWeight: 800,
+                padding: "1px 5px",
+                borderRadius: 4,
+                letterSpacing: 0.5,
+              }}
+            >
+              LIVE
+            </span>
+          </Link>
+        )}
       </nav>
 
       <div className="header-actions">

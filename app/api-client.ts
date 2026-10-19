@@ -210,6 +210,7 @@ export interface PlayerModel {
   status: string;
   restrictions?: string[];
   poker_enabled?: boolean;
+  isPokerEnabled?: boolean;
 }
 
 export interface PokerTableApiModel {
